@@ -4,7 +4,7 @@ import LoginPage from './components/LoginPage';
 import {
   LayoutDashboard, Briefcase, Users, Bot, TrendingUp, Menu, X,
   Building2, BookOpen, Shield, Megaphone, LogOut, UserCircle, Cpu, Zap, Settings, Brain,
-  Rocket, Handshake, Bell, Search
+  Rocket, Handshake, Bell, Search, Target
 } from 'lucide-react';
 import { GlobalSearch } from './components/GlobalSearch';
 import { NotificationsCenter } from './components/NotificationsCenter';
@@ -40,11 +40,12 @@ import PartnerClinicsView from './components/partners/PartnerClinicsView';
 import PatientPortalDashboard from './components/patient/PatientPortalDashboard';
 import ClinicianMobileDashboard from './components/clinician/ClinicianMobileDashboard';
 import { ExcellenceDemoView } from './components/operations/ExcellenceDemoView';
+import CRMDashboard from './components/crm/CRMDashboard';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -101,6 +102,7 @@ function App() {
   const navigation = [
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'main' },
     { key: 'ai-assistant', label: 'AI Assistant', icon: Brain, section: 'main' },
+    { key: 'crm', label: 'CRM Automation', icon: Target, section: 'main' },
     { key: 'excellence-demo', label: 'Excellence Demo', icon: Zap, section: 'main', roles: ['executive', 'admin'] },
     { key: 'clinician-mobile', label: 'Clinician Mobile', icon: UserCircle, section: 'main', roles: ['clinician', 'executive', 'admin'] },
     { key: 'clinics', label: 'Clinics', icon: Building2, section: 'main' },
@@ -129,6 +131,7 @@ function App() {
     switch (currentView) {
       case 'dashboard': return <IntranetDashboard onNavigate={(view) => setCurrentView(view as View)} />;
       case 'ai-assistant': return <AIAssistantDashboard />;
+      case 'crm': return <CRMDashboard />;
       case 'clinics': return <ClinicsView />;
       case 'people': return <PeopleView />;
       case 'launches': return <LaunchManagementDashboard />;
