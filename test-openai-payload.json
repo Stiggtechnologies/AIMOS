@@ -1,0 +1,10 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say: Hello! OpenAI is working correctly."
+    }
+  ],
+  "model": "gpt-4o-mini",
+  "max_tokens": 50
+}

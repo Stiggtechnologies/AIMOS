@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenAI Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .loading { border-left: 4px solid #2196F3; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #0b7dda; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OpenAI Integration Test</h1>
+        <p>This will test your OpenAI API key configuration.</p>
+        <button id="testBtn" onclick="testOpenAI()">Test OpenAI Connection</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://tfnoogotbyshsznpjspk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbm9vZ290YnlzaHN6bnBqc3BrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MDY2ODAsImV4cCI6MjA4MzA4MjY4MH0.RGOuBG_vrZhtrtSfhQ_ij72ctznWn0dAkQHYjT7FT_M';
+
+        async function testOpenAI() {
+            const resultDiv = document.getElementById('result');
+            const testBtn = document.getElementById('testBtn');
+
+            testBtn.disabled = true;
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '⏳ Testing OpenAI connection...';
+
+            try {
+                // First, check if we need to authenticate
+                // For this test, we'll try without auth first (edge function should handle it)
+
+                const apiUrl = `${SUPABASE_URL}/functions/v1/openai-assistant`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: 'user',
+                                content: 'Say "Hello! OpenAI is working correctly." in exactly those words.'
+                            }
+                        ],
+                        model: 'gpt-4o-mini',
+                        temperature: 0.3,
+                        max_tokens: 50
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}: ${JSON.stringify(data)}`);
+                }
+
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const message = data.choices[0].message.content;
+                    const usage = data.usage;
+
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `✅ SUCCESS! OpenAI is working!\n\n` +
+                        `Response: ${message}\n\n` +
+                        `Model: ${data.model}\n` +
+                        `Tokens Used: ${usage.total_tokens} (${usage.prompt_tokens} prompt + ${usage.completion_tokens} completion)\n` +
+                        `Estimated Cost: ~$${(usage.total_tokens * 0.00000015).toFixed(6)}`;
+                } else {
+                    throw new Error('Unexpected response format: ' + JSON.stringify(data));
+                }
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ ERROR\n\n${error.message}\n\n` +
+                    `Common fixes:\n` +
+                    `1. Verify OPENAI_API_KEY is set in Supabase secrets\n` +
+                    `2. Wait 1-2 minutes after adding the secret\n` +
+                    `3. Check your OpenAI account has credits\n` +
+                    `4. Verify the API key is active`;
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
