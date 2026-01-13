@@ -41,11 +41,12 @@ import PatientPortalDashboard from './components/patient/PatientPortalDashboard'
 import ClinicianMobileDashboard from './components/clinician/ClinicianMobileDashboard';
 import { ExcellenceDemoView } from './components/operations/ExcellenceDemoView';
 import CRMDashboard from './components/crm/CRMDashboard';
+import { AgentExecutionDashboard } from './components/agents/AgentExecutionDashboard';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'agent-execution';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -102,6 +103,7 @@ function App() {
   const navigation = [
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'main' },
     { key: 'ai-assistant', label: 'AI Assistant', icon: Brain, section: 'main' },
+    { key: 'agent-execution', label: 'Agent Execution', icon: Bot, section: 'main', roles: ['executive', 'admin', 'operations'] },
     { key: 'crm', label: 'CRM Automation', icon: Target, section: 'main' },
     { key: 'excellence-demo', label: 'Excellence Demo', icon: Zap, section: 'main', roles: ['executive', 'admin'] },
     { key: 'clinician-mobile', label: 'Clinician Mobile', icon: UserCircle, section: 'main', roles: ['clinician', 'executive', 'admin'] },
@@ -131,6 +133,7 @@ function App() {
     switch (currentView) {
       case 'dashboard': return <IntranetDashboard onNavigate={(view) => setCurrentView(view as View)} />;
       case 'ai-assistant': return <AIAssistantDashboard />;
+      case 'agent-execution': return <AgentExecutionDashboard />;
       case 'crm': return <CRMDashboard />;
       case 'clinics': return <ClinicsView />;
       case 'people': return <PeopleView />;
