@@ -289,6 +289,278 @@ class ClinicalIntelligenceService {
 
     return data || [];
   }
+
+  async getLatestDigest() {
+    const { data, error } = await supabase
+      .from('evidence_digests')
+      .select('*')
+      .eq('status', 'published')
+      .order('digest_month', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading latest digest:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getAllDigests(limit = 12) {
+    const { data, error } = await supabase
+      .from('evidence_digests')
+      .select('*')
+      .eq('status', 'published')
+      .order('digest_month', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error loading digests:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async getResearchSources(tier?: number) {
+    let query = supabase
+      .from('research_sources')
+      .select('*')
+      .eq('approved', true)
+      .order('credibility_score', { ascending: false });
+
+    if (tier) {
+      query = query.eq('tier', tier);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error loading research sources:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async getResearchPriorities(type?: 'condition' | 'outcome') {
+    let query = supabase
+      .from('research_priorities')
+      .select('*')
+      .eq('active', true)
+      .order('priority_score', { ascending: false });
+
+    if (type) {
+      query = query.eq('priority_type', type);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error loading research priorities:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async getActivePilots() {
+    const { data, error } = await supabase
+      .from('practice_pilots')
+      .select(`
+        *,
+        translation:practice_translations (
+          change_title,
+          change_type,
+          expected_outcome_improvement
+        )
+      `)
+      .in('status', ['planned', 'active'])
+      .order('start_date', { ascending: false });
+
+    if (error) {
+      console.error('Error loading active pilots:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async getPilotsSummary() {
+    const { data, error } = await supabase
+      .rpc('get_active_pilots_summary');
+
+    if (error) {
+      console.error('Error loading pilots summary:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async createPilot(pilotData: any, userId: string) {
+    const { data, error } = await supabase
+      .from('practice_pilots')
+      .insert({
+        ...pilotData,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating pilot:', error);
+      return null;
+    }
+
+    await supabase
+      .from('cco_approvals')
+      .insert({
+        approval_type: 'pilot',
+        entity_id: data.id,
+        decision: 'approved',
+        submitted_at: new Date().toISOString()
+      });
+
+    return data;
+  }
+
+  async updatePilotStatus(pilotId: string, status: string, decision?: string, rationale?: string, userId?: string) {
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
+    };
+
+    if (decision) {
+      updateData.decision = decision;
+      updateData.decision_rationale = rationale;
+      updateData.decided_by = userId;
+      updateData.decided_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase
+      .from('practice_pilots')
+      .update(updateData)
+      .eq('id', pilotId);
+
+    if (error) {
+      console.error('Error updating pilot status:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async generateEvidencePack(packType: string, condition: string, forEntity: string, startDate: string, endDate: string, userId: string) {
+    const { data: packData, error: packError } = await supabase
+      .rpc('generate_evidence_pack_data', {
+        p_pack_type: packType,
+        p_condition: condition,
+        p_start_date: startDate,
+        p_end_date: endDate
+      });
+
+    if (packError) {
+      console.error('Error generating pack data:', error);
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('evidence_packs')
+      .insert({
+        pack_type: packType,
+        pack_name: `${condition} Evidence Pack - ${forEntity}`,
+        evidence_summary: packData?.evidence_summary || '',
+        citations: packData?.evidence_summary || {},
+        practice_changes: packData?.practice_changes || {},
+        measured_outcomes: packData?.outcomes || {},
+        for_entity: forEntity,
+        for_condition: condition,
+        date_range_start: startDate,
+        date_range_end: endDate,
+        generated_by: userId,
+        auto_generated: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving evidence pack:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getEvidencePacks(limit = 10) {
+    const { data, error } = await supabase
+      .from('evidence_packs')
+      .select('*')
+      .order('generated_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error loading evidence packs:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  async submitForCCOApproval(translationType: string, translationId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('cco_approvals')
+      .insert({
+        approval_type: translationType,
+        entity_id: translationId,
+        submitted_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error submitting for CCO approval:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async recordCCODecision(approvalId: string, decision: string, rationale: string, ccoId: string, conditions?: string[]) {
+    const { error } = await supabase
+      .from('cco_approvals')
+      .update({
+        decision,
+        decision_rationale: rationale,
+        cco_id: ccoId,
+        conditions: conditions || [],
+        reviewed_at: new Date().toISOString()
+      })
+      .eq('id', approvalId);
+
+    if (error) {
+      console.error('Error recording CCO decision:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async getPendingCCOApprovals() {
+    const { data, error } = await supabase
+      .from('cco_approvals')
+      .select('*')
+      .is('reviewed_at', null)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading pending CCO approvals:', error);
+      return [];
+    }
+
+    return data || [];
+  }
 }
 
 export const clinicalIntelligenceService = new ClinicalIntelligenceService();
