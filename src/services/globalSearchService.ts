@@ -186,7 +186,7 @@ export const globalSearchService = {
 
   async getRecentSearches(userId: string): Promise<string[]> {
     const { data } = await supabase
-      .from('user_search_history')
+      .from('search_history')
       .select('query')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -197,7 +197,7 @@ export const globalSearchService = {
 
   async saveSearch(userId: string, query: string) {
     await supabase
-      .from('user_search_history')
+      .from('search_history')
       .insert({ user_id: userId, query });
   }
 };
