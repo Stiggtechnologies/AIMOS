@@ -43,11 +43,12 @@ import { ExcellenceDemoView } from './components/operations/ExcellenceDemoView';
 import CRMDashboard from './components/crm/CRMDashboard';
 import { AgentExecutionDashboard } from './components/agents/AgentExecutionDashboard';
 import { ClinicalIntelligenceDashboard } from './components/aim-os';
+import RevenueReportImport from './components/operations/RevenueReportImport';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'agent-execution' | 'clinical-intelligence';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -117,6 +118,7 @@ function App() {
     { key: 'compliance', label: 'Compliance', icon: Shield, section: 'main' },
     { key: 'announcements', label: 'Announcements', icon: Megaphone, section: 'main' },
     { key: 'operations', label: 'Operations', icon: Settings, section: 'main' },
+    { key: 'revenue-import', label: 'Revenue Import', icon: TrendingUp, section: 'main', roles: ['executive', 'admin', 'finance'] },
     { key: 'aim-os', label: 'AIM OS', icon: Cpu, section: 'main' },
     { key: 'growth-os', label: 'Growth OS', icon: Zap, section: 'main' },
   ];
@@ -150,6 +152,7 @@ function App() {
       case 'sops': return <SOPHubView />;
       case 'forms': return <FormsView />;
       case 'operations': return <OperationsEngineView />;
+      case 'revenue-import': return <RevenueReportImport />;
       case 'excellence-demo': return <ExcellenceDemoView />;
       case 'aim-os': return <AIMOSDashboard />;
       case 'growth-os': return <GrowthOSDashboard />;
