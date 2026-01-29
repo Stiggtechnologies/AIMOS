@@ -66,7 +66,7 @@ class SchedulerService {
         patients!inner(first_name, last_name),
         clinic_id,
         provider_id,
-        user_profiles(full_name, role),
+        user_profiles(display_name, first_name, last_name, role),
         appointment_type,
         appointment_date,
         start_time,
@@ -96,7 +96,9 @@ class SchedulerService {
       patient_name: `${appt.patients.last_name}, ${appt.patients.first_name}`,
       clinic_id: appt.clinic_id,
       provider_id: appt.provider_id,
-      provider_name: appt.user_profiles?.full_name || null,
+      provider_name: appt.user_profiles?.display_name ||
+                    `${appt.user_profiles?.first_name || ''} ${appt.user_profiles?.last_name || ''}`.trim() ||
+                    null,
       provider_role: appt.user_profiles?.role || null,
       appointment_type: appt.appointment_type,
       appointment_date: appt.appointment_date,
@@ -115,15 +117,15 @@ class SchedulerService {
   async getProviders(clinicId: string): Promise<SchedulerProvider[]> {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, full_name, role, is_active')
-      .or('role.eq.clinician,role.eq.provider,role.eq.pt,role.eq.pta')
+      .select('id, display_name, first_name, last_name, role, is_active, primary_clinic_id')
+      .or('role.eq.clinician,role.eq.provider')
       .eq('is_active', true);
 
     if (error) throw error;
 
-    return (data || []).map(provider => ({
+    return (data || []).filter(p => p.primary_clinic_id === clinicId || !p.primary_clinic_id).map(provider => ({
       id: provider.id,
-      name: provider.full_name,
+      name: provider.display_name || `${provider.first_name || ''} ${provider.last_name || ''}`.trim(),
       role: provider.role,
       clinic_id: clinicId,
       utilization: Math.random() * 40 + 60,
