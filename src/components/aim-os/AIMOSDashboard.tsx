@@ -1,4 +1,4 @@
-import { Activity, Building2, TrendingUp, DollarSign, AlertCircle, FileText, Heart, AlertTriangle, Database, GitMerge, Lightbulb, Layers, Receipt, Package, Smile, Shield, Coins, Target, ShieldAlert, Award, BarChart3, Wallet, LineChart } from 'lucide-react';
+import { Activity, Building2, TrendingUp, DollarSign, AlertCircle, FileText, Heart, AlertTriangle, Database, GitMerge, Lightbulb, Layers, Receipt, Package, Smile, Shield, Coins, Target, ShieldAlert, Award, BarChart3, Wallet, LineChart, Calendar } from 'lucide-react';
 import { useState } from 'react';
 import ClinicalQualityView from './ClinicalQualityView';
 import ReferralIntelligenceView from './ReferralIntelligenceView';
@@ -22,13 +22,22 @@ import InternalControlsView from './InternalControlsView';
 import ValuationReadinessView from './ValuationReadinessView';
 import RevenueAnalyticsView from './RevenueAnalyticsView';
 import CashFlowView from './CashFlowView';
+import SchedulerView from './SchedulerView';
 
-type ModuleView = 'dashboard' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness';
+type ModuleView = 'dashboard' | 'scheduler' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness';
 
 export default function AIMOSDashboard() {
   const [activeView, setActiveView] = useState<ModuleView>('dashboard');
 
   const modules = [
+    {
+      id: 'scheduler' as ModuleView,
+      name: 'Scheduler',
+      description: 'AI-powered scheduling intelligence',
+      icon: Calendar,
+      color: 'blue',
+      stats: { label: 'Today', value: '24 appts' }
+    },
     {
       id: 'executive_intelligence' as ModuleView,
       name: 'Executive Intelligence',
@@ -231,6 +240,17 @@ export default function AIMOSDashboard() {
     teal: 'from-teal-500 to-teal-600',
     sky: 'from-sky-500 to-sky-600'
   };
+
+  if (activeView === 'scheduler') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <SchedulerView />
+      </div>
+    );
+  }
 
   if (activeView === 'executive_intelligence') {
     return (
