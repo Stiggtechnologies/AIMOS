@@ -88,7 +88,12 @@ class SchedulerService {
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching appointments:', error);
+      throw error;
+    }
+
+    console.log(`Loaded ${data?.length || 0} appointments for ${selectedDate} at clinic ${clinicId}`);
 
     return (data || []).map(appt => ({
       id: appt.id,
@@ -118,10 +123,13 @@ class SchedulerService {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('id, display_name, first_name, last_name, role, is_active, primary_clinic_id')
-      .or('role.eq.clinician,role.eq.provider')
+      .eq('role', 'clinician')
       .eq('is_active', true);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching providers:', error);
+      throw error;
+    }
 
     return (data || []).filter(p => p.primary_clinic_id === clinicId || !p.primary_clinic_id).map(provider => ({
       id: provider.id,
