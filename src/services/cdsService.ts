@@ -31,12 +31,224 @@ export interface CDSRecommendation {
   linkedClaims?: EvidenceClaim[];
 }
 
+interface CDSEndpointResponse {
+  domain: string;
+  outputs: {
+    claims: Array<{
+      claim_id: string;
+      claim_text: string;
+      confidence_score: number;
+      score: number;
+      clinical_tags: string[];
+      outcomes: string[];
+      evidence_level: string;
+      risk_of_bias: string;
+      source_id: string;
+    }>;
+    rules: Array<{
+      rule_id: string;
+      rule_name: string;
+      recommendation_text: string;
+      patient_explanation_text: string;
+      priority: number;
+      matched: boolean;
+    }>;
+    pathways: Array<{
+      pathway_id: string;
+      name: string;
+      intended_population: any;
+      phases: any;
+      visit_guidance: any;
+      home_program_guidance: any;
+    }>;
+  };
+  meta: {
+    claim_count: number;
+    returned_claims: number;
+    returned_rules: number;
+    returned_pathways: number;
+  };
+}
+
 class ClinicalDecisionSupportService {
   /**
+   * Call the CDS Match endpoint
+   * Uses the new edge function for domain-filtered evidence matching
+   */
+  private async callCDSEndpoint(patientProfile: PatientProfile): Promise<CDSEndpointResponse | null> {
+    if (!patientProfile.domain) {
+      console.warn('No domain specified, skipping CDS endpoint call');
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cds-match`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            domain: patientProfile.domain,
+            patient_profile: {
+              age_range: patientProfile.age_range,
+              region: patientProfile.region,
+              acuity: patientProfile.acuity,
+              condition_type: patientProfile.condition_type,
+            },
+            clinical_findings: {
+              centralization: patientProfile.centralization,
+              directional_preference: patientProfile.directional_preference,
+              classification: patientProfile.classification,
+              visits_completed: patientProfile.visits_completed,
+              fear_avoidance: patientProfile.fear_avoidance,
+              red_flags: patientProfile.red_flags,
+            },
+            preferences: {
+              tags: this.getRelevantTopics(patientProfile),
+              outcome_focus: ['function', 'pain', 'quality_of_life'],
+              limit_claims: 10,
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        console.error('CDS endpoint error:', response.statusText);
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('CDS endpoint call failed:', error);
+      return null;
+    }
+  }
+
+  /**
    * Match patient profile against evidence claims
-   * Domain-aware: filters claims by specified domain
+   * NOW USES CDS ENDPOINT for domain-filtered, scored evidence
    */
   async matchEvidence(patientProfile: PatientProfile): Promise<CDSMatch[]> {
+    const endpointResult = await this.callCDSEndpoint(patientProfile);
+
+    if (endpointResult) {
+      const matches: CDSMatch[] = [];
+
+      for (const claim of endpointResult.outputs.claims) {
+        const citations = await researchIntelligenceService.getClaimCitations(claim.claim_id);
+
+        matches.push({
+          claim: claim as any,
+          relevanceScore: claim.score,
+          citations,
+          reasoning: this.getReasoningFromScore(claim)
+        });
+      }
+
+      return matches;
+    }
+
+    console.log('Falling back to legacy matching');
+    return this.legacyMatchEvidence(patientProfile);
+  }
+
+  /**
+   * Get clinical recommendations based on patient profile
+   * NOW USES CDS ENDPOINT for domain-filtered recommendations
+   */
+  async getRecommendations(patientProfile: PatientProfile): Promise<CDSRecommendation[]> {
+    const recommendations: CDSRecommendation[] = [];
+
+    const endpointResult = await this.callCDSEndpoint(patientProfile);
+
+    if (endpointResult) {
+      for (const rule of endpointResult.outputs.rules) {
+        recommendations.push({
+          type: 'rule',
+          title: rule.rule_name,
+          clinicianText: rule.recommendation_text,
+          patientText: rule.patient_explanation_text,
+          priority: rule.priority
+        });
+      }
+
+      for (const claim of endpointResult.outputs.claims.slice(0, 3)) {
+        recommendations.push({
+          type: 'evidence' as any,
+          title: 'Evidence-Based Recommendation',
+          clinicianText: claim.claim_text,
+          patientText: `Research shows: ${claim.claim_text}`,
+          priority: Math.max(1, 5 - Math.floor(claim.score)),
+          linkedClaims: [claim as any]
+        });
+      }
+
+      for (const pathway of endpointResult.outputs.pathways) {
+        recommendations.push({
+          type: 'pathway',
+          title: `Suggested Pathway: ${pathway.name}`,
+          clinicianText: `Consider ${pathway.name} based on evidence for this condition.`,
+          patientText: `A care plan tailored to your condition has been suggested.`,
+          priority: 1
+        });
+      }
+    } else {
+      console.log('Falling back to legacy recommendations');
+      return this.legacyGetRecommendations(patientProfile);
+    }
+
+    const educationAssets = await researchIntelligenceService.getEducationAssets({
+      topicTags: this.getRelevantTopics(patientProfile),
+      readingLevel: 6
+    });
+
+    if (educationAssets.length > 0) {
+      recommendations.push({
+        type: 'education',
+        title: 'Patient Education',
+        clinicianText: `Share education materials: ${educationAssets.map(a => a.title).join(', ')}`,
+        patientText: 'Educational materials can help your recovery.',
+        priority: 2
+      });
+    }
+
+    return recommendations.sort((a, b) => a.priority - b.priority);
+  }
+
+  /**
+   * Get reasoning from CDS endpoint score
+   */
+  private getReasoningFromScore(claim: any): string {
+    const reasons: string[] = [];
+
+    if (claim.score > 1.5) {
+      reasons.push('Highly relevant match');
+    } else if (claim.score > 1.2) {
+      reasons.push('Strong match');
+    } else {
+      reasons.push('Relevant');
+    }
+
+    if (claim.evidence_level === 'systematic_review') {
+      reasons.push('Strong evidence (SR)');
+    } else if (claim.evidence_level === 'rct') {
+      reasons.push('RCT evidence');
+    }
+
+    if (claim.clinical_tags && claim.clinical_tags.length > 0) {
+      reasons.push(`Tags: ${claim.clinical_tags.slice(0, 3).join(', ')}`);
+    }
+
+    return reasons.join(' • ');
+  }
+
+  /**
+   * Legacy matching (fallback if endpoint fails)
+   */
+  private async legacyMatchEvidence(patientProfile: PatientProfile): Promise<CDSMatch[]> {
     const searchFilters: any = {
       status: 'approved'
     };
@@ -76,13 +288,11 @@ class ClinicalDecisionSupportService {
   }
 
   /**
-   * Get clinical recommendations based on patient profile
-   * Domain-aware: only returns recommendations relevant to the specified domain
+   * Legacy recommendations (fallback if endpoint fails)
    */
-  async getRecommendations(patientProfile: PatientProfile): Promise<CDSRecommendation[]> {
+  private async legacyGetRecommendations(patientProfile: PatientProfile): Promise<CDSRecommendation[]> {
     const recommendations: CDSRecommendation[] = [];
 
-    // Get and evaluate rules (filtered by domain if specified)
     const allRules = await researchIntelligenceService.getActiveRules();
     const rules = patientProfile.domain
       ? allRules.filter(r => !r.domain || r.domain === patientProfile.domain)
@@ -99,13 +309,12 @@ class ClinicalDecisionSupportService {
       });
     }
 
-    // Get matching evidence claims
-    const matches = await this.matchEvidence(patientProfile);
+    const matches = await this.legacyMatchEvidence(patientProfile);
     const topMatches = matches.slice(0, 3);
 
     for (const match of topMatches) {
       recommendations.push({
-        type: 'evidence',
+        type: 'evidence' as any,
         title: 'Matched Evidence',
         clinicianText: match.claim.claim_text,
         patientText: `Research shows: ${match.claim.claim_text}`,
@@ -114,7 +323,6 @@ class ClinicalDecisionSupportService {
       });
     }
 
-    // Get care pathway templates (filtered by domain if specified)
     const allPathways = await researchIntelligenceService.getPathways();
     const pathways = patientProfile.domain
       ? allPathways.filter(p => !p.domain || p.domain === patientProfile.domain)
@@ -130,22 +338,6 @@ class ClinicalDecisionSupportService {
         clinicianText: `Consider ${matchedPathway.name}. Visits: ${matchedPathway.visit_guidance.min}-${matchedPathway.visit_guidance.max}`,
         patientText: `A care plan tailored to your condition has been suggested.`,
         priority: 1
-      });
-    }
-
-    // Get patient education assets
-    const educationAssets = await researchIntelligenceService.getEducationAssets({
-      topicTags: this.getRelevantTopics(patientProfile),
-      readingLevel: 6
-    });
-
-    if (educationAssets.length > 0) {
-      recommendations.push({
-        type: 'education',
-        title: 'Patient Education',
-        clinicianText: `Share education materials: ${educationAssets.map(a => a.title).join(', ')}`,
-        patientText: 'Educational materials can help your recovery.',
-        priority: 2
       });
     }
 
