@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
 import AIScheduleInsights from './AIScheduleInsights';
 
@@ -23,8 +23,24 @@ export default function SchedulerView() {
   const [loading, setLoading] = useState(true);
   const [showAIOverlays, setShowAIOverlays] = useState(true);
   const [weekData, setWeekData] = useState<WeekData[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [schedulerEnabled, setSchedulerEnabled] = useState(false);
 
   const timeSlots = generateTimeSlots();
+
+  useEffect(() => {
+    const enabled = schedulerService.isFeatureEnabled('aim_scheduler_enabled');
+    setSchedulerEnabled(enabled);
+
+    if (enabled) {
+      schedulerService.startAutoRefresh(6 * 60 * 1000);
+    }
+
+    return () => {
+      schedulerService.stopAutoRefresh();
+    };
+  }, []);
 
   useEffect(() => {
     loadScheduleData();
@@ -46,11 +62,36 @@ export default function SchedulerView() {
         setAppointments(appts);
         setInsights(intel);
       }
+
+      setLastRefreshed(new Date());
     } catch (error) {
       console.error('Error loading schedule:', error);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleManualRefresh() {
+    setIsRefreshing(true);
+    try {
+      await schedulerService.refreshScheduleData(selectedClinic, selectedDate);
+      await loadScheduleData();
+    } catch (error) {
+      console.error('Refresh failed:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  function formatRefreshTime(date: Date | null): string {
+    if (!date) return 'Never';
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    if (minutes > 0) return `${minutes}m ago`;
+    return `${seconds}s ago`;
   }
 
   async function loadWeekData() {
@@ -283,7 +324,20 @@ export default function SchedulerView() {
       {/* Top Navigation Bar */}
       <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold">AIM OS Scheduler</h1>
+          <div>
+            <h1 className="text-xl font-bold">AIM OS Scheduler</h1>
+            {schedulerEnabled && (
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-1 text-xs text-slate-300">
+                  <CheckCircle className="h-3 w-3 text-green-400" />
+                  <span>Practice Perfect Sync Active</span>
+                  {lastRefreshed && (
+                    <span className="text-slate-400 ml-1">(Last sync: {formatRefreshTime(lastRefreshed)})</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2 bg-slate-700 rounded-lg px-3 py-2">
             <MapPin className="h-4 w-4" />
             <select
@@ -331,6 +385,19 @@ export default function SchedulerView() {
             </button>
           </div>
 
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            title={`Last refreshed: ${lastRefreshed ? formatRefreshTime(lastRefreshed) : 'Never'}`}
+            className={`p-2 rounded transition-all ${
+              isRefreshing
+                ? 'bg-slate-600 cursor-not-allowed'
+                : 'hover:bg-slate-700'
+            }`}
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+
           <div className="flex bg-slate-700 rounded-lg p-1">
             <button
               onClick={() => setView('day')}
@@ -361,6 +428,12 @@ export default function SchedulerView() {
           <button className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">
             All Statuses
           </button>
+          {schedulerEnabled && (
+            <div className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              Read-Only (Practice Perfect is source of record)
+            </div>
+          )}
         </div>
 
         <label className="flex items-center gap-2 text-sm">

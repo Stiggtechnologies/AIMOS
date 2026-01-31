@@ -43,6 +43,7 @@ export interface SchedulerBlock {
 }
 
 export interface ScheduleIntelligence {
+  id: string;
   type: 'no_show_risk' | 'capacity_gap' | 'overbooking' | 'waitlist_opportunity' | 'underutilization';
   title: string;
   description: string;
@@ -51,9 +52,23 @@ export interface ScheduleIntelligence {
   provider_id?: string;
   suggested_action?: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  metadata?: Record<string, any>;
+}
+
+export interface RefreshStatus {
+  lastRefreshed: Date | null;
+  isRefreshing: boolean;
+  nextRefreshIn?: number;
 }
 
 class SchedulerService {
+  private refreshStatus: RefreshStatus = {
+    lastRefreshed: null,
+    isRefreshing: false,
+  };
+  private refreshInterval: NodeJS.Timer | null = null;
+  private refreshIntervalMs: number = 5 * 60 * 1000;
+
   async getAppointments(
     clinicId: string,
     date: string,
@@ -190,6 +205,7 @@ class SchedulerService {
     appointments.forEach(appt => {
       if ((appt.no_show_risk || 0) > 70) {
         insights.push({
+          id: `insight_no_show_${appt.id}`,
           type: 'no_show_risk',
           title: 'High No-Show Risk',
           description: `${appt.patient_name} – ${appt.start_time}`,
@@ -211,13 +227,19 @@ class SchedulerService {
 
     Object.entries(appointmentsByHour).forEach(([hour, count]) => {
       if (count > 4) {
+        const overbookedAppointments = appointments.filter(a => a.start_time.startsWith(hour));
         insights.push({
+          id: `insight_overbooking_${hour}`,
           type: 'overbooking',
           title: 'Potential Overbooking',
           description: `${count} appointments at ${hour}:00`,
           confidence: 85,
           suggested_action: 'Review capacity for this hour',
           severity: 'medium',
+          metadata: {
+            hour,
+            affectedAppointmentIds: overbookedAppointments.map(a => a.id),
+          },
         });
       }
     });
@@ -233,6 +255,7 @@ class SchedulerService {
 
       if (totalHours < 4 && providerAppts.length > 0) {
         insights.push({
+          id: `insight_underutilization_${provider.id}`,
           type: 'underutilization',
           title: 'Low Provider Utilization',
           description: `${provider.name} has only ${totalHours.toFixed(1)} hours booked`,
@@ -240,6 +263,10 @@ class SchedulerService {
           provider_id: provider.id,
           suggested_action: 'Review scheduling or add appointments',
           severity: 'low',
+          metadata: {
+            provider_id: provider.id,
+            totalHours: totalHours.toFixed(1),
+          },
         });
       }
     });
@@ -255,6 +282,7 @@ class SchedulerService {
 
           if (gapMinutes >= 90) {
             insights.push({
+              id: `insight_capacity_gap_${appt.id}_${nextAppt.id}`,
               type: 'capacity_gap',
               title: 'Scheduling Gap',
               description: `${(gapMinutes / 60).toFixed(1)}h gap between ${appt.end_time} and ${nextAppt.start_time}`,
@@ -262,6 +290,12 @@ class SchedulerService {
               provider_id: appt.provider_id || undefined,
               suggested_action: 'Consider filling with waitlist patients',
               severity: 'low',
+              metadata: {
+                provider_id: appt.provider_id,
+                gapMinutes,
+                startAppointmentId: appt.id,
+                endAppointmentId: nextAppt.id,
+              },
             });
           }
         }
@@ -357,6 +391,75 @@ class SchedulerService {
       console.error('[SchedulerService] AI analysis failed:', error);
       return null;
     }
+  }
+
+  getRefreshStatus(): RefreshStatus {
+    return { ...this.refreshStatus };
+  }
+
+  startAutoRefresh(intervalMs: number = 5 * 60 * 1000) {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+
+    this.refreshIntervalMs = intervalMs;
+    console.log(`[SchedulerService] Starting auto-refresh every ${intervalMs / 1000 / 60} minutes`);
+
+    this.refreshInterval = setInterval(() => {
+      this.refreshStatus.nextRefreshIn = undefined;
+      console.log('[SchedulerService] Auto-refresh interval triggered');
+    }, intervalMs);
+  }
+
+  stopAutoRefresh() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+      console.log('[SchedulerService] Auto-refresh stopped');
+    }
+  }
+
+  async refreshScheduleData(clinicId: string, date: string) {
+    if (this.refreshStatus.isRefreshing) {
+      console.log('[SchedulerService] Refresh already in progress');
+      return;
+    }
+
+    try {
+      this.refreshStatus.isRefreshing = true;
+      console.log('[SchedulerService] Starting manual refresh for', { clinicId, date });
+
+      await Promise.all([
+        this.getAppointments(clinicId, date),
+        this.getProviders(clinicId),
+        this.getScheduleIntelligence(clinicId, date),
+      ]);
+
+      this.refreshStatus.lastRefreshed = new Date();
+      console.log('[SchedulerService] Refresh completed at', this.refreshStatus.lastRefreshed);
+    } catch (error) {
+      console.error('[SchedulerService] Refresh failed:', error);
+    } finally {
+      this.refreshStatus.isRefreshing = false;
+    }
+  }
+
+  isFeatureEnabled(featureName: 'aim_scheduler_enabled'): boolean {
+    const featureFlags: Record<string, boolean> = {
+      aim_scheduler_enabled: true,
+    };
+
+    const value = localStorage.getItem(`feature_${featureName}`);
+    if (value !== null) {
+      return value === 'true';
+    }
+
+    return featureFlags[featureName] ?? false;
+  }
+
+  setFeatureFlag(featureName: 'aim_scheduler_enabled', enabled: boolean) {
+    localStorage.setItem(`feature_${featureName}`, String(enabled));
+    console.log(`[SchedulerService] Feature flag "${featureName}" set to ${enabled}`);
   }
 }
 
