@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle, ThumbsUp, ThumbsDown, Zap } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
+import { writeBackService, WriteBackRecommendation } from '../../services/writeBackService';
 import AIScheduleInsights from './AIScheduleInsights';
+import ApprovalModal from './ApprovalModal';
+import ApprovalHistoryView from './ApprovalHistoryView';
 
 interface WeekData {
   date: string;
@@ -26,12 +30,21 @@ export default function SchedulerView() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [schedulerEnabled, setSchedulerEnabled] = useState(false);
+  const [writeBackEnabled, setWriteBackEnabled] = useState(false);
+  const [pendingRecommendations, setPendingRecommendations] = useState<WriteBackRecommendation[]>([]);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<WriteBackRecommendation | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showAuditTrail, setShowAuditTrail] = useState(false);
+  const [isApprovingRec, setIsApprovingRec] = useState(false);
 
   const timeSlots = generateTimeSlots();
 
   useEffect(() => {
     const enabled = schedulerService.isFeatureEnabled('aim_scheduler_enabled');
     setSchedulerEnabled(enabled);
+
+    const writeBackEnabledFlag = writeBackService.isFeatureEnabled('aim_scheduler_writeback_phase2');
+    setWriteBackEnabled(writeBackEnabledFlag);
 
     if (enabled) {
       schedulerService.startAutoRefresh(6 * 60 * 1000);
@@ -41,6 +54,12 @@ export default function SchedulerView() {
       schedulerService.stopAutoRefresh();
     };
   }, []);
+
+  useEffect(() => {
+    if (writeBackEnabled) {
+      loadPendingRecommendations();
+    }
+  }, [selectedClinic, writeBackEnabled]);
 
   useEffect(() => {
     loadScheduleData();
@@ -307,6 +326,144 @@ export default function SchedulerView() {
       day: 'numeric'
     });
   };
+
+  async function loadPendingRecommendations() {
+    try {
+      const recs = await writeBackService.getPendingRecommendations(selectedClinic);
+      setPendingRecommendations(recs);
+    } catch (error) {
+      console.error('Error loading recommendations:', error);
+    }
+  }
+
+  async function handleCreateRecommendation(insight: ScheduleIntelligence, appt: SchedulerAppointment) {
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id || 'system';
+      const rec = await writeBackService.generateRecommendation(selectedClinic, appt, insight, userId);
+
+      if (rec) {
+        const saved = await writeBackService.saveRecommendation(selectedClinic, rec);
+        setPendingRecommendations([...pendingRecommendations, saved]);
+
+        await writeBackService.recordAuditEvent(
+          selectedClinic,
+          'recommendation_generated',
+          `${rec.title} for appointment ${appt.id}`,
+          userId,
+          'system',
+          saved.id,
+          undefined,
+          undefined,
+          rec.confidence_score
+        );
+      }
+    } catch (error) {
+      console.error('Error creating recommendation:', error);
+    }
+  }
+
+  async function handleApprove(note: string) {
+    if (!selectedRecommendation) return;
+
+    try {
+      setIsApprovingRec(true);
+      const userId = (await supabase.auth.getUser()).data.user?.id || 'system';
+
+      const approval = await writeBackService.createApproval(
+        selectedRecommendation.id,
+        selectedClinic,
+        userId,
+        'approved',
+        note
+      );
+
+      await writeBackService.recordAuditEvent(
+        selectedClinic,
+        'approval_granted',
+        `Approved: ${selectedRecommendation.title}`,
+        userId,
+        'staff',
+        selectedRecommendation.id,
+        approval.id
+      );
+
+      setPendingRecommendations(pendingRecommendations.filter(r => r.id !== selectedRecommendation.id));
+      setShowApprovalModal(false);
+      setSelectedRecommendation(null);
+    } catch (error) {
+      console.error('Error approving recommendation:', error);
+    } finally {
+      setIsApprovingRec(false);
+    }
+  }
+
+  async function handleReject(note: string) {
+    if (!selectedRecommendation) return;
+
+    try {
+      setIsApprovingRec(true);
+      const userId = (await supabase.auth.getUser()).data.user?.id || 'system';
+
+      const approval = await writeBackService.createApproval(
+        selectedRecommendation.id,
+        selectedClinic,
+        userId,
+        'rejected',
+        note
+      );
+
+      await writeBackService.recordAuditEvent(
+        selectedClinic,
+        'approval_denied',
+        `Rejected: ${selectedRecommendation.title}`,
+        userId,
+        'staff',
+        selectedRecommendation.id,
+        approval.id
+      );
+
+      setPendingRecommendations(pendingRecommendations.filter(r => r.id !== selectedRecommendation.id));
+      setShowApprovalModal(false);
+      setSelectedRecommendation(null);
+    } catch (error) {
+      console.error('Error rejecting recommendation:', error);
+    } finally {
+      setIsApprovingRec(false);
+    }
+  }
+
+  async function handleExecuteApproval(recommendation: WriteBackRecommendation) {
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id || 'system';
+
+      await writeBackService.recordExecution(
+        recommendation.id,
+        recommendation.id,
+        selectedClinic,
+        userId,
+        `pp_action_${Date.now()}`,
+        { status: 'queued' }
+      );
+
+      await writeBackService.recordAuditEvent(
+        selectedClinic,
+        'execution_completed',
+        `Executed: ${recommendation.title}`,
+        userId,
+        'system',
+        recommendation.id
+      );
+
+      console.log('[SchedulerView] Recommendation queued for Practice Perfect');
+    } catch (error) {
+      console.error('Error executing recommendation:', error);
+    }
+  }
+
+  function openRecommendationModal(recommendation: WriteBackRecommendation) {
+    setSelectedRecommendation(recommendation);
+    setShowApprovalModal(true);
+  }
 
   if (loading) {
     return (
@@ -591,8 +748,101 @@ export default function SchedulerView() {
               })
             )}
           </div>
+
+          {/* Write-Back Phase 2 Panel */}
+          {writeBackEnabled && (
+            <div className="w-80 border-l border-gray-200 bg-white flex flex-col">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                    Write-Back Actions
+                  </h3>
+                  <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+                    {pendingRecommendations.length}
+                  </span>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAuditTrail(false)}
+                    className={`flex-1 py-1 px-2 text-xs font-medium rounded transition-colors ${
+                      !showAuditTrail
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Pending
+                  </button>
+                  <button
+                    onClick={() => setShowAuditTrail(true)}
+                    className={`flex-1 py-1 px-2 text-xs font-medium rounded transition-colors ${
+                      showAuditTrail
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Audit Trail
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                {!showAuditTrail ? (
+                  <div className="p-4 space-y-3">
+                    {pendingRecommendations.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <TrendingUp className="h-6 w-6 mx-auto mb-2 opacity-40" />
+                        <p className="text-xs">No pending recommendations</p>
+                      </div>
+                    ) : (
+                      pendingRecommendations.map((rec) => (
+                        <div
+                          key={rec.id}
+                          className="p-3 border border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() => openRecommendationModal(rec)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <Zap className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs font-semibold text-blue-900 line-clamp-2">
+                                {rec.title}
+                              </h4>
+                              <p className="text-xs text-blue-800 mt-1 line-clamp-1">
+                                {rec.description}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-blue-700 font-medium">
+                                  {rec.confidence_score.toFixed(0)}% confidence
+                                </span>
+                                <span className="text-xs px-1.5 py-0.5 bg-white text-blue-700 rounded">
+                                  {rec.recommendation_type.replace(/_/g, ' ')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <ApprovalHistoryView clinicId={selectedClinic} />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        recommendation={selectedRecommendation!}
+        isOpen={showApprovalModal}
+        isLoading={isApprovingRec}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onClose={() => setShowApprovalModal(false)}
+      />
 
       {/* Appointment Detail Drawer */}
       {selectedAppointment && (
