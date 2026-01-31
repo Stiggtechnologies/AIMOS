@@ -23,8 +23,9 @@ import ValuationReadinessView from './ValuationReadinessView';
 import RevenueAnalyticsView from './RevenueAnalyticsView';
 import CashFlowView from './CashFlowView';
 import SchedulerView from './SchedulerView';
+import { AdminSeedContentPage } from '../admin/AdminSeedContentPage';
 
-type ModuleView = 'dashboard' | 'scheduler' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness';
+type ModuleView = 'dashboard' | 'scheduler' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness' | 'admin_seed';
 
 export default function AIMOSDashboard() {
   const [activeView, setActiveView] = useState<ModuleView>('dashboard');
@@ -221,6 +222,14 @@ export default function AIMOSDashboard() {
       icon: Layers,
       color: 'slate',
       stats: { label: 'Systems', value: '10' }
+    },
+    {
+      id: 'admin_seed' as ModuleView,
+      name: 'Admin Seed Content',
+      description: 'Populate demo and reference data',
+      icon: Database,
+      color: 'cyan',
+      stats: { label: 'Tasks', value: '5' }
     }
   ];
 
@@ -490,6 +499,17 @@ export default function AIMOSDashboard() {
           ← Back to AIM OS
         </button>
         <ValuationReadinessView />
+      </div>
+    );
+  }
+
+  if (activeView === 'admin_seed') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <AdminSeedContentPage />
       </div>
     );
   }

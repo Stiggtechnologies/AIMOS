@@ -5,8 +5,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { clinicianMobileService, AppointmentForCheckIn, QuickNote, ClinicianAvailability } from '../../services/clinicianMobileService';
+import { ClinicalChartingWorkflow } from './ClinicalChartingWorkflow';
 
-type ViewType = 'schedule' | 'notes' | 'availability';
+type ViewType = 'schedule' | 'notes' | 'availability' | 'charting';
 
 export default function ClinicianMobileDashboard() {
   const { user, profile } = useAuth();
@@ -527,6 +528,24 @@ export default function ClinicianMobileDashboard() {
     </div>
   );
 
+  const renderCharting = () => (
+    <div className="bg-white rounded-lg shadow">
+      <ClinicalChartingWorkflow
+        patientId={selectedPatientId || ''}
+        patientProfile={{
+          id: selectedPatientId || '',
+          name: '',
+          age: 0,
+          condition: '',
+          status: 'active'
+        }}
+        onSave={() => {
+          alert('Note saved successfully');
+        }}
+      />
+    </div>
+  );
+
   const renderContent = () => {
     switch (currentView) {
       case 'schedule':
@@ -535,6 +554,8 @@ export default function ClinicianMobileDashboard() {
         return renderNotes();
       case 'availability':
         return renderAvailability();
+      case 'charting':
+        return renderCharting();
       default:
         return renderSchedule();
     }
@@ -592,6 +613,20 @@ export default function ClinicianMobileDashboard() {
             >
               <FileText className="w-4 h-4 inline mr-2" />
               Quick Notes
+            </button>
+            <button
+              onClick={() => {
+                setCurrentView('charting');
+                setMenuOpen(false);
+              }}
+              className={`flex-1 lg:flex-none px-6 py-3 font-medium text-sm whitespace-nowrap ${
+                currentView === 'charting'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Edit className="w-4 h-4 inline mr-2" />
+              Clinical Charting
             </button>
             <button
               onClick={() => {

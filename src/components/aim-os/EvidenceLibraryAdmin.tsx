@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Plus, Edit2, Trash2, CheckCircle, Clock } from 'lucide-react';
 import { researchIntelligenceService, EvidenceClaim, ClinicalRule } from '../../services/researchIntelligenceService';
+import { SemanticSearchPanel } from './SemanticSearchPanel';
 import { supabase } from '../../lib/supabase';
 
-type TabType = 'claims' | 'rules' | 'pathways' | 'assets';
+type TabType = 'claims' | 'rules' | 'pathways' | 'assets' | 'semantic_search';
 
 export const EvidenceLibraryAdmin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('claims');
@@ -102,7 +103,7 @@ export const EvidenceLibraryAdmin: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
-        {(['claims', 'rules', 'pathways', 'assets'] as TabType[]).map(tab => (
+        {(['claims', 'rules', 'pathways', 'assets', 'semantic_search'] as TabType[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -112,7 +113,7 @@ export const EvidenceLibraryAdmin: React.FC = () => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === 'semantic_search' ? 'Evidence Discovery' : tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
@@ -266,6 +267,13 @@ export const EvidenceLibraryAdmin: React.FC = () => {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Semantic Search Tab */}
+        {activeTab === 'semantic_search' && (
+          <div className="p-6">
+            <SemanticSearchPanel />
           </div>
         )}
 
