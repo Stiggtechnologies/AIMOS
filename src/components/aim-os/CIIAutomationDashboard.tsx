@@ -10,8 +10,11 @@ import {
   BarChart3,
   Zap,
   Archive,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  FileText
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { researchIngestionService } from '../../services/researchIngestionService';
 import { evidenceSynthesisTriggerService } from '../../services/evidenceSynthesisTriggerService';
 import { translationProposalService } from '../../services/translationProposalService';
@@ -28,6 +31,20 @@ interface CIIStatus {
   decisions: { rollouts: number; rollbacks: number };
 }
 
+interface ResearchPaper {
+  id: string;
+  title: string;
+  authors: string[];
+  doi?: string;
+  quality_score: number;
+  clinical_relevance: number;
+  operational_relevance: number;
+  reimbursement_relevance: number;
+  ai_summary: string;
+  ai_clinical_implications: string;
+  ai_operational_implications: string;
+}
+
 export const CIIAutomationDashboard: React.FC = () => {
   const [status, setStatus] = useState<CIIStatus>({
     researchIngestion: { jobsCompleted: 0, papersIngested: 0, qualityScore: 0 },
@@ -39,6 +56,7 @@ export const CIIAutomationDashboard: React.FC = () => {
   });
   const [activePhase, setActivePhase] = useState<string>('overview');
   const [loading, setLoading] = useState(true);
+  const [papers, setPapers] = useState<ResearchPaper[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -49,19 +67,27 @@ export const CIIAutomationDashboard: React.FC = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [ingestion, digests, proposals, pilots, outcomes, decisions] = await Promise.all([
+      const [ingestion, digests, proposals, pilots, outcomes, decisions, { data: paperData }] = await Promise.all([
         researchIngestionService.getQualityReport(),
         evidenceSynthesisTriggerService.getLatestDigestTrends(),
         translationProposalService.getProposalStats(),
         pilotManagementService.getActivePilots(),
         outcomeAttributionService.getOutcomesSummary(),
-        decisionEnforcementService.getPendingRolloutDecisions()
+        decisionEnforcementService.getPendingRolloutDecisions(),
+        supabase
+          .from('research_papers')
+          .select('*')
+          .eq('ingestion_status', 'processed')
+          .order('quality_score', { ascending: false })
+          .limit(8)
       ]);
+
+      setPapers(paperData || []);
 
       setStatus({
         researchIngestion: {
           jobsCompleted: ingestion?.totalJobsCompleted || 0,
-          papersIngested: ingestion?.totalPapersIngested || 0,
+          papersIngested: (ingestion?.totalPapersIngested || 0) + (paperData?.length || 0),
           qualityScore: ingestion?.avgMetadataQuality || 0
         },
         evidenceSynthesis: {
@@ -232,7 +258,7 @@ export const CIIAutomationDashboard: React.FC = () => {
       </div>
 
       {/* Phase Details */}
-      {activePhase === 'research' && <ResearchIngestionPanel loading={loading} />}
+      {activePhase === 'research' && <ResearchIngestionPanel loading={loading} papers={papers} />}
       {activePhase === 'synthesis' && <EvidenceSynthesisPanel loading={loading} />}
       {activePhase === 'translation' && <TranslationProposalPanel loading={loading} />}
       {activePhase === 'pilot' && <PilotManagementPanel loading={loading} />}
@@ -249,18 +275,77 @@ export const CIIAutomationDashboard: React.FC = () => {
   );
 };
 
-const ResearchIngestionPanel: React.FC<{ loading: boolean }> = ({ loading }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
-    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-      <Beaker size={20} />
-      Phase 1: Research Ingestion
-    </h3>
-    <p className="text-gray-600 mb-4">Automated pulls from approved sources with metadata extraction and quality tagging.</p>
-    <div className="grid grid-cols-3 gap-4">
-      <MetricBox label="Tier-1 Sources Active" value="5" />
-      <MetricBox label="Ingest Frequency" value="Weekly" />
-      <MetricBox label="Auto-Ingest Enabled" value="Yes" />
+const ResearchIngestionPanel: React.FC<{ loading: boolean; papers: ResearchPaper[] }> = ({ loading, papers }) => (
+  <div className="space-y-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <Beaker size={20} />
+        Phase 1: Research Ingestion
+      </h3>
+      <p className="text-gray-600 mb-4">Automated pulls from approved sources with metadata extraction and quality tagging.</p>
+      <div className="grid grid-cols-3 gap-4">
+        <MetricBox label="Tier-1 Sources Active" value="5" />
+        <MetricBox label="Ingest Frequency" value="Weekly" />
+        <MetricBox label="Auto-Ingest Enabled" value="Yes" />
+      </div>
     </div>
+
+    {papers.length > 0 && (
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <BookOpen size={20} />
+          Recently Ingested Research Papers
+        </h4>
+        <div className="space-y-4">
+          {papers.map((paper) => (
+            <div key={paper.id} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h5 className="font-semibold text-gray-900 mb-1">{paper.title}</h5>
+                  <p className="text-sm text-gray-600">{paper.authors.slice(0, 3).join(', ')}{paper.authors.length > 3 ? ' et al.' : ''}</p>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                    Q: {paper.quality_score}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-700 mb-3">{paper.ai_summary}</p>
+
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-600">Clinical Relevance</p>
+                  <p className="text-sm font-semibold text-gray-900">{paper.clinical_relevance}/10</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-600">Operational Relevance</p>
+                  <p className="text-sm font-semibold text-gray-900">{paper.operational_relevance}/10</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-600">Reimbursement Impact</p>
+                  <p className="text-sm font-semibold text-gray-900">{paper.reimbursement_relevance}/10</p>
+                </div>
+              </div>
+
+              <details className="text-sm text-gray-600 cursor-pointer">
+                <summary className="font-semibold hover:text-gray-900">View full implications</summary>
+                <div className="mt-3 space-y-2 text-gray-700">
+                  <div>
+                    <p className="font-semibold text-gray-800 mb-1">Clinical Implications:</p>
+                    <p>{paper.ai_clinical_implications}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 mb-1">Operational Implications:</p>
+                    <p>{paper.ai_operational_implications}</p>
+                  </div>
+                </div>
+              </details>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 );
 
