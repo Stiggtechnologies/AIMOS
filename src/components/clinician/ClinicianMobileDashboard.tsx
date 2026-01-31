@@ -20,6 +20,15 @@ export default function ClinicianMobileDashboard() {
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+  const [editingAvailabilityId, setEditingAvailabilityId] = useState<string | null>(null);
+  const [availabilityForm, setAvailabilityForm] = useState({
+    day_of_week: 1,
+    start_time: '08:00',
+    end_time: '17:00',
+    is_available: true,
+    notes: ''
+  });
 
   useEffect(() => {
     if (user) {
@@ -90,6 +99,72 @@ export default function ClinicianMobileDashboard() {
       console.error('Error saving note:', error);
       alert('Failed to save note');
     }
+  };
+
+  const handleSaveAvailability = async () => {
+    if (!user) return;
+
+    try {
+      if (editingAvailabilityId) {
+        await clinicianMobileService.updateAvailability(editingAvailabilityId, availabilityForm);
+      } else {
+        await clinicianMobileService.setAvailability({
+          clinician_id: user.id,
+          availability_type: 'regular',
+          ...availabilityForm
+        });
+      }
+
+      setIsEditingAvailability(false);
+      setEditingAvailabilityId(null);
+      setAvailabilityForm({
+        day_of_week: 1,
+        start_time: '08:00',
+        end_time: '17:00',
+        is_available: true,
+        notes: ''
+      });
+      await loadData();
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      alert('Failed to save availability');
+    }
+  };
+
+  const handleEditAvailability = (avail: ClinicianAvailability) => {
+    setEditingAvailabilityId(avail.id);
+    setAvailabilityForm({
+      day_of_week: avail.day_of_week,
+      start_time: avail.start_time,
+      end_time: avail.end_time,
+      is_available: avail.is_available,
+      notes: avail.notes || ''
+    });
+    setIsEditingAvailability(true);
+  };
+
+  const handleDeleteAvailability = async (availabilityId: string) => {
+    if (!confirm('Delete this availability slot?')) return;
+
+    try {
+      await clinicianMobileService.deleteAvailability(availabilityId);
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting availability:', error);
+      alert('Failed to delete availability');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingAvailability(false);
+    setEditingAvailabilityId(null);
+    setAvailabilityForm({
+      day_of_week: 1,
+      start_time: '08:00',
+      end_time: '17:00',
+      is_available: true,
+      notes: ''
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -272,10 +347,106 @@ export default function ClinicianMobileDashboard() {
   const renderAvailability = () => (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="font-semibold text-gray-900 mb-3">My Availability</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Your weekly availability schedule
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-semibold text-gray-900">My Availability</h3>
+            <p className="text-sm text-gray-600">Your weekly availability schedule</p>
+          </div>
+          {!isEditingAvailability && (
+            <button
+              onClick={() => setIsEditingAvailability(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add</span>
+            </button>
+          )}
+        </div>
+
+        {isEditingAvailability && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+            <h4 className="font-medium text-gray-900">
+              {editingAvailabilityId ? 'Edit Availability' : 'Add Availability'}
+            </h4>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
+              <select
+                value={availabilityForm.day_of_week}
+                onChange={(e) => setAvailabilityForm({ ...availabilityForm, day_of_week: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={0}>Sunday</option>
+                <option value={1}>Monday</option>
+                <option value={2}>Tuesday</option>
+                <option value={3}>Wednesday</option>
+                <option value={4}>Thursday</option>
+                <option value={5}>Friday</option>
+                <option value={6}>Saturday</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                <input
+                  type="time"
+                  value={availabilityForm.start_time}
+                  onChange={(e) => setAvailabilityForm({ ...availabilityForm, start_time: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                <input
+                  type="time"
+                  value={availabilityForm.end_time}
+                  onChange={(e) => setAvailabilityForm({ ...availabilityForm, end_time: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={availabilityForm.is_available}
+                  onChange={(e) => setAvailabilityForm({ ...availabilityForm, is_available: e.target.checked })}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Available</span>
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+              <textarea
+                value={availabilityForm.notes}
+                onChange={(e) => setAvailabilityForm({ ...availabilityForm, notes: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Lunch break, Meeting, etc."
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={handleSaveAvailability}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save</span>
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -283,11 +454,25 @@ export default function ClinicianMobileDashboard() {
           <div key={avail.id} className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-semibold text-gray-900">{getDayName(avail.day_of_week)}</h4>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                avail.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {avail.is_available ? 'Available' : 'Unavailable'}
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  avail.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {avail.is_available ? 'Available' : 'Unavailable'}
+                </span>
+                <button
+                  onClick={() => handleEditAvailability(avail)}
+                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteAvailability(avail.id)}
+                  className="p-1 text-red-600 hover:bg-red-50 rounded"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Clock className="w-4 h-4" />
@@ -298,10 +483,17 @@ export default function ClinicianMobileDashboard() {
             )}
           </div>
         ))}
-        {availability.length === 0 && (
+        {availability.length === 0 && !isEditingAvailability && (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <Settings className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No availability set</p>
+            <p className="text-gray-500 mb-4">No availability set</p>
+            <button
+              onClick={() => setIsEditingAvailability(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Your First Availability</span>
+            </button>
           </div>
         )}
       </div>
