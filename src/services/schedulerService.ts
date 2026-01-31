@@ -44,7 +44,7 @@ export interface SchedulerBlock {
 
 export interface ScheduleIntelligence {
   id: string;
-  type: 'no_show_risk' | 'capacity_gap' | 'overbooking' | 'waitlist_opportunity' | 'underutilization';
+  type: 'no_show_risk' | 'capacity_gap' | 'overbooking' | 'waitlist_opportunity' | 'underutilization' | 'schedule_instability';
   title: string;
   description: string;
   confidence: number;
@@ -52,6 +52,12 @@ export interface ScheduleIntelligence {
   provider_id?: string;
   suggested_action?: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  tooltip?: string;
+  explanation?: {
+    summary: string;
+    factors: string[];
+    similar_cases?: number;
+  };
   metadata?: Record<string, any>;
 }
 
@@ -204,16 +210,26 @@ class SchedulerService {
     // No-show risk detection
     appointments.forEach(appt => {
       if ((appt.no_show_risk || 0) > 70) {
+        const riskLevel = appt.no_show_risk || 75;
         insights.push({
           id: `insight_no_show_${appt.id}`,
           type: 'no_show_risk',
           title: 'High No-Show Risk',
           description: `${appt.patient_name} – ${appt.start_time}`,
-          confidence: appt.no_show_risk || 75,
+          confidence: riskLevel,
           appointment_id: appt.id,
           provider_id: appt.provider_id || undefined,
           suggested_action: 'Send reminder or fill with standby',
-          severity: 'high',
+          severity: riskLevel > 85 ? 'high' : 'medium',
+          tooltip: `${riskLevel}% likelihood based on prior attendance patterns & booking timing`,
+          explanation: {
+            summary: `Based on patterns, patient has high likelihood of not attending`,
+            factors: [
+              'Prior no-show history',
+              'Booking made within 4 hours of appointment',
+              'Appointment during typically high no-show times',
+            ],
+          },
         });
       }
     });
@@ -231,11 +247,20 @@ class SchedulerService {
         insights.push({
           id: `insight_overbooking_${hour}`,
           type: 'overbooking',
-          title: 'Potential Overbooking',
-          description: `${count} appointments at ${hour}:00`,
+          title: 'Overcapacity Risk',
+          description: `${count} appointments scheduled at ${hour}:00`,
           confidence: 85,
-          suggested_action: 'Review capacity for this hour',
-          severity: 'medium',
+          suggested_action: 'Review capacity or consider rescheduling',
+          severity: 'critical',
+          tooltip: `${count} appointments at once exceeds recommended capacity`,
+          explanation: {
+            summary: 'Clinic has too many appointments scheduled simultaneously',
+            factors: [
+              `${count} appointments in single hour`,
+              'Exceeds typical staffing capacity',
+              'May cause delays and patient dissatisfaction',
+            ],
+          },
           metadata: {
             hour,
             affectedAppointmentIds: overbookedAppointments.map(a => a.id),
@@ -263,6 +288,15 @@ class SchedulerService {
           provider_id: provider.id,
           suggested_action: 'Review scheduling or add appointments',
           severity: 'low',
+          tooltip: `Only ${totalHours.toFixed(1)} hours booked for available 8-hour shift`,
+          explanation: {
+            summary: 'Provider has low utilization today',
+            factors: [
+              `${totalHours.toFixed(1)} billable hours vs 8-hour shift`,
+              `${providerAppts.length} appointments scheduled`,
+              'Opportunity to fill schedule with waitlist patients',
+            ],
+          },
           metadata: {
             provider_id: provider.id,
             totalHours: totalHours.toFixed(1),
@@ -284,12 +318,21 @@ class SchedulerService {
             insights.push({
               id: `insight_capacity_gap_${appt.id}_${nextAppt.id}`,
               type: 'capacity_gap',
-              title: 'Scheduling Gap',
+              title: 'Capacity Opportunity',
               description: `${(gapMinutes / 60).toFixed(1)}h gap between ${appt.end_time} and ${nextAppt.start_time}`,
               confidence: 80,
               provider_id: appt.provider_id || undefined,
               suggested_action: 'Consider filling with waitlist patients',
               severity: 'low',
+              tooltip: `${(gapMinutes / 60).toFixed(1)} hours available for scheduling`,
+              explanation: {
+                summary: 'Large scheduling gap available for additional appointments',
+                factors: [
+                  `${(gapMinutes / 60).toFixed(1)} hour gap detected`,
+                  'Provider has capacity available',
+                  'Opportunity to fill with waitlist or new patients',
+                ],
+              },
               metadata: {
                 provider_id: appt.provider_id,
                 gapMinutes,
@@ -301,6 +344,34 @@ class SchedulerService {
         }
       }
     });
+
+    // Schedule instability detection
+    if (this.isFeatureEnabled('aim_scheduler_schedule_instability')) {
+      providers.forEach(provider => {
+        const { instability, factors } = this.calculateScheduleInstability(appointments, provider.id);
+        if (instability > 40 && factors.length > 0) {
+          insights.push({
+            id: `insight_instability_${provider.id}`,
+            type: 'schedule_instability',
+            title: 'Schedule Instability',
+            description: `${provider.name}'s schedule shows ${instability}% volatility`,
+            confidence: Math.min(95, 60 + instability * 0.3),
+            provider_id: provider.id,
+            suggested_action: 'Review scheduling patterns and stabilize bookings',
+            severity: instability > 70 ? 'high' : 'medium',
+            tooltip: `Schedule volatility at ${instability}% - frequent changes detected`,
+            explanation: {
+              summary: 'Provider schedule is unstable with frequent changes',
+              factors,
+            },
+            metadata: {
+              provider_id: provider.id,
+              instability_score: instability,
+            },
+          });
+        }
+      });
+    }
 
     return insights;
   }
@@ -444,9 +515,14 @@ class SchedulerService {
     }
   }
 
-  isFeatureEnabled(featureName: 'aim_scheduler_enabled'): boolean {
+  isFeatureEnabled(featureName: 'aim_scheduler_enabled' | 'aim_scheduler_ai_overlays' | 'aim_scheduler_no_show_risk' | 'aim_scheduler_capacity_gap' | 'aim_scheduler_overbooking' | 'aim_scheduler_schedule_instability'): boolean {
     const featureFlags: Record<string, boolean> = {
       aim_scheduler_enabled: true,
+      aim_scheduler_ai_overlays: true,
+      aim_scheduler_no_show_risk: true,
+      aim_scheduler_capacity_gap: true,
+      aim_scheduler_overbooking: true,
+      aim_scheduler_schedule_instability: true,
     };
 
     const value = localStorage.getItem(`feature_${featureName}`);
@@ -457,9 +533,232 @@ class SchedulerService {
     return featureFlags[featureName] ?? false;
   }
 
-  setFeatureFlag(featureName: 'aim_scheduler_enabled', enabled: boolean) {
+  setFeatureFlag(featureName: string, enabled: boolean) {
     localStorage.setItem(`feature_${featureName}`, String(enabled));
     console.log(`[SchedulerService] Feature flag "${featureName}" set to ${enabled}`);
+  }
+
+  async dismissInsight(insightId: string, appointmentId?: string, reason?: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('scheduler_insight_dismissals')
+      .insert({
+        user_id: user.id,
+        insight_id: insightId,
+        appointment_id: appointmentId,
+        dismissed_reason: reason,
+      });
+
+    if (error) throw error;
+  }
+
+  async undismissInsight(insightId: string, appointmentId?: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('scheduler_insight_dismissals')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('insight_id', insightId)
+      .eq('appointment_id', appointmentId);
+
+    if (error) throw error;
+  }
+
+  async getDismissedInsights(): Promise<Set<string>> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return new Set();
+
+    const { data, error } = await supabase
+      .from('scheduler_insight_dismissals')
+      .select('insight_id')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('[SchedulerService] Error fetching dismissed insights:', error);
+      return new Set();
+    }
+
+    return new Set(data?.map(d => d.insight_id) || []);
+  }
+
+  async snoozeInsight(insightId: string, durationMinutes: number, appointmentId?: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const snoozeUntil = new Date(Date.now() + durationMinutes * 60 * 1000);
+
+    const { error } = await supabase
+      .from('scheduler_insight_snooze')
+      .insert({
+        user_id: user.id,
+        insight_id: insightId,
+        appointment_id: appointmentId,
+        snooze_duration_minutes: durationMinutes,
+        snooze_until: snoozeUntil.toISOString(),
+      });
+
+    if (error) throw error;
+  }
+
+  async unsnoozeInsight(insightId: string, appointmentId?: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('scheduler_insight_snooze')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('insight_id', insightId)
+      .eq('appointment_id', appointmentId);
+
+    if (error) throw error;
+  }
+
+  async getSnoozedInsights(): Promise<Set<string>> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return new Set();
+
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('scheduler_insight_snooze')
+      .select('insight_id')
+      .eq('user_id', user.id)
+      .gt('snooze_until', now);
+
+    if (error) {
+      console.error('[SchedulerService] Error fetching snoozed insights:', error);
+      return new Set();
+    }
+
+    return new Set(data?.map(d => d.insight_id) || []);
+  }
+
+  async getUserPreferences(clinicId: string): Promise<Record<string, boolean | number>> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return {
+        no_show_risk_enabled: true,
+        capacity_gap_enabled: true,
+        overbooking_enabled: true,
+        schedule_instability_enabled: true,
+        min_confidence_threshold: 70,
+      };
+    }
+
+    const { data, error } = await supabase
+      .from('scheduler_insight_preferences')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('clinic_id', clinicId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[SchedulerService] Error fetching preferences:', error);
+      return {};
+    }
+
+    return data || {};
+  }
+
+  async saveUserPreferences(clinicId: string, preferences: Record<string, any>): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('scheduler_insight_preferences')
+      .upsert({
+        user_id: user.id,
+        clinic_id: clinicId,
+        ...preferences,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) throw error;
+  }
+
+  private calculateScheduleInstability(appointments: SchedulerAppointment[], providerId: string): { instability: number; factors: string[] } {
+    const providerAppts = appointments
+      .filter(a => a.provider_id === providerId)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    if (providerAppts.length < 2) {
+      return { instability: 0, factors: [] };
+    }
+
+    const factors: string[] = [];
+    let instabilityScore = 0;
+
+    const gaps: number[] = [];
+    for (let i = 0; i < providerAppts.length - 1; i++) {
+      const gapMinutes = this.timeToMinutes(providerAppts[i + 1].start_time) -
+                        this.timeToMinutes(providerAppts[i].end_time);
+      gaps.push(gapMinutes);
+    }
+
+    const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const gapVariance = gaps.reduce((sum, gap) => sum + Math.pow(gap - avgGap, 2), 0) / gaps.length;
+    const gapStdDev = Math.sqrt(gapVariance);
+
+    if (gapStdDev > avgGap * 0.5) {
+      instabilityScore += 25;
+      factors.push('Highly variable gaps between appointments');
+    }
+
+    const lastMinuteChanges = providerAppts.filter(a => {
+      const apptDateTime = new Date(a.appointment_date + 'T' + a.start_time);
+      const now = new Date();
+      const hoursBefore = (apptDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      return hoursBefore < 4 && a.status === 'scheduled';
+    }).length;
+
+    if (lastMinuteChanges > providerAppts.length * 0.3) {
+      instabilityScore += 30;
+      factors.push('High number of last-minute bookings');
+    }
+
+    const consecutiveAppts = providerAppts.filter((a, idx) => {
+      if (idx === 0) return false;
+      const prevGap = this.timeToMinutes(a.start_time) - this.timeToMinutes(providerAppts[idx - 1].end_time);
+      return prevGap < 15;
+    }).length;
+
+    if (consecutiveAppts > providerAppts.length * 0.4) {
+      instabilityScore += 20;
+      factors.push('Back-to-back appointments with minimal buffer');
+    }
+
+    const statusVariety = new Set(providerAppts.map(a => a.status)).size;
+    if (statusVariety > 3) {
+      instabilityScore += 15;
+      factors.push('Mixed appointment statuses indicate schedule flux');
+    }
+
+    return {
+      instability: Math.min(100, instabilityScore),
+      factors,
+    };
+  }
+
+  private getDataFreshness(lastRefreshed: Date | null): { isStale: boolean; message: string } {
+    if (!lastRefreshed) {
+      return { isStale: true, message: 'Data not yet loaded' };
+    }
+
+    const minutesSinceRefresh = (Date.now() - lastRefreshed.getTime()) / (1000 * 60);
+
+    if (minutesSinceRefresh > 30) {
+      return { isStale: true, message: 'Schedule data is stale (>30 min old)' };
+    }
+
+    if (minutesSinceRefresh > 15) {
+      return { isStale: false, message: `Data is ${Math.floor(minutesSinceRefresh)} minutes old` };
+    }
+
+    return { isStale: false, message: 'Data is fresh' };
   }
 }
 

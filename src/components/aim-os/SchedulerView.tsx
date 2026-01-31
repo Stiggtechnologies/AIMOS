@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle, ThumbsUp, ThumbsDown, Zap } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle, ThumbsUp, ThumbsDown, Zap, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
 import { writeBackService, WriteBackRecommendation } from '../../services/writeBackService';
 import AIScheduleInsights from './AIScheduleInsights';
 import ApprovalModal from './ApprovalModal';
 import ApprovalHistoryView from './ApprovalHistoryView';
+import SchedulerInsightTooltip from './SchedulerInsightTooltip';
 
 interface WeekData {
   date: string;
@@ -36,6 +37,11 @@ export default function SchedulerView() {
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showAuditTrail, setShowAuditTrail] = useState(false);
   const [isApprovingRec, setIsApprovingRec] = useState(false);
+  const [dismissedInsights, setDismissedInsights] = useState<Set<string>>(new Set());
+  const [snoozedInsights, setSnoozedInsights] = useState<Set<string>>(new Set());
+  const [hoveredInsight, setHoveredInsight] = useState<{ insight: ScheduleIntelligence; position: { x: number; y: number } } | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [dataFreshness, setDataFreshness] = useState<{ isStale: boolean; message: string }>({ isStale: false, message: '' });
 
   const timeSlots = generateTimeSlots();
 
@@ -53,6 +59,28 @@ export default function SchedulerView() {
     return () => {
       schedulerService.stopAutoRefresh();
     };
+  }, []);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+        setUserRole(profile?.role || null);
+      }
+
+      const dismissed = await schedulerService.getDismissedInsights();
+      setDismissedInsights(dismissed);
+
+      const snoozed = await schedulerService.getSnoozedInsights();
+      setSnoozedInsights(snoozed);
+    };
+
+    loadUserData();
   }, []);
 
   useEffect(() => {
@@ -82,13 +110,56 @@ export default function SchedulerView() {
         setInsights(intel);
       }
 
-      setLastRefreshed(new Date());
+      const refreshTime = new Date();
+      setLastRefreshed(refreshTime);
+
+      const freshness = { isStale: false, message: 'Data is fresh' };
+      setDataFreshness(freshness);
     } catch (error) {
       console.error('Error loading schedule:', error);
+      setDataFreshness({ isStale: true, message: 'Failed to load schedule data' });
     } finally {
       setLoading(false);
     }
   }
+
+  const handleDismissInsight = async (insightId: string) => {
+    try {
+      await schedulerService.dismissInsight(insightId);
+      setDismissedInsights(new Set([...dismissedInsights, insightId]));
+      setHoveredInsight(null);
+    } catch (error) {
+      console.error('Error dismissing insight:', error);
+    }
+  };
+
+  const handleSnoozeInsight = async (insightId: string, durationMinutes: number) => {
+    try {
+      await schedulerService.snoozeInsight(insightId, durationMinutes);
+      setSnoozedInsights(new Set([...snoozedInsights, insightId]));
+      setHoveredInsight(null);
+    } catch (error) {
+      console.error('Error snoozing insight:', error);
+    }
+  };
+
+  const shouldShowInsight = (insight: ScheduleIntelligence): boolean => {
+    if (dismissedInsights.has(insight.id) || snoozedInsights.has(insight.id)) {
+      return false;
+    }
+
+    if (userRole === 'front_desk_staff') {
+      return ['no_show_risk', 'capacity_gap'].includes(insight.type);
+    }
+
+    if (userRole === 'clinician') {
+      return ['overbooking', 'schedule_instability'].includes(insight.type);
+    }
+
+    return true;
+  };
+
+  const visibleInsights = insights.filter(shouldShowInsight);
 
   async function handleManualRefresh() {
     setIsRefreshing(true);
@@ -687,63 +758,99 @@ export default function SchedulerView() {
           </div>
 
           <div className="p-4 space-y-4">
+            {dataFreshness.isStale && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-700 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-medium text-yellow-900">{dataFreshness.message}</p>
+                  <p className="text-xs text-yellow-800 mt-1">Insights may be outdated</p>
+                </div>
+              </div>
+            )}
+
             <AIScheduleInsights clinicId={selectedClinic} date={selectedDate} />
 
-            {insights.length === 0 ? (
+            {visibleInsights.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
                 No insights for this schedule
               </div>
             ) : (
-              insights.map((insight, idx) => {
+              visibleInsights.map((insight, idx) => {
                 const isSelected = selectedInsight?.id === insight.id;
                 return (
-                  <button
+                  <div
                     key={idx}
-                    onClick={() => handleInsightClick(insight)}
-                    className={`w-full text-left p-3 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
-                      isSelected
-                        ? `ring-2 ring-yellow-400 ${
-                          insight.severity === 'critical' ? 'bg-red-100 border-red-400' :
-                          insight.severity === 'high' ? 'bg-orange-100 border-orange-400' :
-                          insight.severity === 'medium' ? 'bg-yellow-100 border-yellow-400' :
-                          'bg-blue-100 border-blue-400'
-                        }`
-                        : `${
-                          insight.severity === 'critical' ? 'bg-red-50 border-red-200' :
-                          insight.severity === 'high' ? 'bg-orange-50 border-orange-200' :
-                          insight.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
-                          'bg-blue-50 border-blue-200'
-                        }`
-                    }`}
+                    onMouseEnter={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setHoveredInsight({
+                        insight,
+                        position: { x: rect.right + 10, y: rect.top },
+                      });
+                    }}
+                    onMouseLeave={() => setHoveredInsight(null)}
+                    className="relative"
                   >
-                    <div className="flex items-start gap-2">
-                      <span className="text-lg">
-                        {insight.type === 'no_show_risk' ? '🔶' :
-                         insight.type === 'overbooking' ? '🔴' :
-                         insight.type === 'capacity_gap' ? '🔵' :
-                         insight.type === 'waitlist_opportunity' ? '🟢' : '🟣'}
-                      </span>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm text-gray-900">{insight.title}</h4>
-                        <p className="text-xs text-gray-600 mt-1">{insight.description}</p>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            Confidence: {insight.confidence}%
-                          </span>
-                          {isSelected && (
-                            <span className="text-xs font-semibold text-yellow-600 bg-yellow-200 px-2 py-1 rounded">
-                              Selected
+                    <button
+                      onClick={() => handleInsightClick(insight)}
+                      className={`w-full text-left p-3 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
+                        isSelected
+                          ? `ring-2 ring-yellow-400 ${
+                            insight.severity === 'critical' ? 'bg-red-100 border-red-400' :
+                            insight.severity === 'high' ? 'bg-orange-100 border-orange-400' :
+                            insight.severity === 'medium' ? 'bg-yellow-100 border-yellow-400' :
+                            'bg-blue-100 border-blue-400'
+                          }`
+                          : `${
+                            insight.severity === 'critical' ? 'bg-red-50 border-red-200' :
+                            insight.severity === 'high' ? 'bg-orange-50 border-orange-200' :
+                            insight.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+                            'bg-blue-50 border-blue-200'
+                          }`
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">
+                          {insight.type === 'no_show_risk' ? '🔶' :
+                           insight.type === 'overbooking' ? '🔴' :
+                           insight.type === 'capacity_gap' ? '🔵' :
+                           insight.type === 'waitlist_opportunity' ? '🟢' : '🟣'}
+                        </span>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-gray-900">{insight.title}</h4>
+                          <p className="text-xs text-gray-600 mt-1">{insight.description}</p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              insight.confidence >= 90 ? 'bg-green-100 text-green-900' :
+                              insight.confidence >= 80 ? 'bg-blue-100 text-blue-900' :
+                              insight.confidence >= 70 ? 'bg-yellow-100 text-yellow-900' :
+                              'bg-gray-100 text-gray-900'
+                            }`}>
+                              {insight.confidence.toFixed(0)}%
                             </span>
+                            {isSelected && (
+                              <span className="text-xs font-semibold text-yellow-600 bg-yellow-200 px-2 py-1 rounded">
+                                Selected
+                              </span>
+                            )}
+                          </div>
+                          {insight.suggested_action && (
+                            <div className="mt-2 text-xs font-medium text-gray-700 bg-white p-2 rounded">
+                              💡 {insight.suggested_action}
+                            </div>
                           )}
                         </div>
-                        {insight.suggested_action && (
-                          <div className="mt-2 text-xs font-medium text-gray-700 bg-white p-2 rounded">
-                            💡 {insight.suggested_action}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  </button>
+                    </button>
+
+                    {hoveredInsight?.insight.id === insight.id && (
+                      <SchedulerInsightTooltip
+                        insight={insight}
+                        position={hoveredInsight.position}
+                        onDismiss={handleDismissInsight}
+                        onSnooze={handleSnoozeInsight}
+                      />
+                    )}
+                  </div>
                 );
               })
             )}
