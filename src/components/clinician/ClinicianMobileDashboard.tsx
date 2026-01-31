@@ -78,10 +78,19 @@ export default function ClinicianMobileDashboard() {
   };
 
   const handleSaveNote = async () => {
-    if (!user || !newNoteText.trim()) return;
+    if (!user) {
+      alert('You must be logged in to save notes');
+      return;
+    }
+
+    if (!newNoteText.trim()) {
+      alert('Please enter note text');
+      return;
+    }
 
     try {
-      await clinicianMobileService.createQuickNote({
+      console.log('Saving note for user:', user.id);
+      const noteData = {
         clinician_id: user.id,
         patient_id: selectedPatientId || undefined,
         appointment_id: selectedAppointmentId || undefined,
@@ -89,30 +98,46 @@ export default function ClinicianMobileDashboard() {
         note_text: newNoteText,
         tags: [],
         is_draft: false
-      });
+      };
+      console.log('Note data:', noteData);
+
+      const result = await clinicianMobileService.createQuickNote(noteData);
+      console.log('Note saved:', result);
 
       setNewNoteText('');
       setSelectedPatientId('');
       setSelectedAppointmentId('');
       await loadData();
-    } catch (error) {
+      alert('Note saved successfully!');
+    } catch (error: any) {
       console.error('Error saving note:', error);
-      alert('Failed to save note');
+      console.error('Error details:', error.message, error.details, error.hint);
+      alert(`Failed to save note: ${error.message || 'Unknown error'}`);
     }
   };
 
   const handleSaveAvailability = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('You must be logged in to save availability');
+      return;
+    }
 
     try {
+      console.log('Saving availability for user:', user.id);
+      console.log('Form data:', availabilityForm);
+
       if (editingAvailabilityId) {
-        await clinicianMobileService.updateAvailability(editingAvailabilityId, availabilityForm);
+        const result = await clinicianMobileService.updateAvailability(editingAvailabilityId, availabilityForm);
+        console.log('Update result:', result);
       } else {
-        await clinicianMobileService.setAvailability({
+        const dataToSave = {
           clinician_id: user.id,
           availability_type: 'regular',
           ...availabilityForm
-        });
+        };
+        console.log('Inserting data:', dataToSave);
+        const result = await clinicianMobileService.setAvailability(dataToSave);
+        console.log('Insert result:', result);
       }
 
       setIsEditingAvailability(false);
@@ -125,9 +150,11 @@ export default function ClinicianMobileDashboard() {
         notes: ''
       });
       await loadData();
-    } catch (error) {
+      alert('Availability saved successfully!');
+    } catch (error: any) {
       console.error('Error saving availability:', error);
-      alert('Failed to save availability');
+      console.error('Error details:', error.message, error.details, error.hint);
+      alert(`Failed to save availability: ${error.message || 'Unknown error'}`);
     }
   };
 

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Setup Demo Users</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .success {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+    }
+    .error {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+    }
+    h1 {
+      color: #1f2937;
+    }
+    .info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Setup Demo Users</h1>
+
+    <div class="info">
+      <strong>What this does:</strong>
+      <p>This will create 9 demo user accounts in your Supabase Auth and link them to user profiles:</p>
+      <ul>
+        <li>Sarah Chen (Executive)</li>
+        <li>Michael Roberts (Clinic Manager)</li>
+        <li>Jennifer Wong (Clinician)</li>
+        <li>Sarah Mitchell (Clinician)</li>
+        <li>James Chen (Clinician)</li>
+        <li>Lisa Thompson (Clinician)</li>
+        <li>David Kim (Clinician)</li>
+        <li>David Thompson (Admin)</li>
+        <li>Amanda Martinez (Contractor)</li>
+      </ul>
+      <p><strong>Note:</strong> If users already exist, they will be skipped.</p>
+    </div>
+
+    <button id="setupBtn" onclick="setupDemoUsers()">Setup Demo Users</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://tfnoogotbyshsznpjspk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbm9vZ290YnlzaHN6bnBqc3BrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYwMjQwMDMsImV4cCI6MjA1MTYwMDAwM30.mjnB5FQ29_S2RkKiWIKpyOFqWLYzNa5DP3-Z93gHdzw';
+
+    async function setupDemoUsers() {
+      const btn = document.getElementById('setupBtn');
+      const resultDiv = document.getElementById('result');
+
+      btn.disabled = true;
+      btn.textContent = 'Setting up...';
+      resultDiv.innerHTML = '<div class="result">Setting up demo users...</div>';
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/setup-demo-users`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          resultDiv.innerHTML = `
+            <div class="result success">
+              <strong>✓ Success!</strong><br><br>
+              ${JSON.stringify(data, null, 2)}
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="result error">
+              <strong>✗ Error:</strong><br><br>
+              ${JSON.stringify(data, null, 2)}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="result error">
+            <strong>✗ Error:</strong><br><br>
+            ${error.message}
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Setup Demo Users';
+      }
+    }
+
+    function clearResults() {
+      document.getElementById('result').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
