@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Functions Test Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 24px;
+        }
+        .test-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .result.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .result.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .result.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .status-badge.pending {
+            background: #e0e0e0;
+            color: #666;
+        }
+        .status-badge.running {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .status-badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-badge.failed {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .login-section {
+            background: #f0f0f0;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+        .login-section input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        .auth-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .auth-status.logged-in {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .auth-status.logged-out {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 AI Functions Test Suite</h1>
+        <p class="subtitle">Test all OpenAI-powered features in AIM OS Scheduler</p>
+
+        <!-- Authentication Section -->
+        <div class="login-section">
+            <h3 style="margin-top: 0;">Authentication Required</h3>
+            <input type="email" id="email" placeholder="Email" value="jennifer.clinician@aimrehab.ca">
+            <input type="password" id="password" placeholder="Password" value="Demo2026!Clinician">
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+            <div id="authStatus" class="auth-status logged-out">Not logged in</div>
+        </div>
+
+        <!-- Test 1: Edge Function Connectivity -->
+        <div class="test-section">
+            <h2>1. Edge Function Connectivity <span id="status1" class="status-badge pending">Pending</span></h2>
+            <p>Tests basic OpenAI API connection through Supabase Edge Function</p>
+            <button onclick="testEdgeFunction()">Run Test</button>
+            <div id="result1"></div>
+        </div>
+
+        <!-- Test 2: Schedule Optimization Analysis -->
+        <div class="test-section">
+            <h2>2. Schedule Optimization Analysis <span id="status2" class="status-badge pending">Pending</span></h2>
+            <p>Tests AI analysis of a full day's schedule with multiple appointments</p>
+            <button onclick="testScheduleOptimization()">Run Test</button>
+            <div id="result2"></div>
+        </div>
+
+        <!-- Test 3: Scheduling Recommendations -->
+        <div class="test-section">
+            <h2>3. Scheduling Recommendations <span id="status3" class="status-badge pending">Pending</span></h2>
+            <p>Tests AI recommendations for gaps, underutilization, and overbooking</p>
+            <button onclick="testSchedulingRecommendations()">Run Test</button>
+            <div id="result3"></div>
+        </div>
+
+        <!-- Test 4: Financial Analysis -->
+        <div class="test-section">
+            <h2>4. Financial Data Analysis <span id="status4" class="status-badge pending">Pending</span></h2>
+            <p>Tests AI analysis of financial metrics and revenue data</p>
+            <button onclick="testFinancialAnalysis()">Run Test</button>
+            <div id="result4"></div>
+        </div>
+
+        <!-- Test 5: Operational Metrics -->
+        <div class="test-section">
+            <h2>5. Operational Metrics Analysis <span id="status5" class="status-badge pending">Pending</span></h2>
+            <p>Tests AI insights on operational performance</p>
+            <button onclick="testOperationalMetrics()">Run Test</button>
+            <div id="result5"></div>
+        </div>
+
+        <!-- Test 6: Run All Tests -->
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 2px solid #e0e0e0;">
+            <button onclick="runAllTests()" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); font-size: 16px; padding: 12px 32px;">
+                🚀 Run All Tests
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://tfnoogotbyshsznpjspk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbm9vZ290YnlzaHN6bnBqc3BrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1MDY2ODAsImV4cCI6MjA4MzA4MjY4MH0.RGOuBG_vrZhtrtSfhQ_ij72ctznWn0dAkQHYjT7FT_M';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check initial auth state
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            updateAuthStatus(session);
+        });
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert('Login failed: ' + error.message);
+            } else {
+                updateAuthStatus(data.session);
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            updateAuthStatus(null);
+        }
+
+        function updateAuthStatus(session) {
+            const statusDiv = document.getElementById('authStatus');
+            if (session) {
+                statusDiv.className = 'auth-status logged-in';
+                statusDiv.textContent = `✓ Logged in as: ${session.user.email}`;
+            } else {
+                statusDiv.className = 'auth-status logged-out';
+                statusDiv.textContent = '✗ Not logged in - Please login to run tests';
+            }
+        }
+
+        function setStatus(testNum, status) {
+            const badge = document.getElementById(`status${testNum}`);
+            badge.className = `status-badge ${status}`;
+            badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+
+        function showResult(testNum, type, message) {
+            const resultDiv = document.getElementById(`result${testNum}`);
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+        }
+
+        async function callOpenAI(messages, model = 'gpt-4o-mini') {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                throw new Error('Not authenticated. Please login first.');
+            }
+
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/openai-assistant`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ messages, model, temperature: 0.7, max_tokens: 1000 })
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`OpenAI request failed: ${error}`);
+            }
+
+            return response.json();
+        }
+
+        async function testEdgeFunction() {
+            const testNum = 1;
+            setStatus(testNum, 'running');
+            showResult(testNum, 'loading', '⏳ Testing edge function connectivity...');
+
+            try {
+                const result = await callOpenAI([
+                    { role: 'user', content: 'Say "Hello from AIM OS!" and nothing else.' }
+                ]);
+
+                const response = result.choices[0].message.content;
+                setStatus(testNum, 'success');
+                showResult(testNum, 'success', `✅ Success!\n\nResponse: ${response}\n\nModel: ${result.model}\nTokens used: ${result.usage.total_tokens}`);
+            } catch (error) {
+                setStatus(testNum, 'failed');
+                showResult(testNum, 'error', `❌ Failed: ${error.message}`);
+            }
+        }
+
+        async function testScheduleOptimization() {
+            const testNum = 2;
+            setStatus(testNum, 'running');
+            showResult(testNum, 'loading', '⏳ Analyzing schedule...');
+
+            try {
+                const scheduleData = {
+                    date: '2026-02-03',
+                    providers: [
+                        { name: 'Jennifer Wong', role: 'Physiotherapist', utilization: 75 }
+                    ],
+                    appointments: [
+                        { patient: 'John Doe', type: 'Initial Assessment', time: '08:00-09:00', status: 'scheduled' },
+                        { patient: 'Jane Smith', type: 'Treatment Session', time: '09:15-09:45', status: 'confirmed' },
+                        { patient: 'Bob Wilson', type: 'Follow-up', time: '10:00-10:30', status: 'scheduled' },
+                        { patient: 'Alice Johnson', type: 'Re-assessment', time: '14:00-15:00', status: 'confirmed' }
+                    ]
+                };
+
+                const result = await callOpenAI([
+                    {
+                        role: 'system',
+                        content: 'You are an expert in healthcare operations and clinic scheduling optimization.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Analyze this clinic schedule and provide 3-5 specific optimization recommendations:\n\n${JSON.stringify(scheduleData, null, 2)}`
+                    }
+                ]);
+
+                const analysis = result.choices[0].message.content;
+                setStatus(testNum, 'success');
+                showResult(testNum, 'success', `✅ Success!\n\n${analysis}\n\n---\nTokens: ${result.usage.total_tokens}`);
+            } catch (error) {
+                setStatus(testNum, 'failed');
+                showResult(testNum, 'error', `❌ Failed: ${error.message}`);
+            }
+        }
+
+        async function testSchedulingRecommendations() {
+            const testNum = 3;
+            setStatus(testNum, 'running');
+            showResult(testNum, 'loading', '⏳ Generating recommendations...');
+
+            try {
+                const data = {
+                    gaps: [
+                        { description: '2h gap between 11:00 and 13:00', provider: 'Jennifer Wong' }
+                    ],
+                    underutilizedProviders: [
+                        { name: 'Sarah Mitchell', hours: 3.5, target: 7 }
+                    ],
+                    overbookedSlots: [
+                        { time: '14:00', count: 5 }
+                    ]
+                };
+
+                const result = await callOpenAI([
+                    {
+                        role: 'system',
+                        content: 'You are a healthcare scheduling expert. Provide specific, actionable recommendations.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Based on this analysis, provide 3-5 prioritized recommendations:\n\nSchedule Gaps: ${data.gaps.length}\nUnderutilized Providers: ${data.underutilizedProviders.length}\nOverbooked Slots: ${data.overbookedSlots.length}\n\nDetails:\n${JSON.stringify(data, null, 2)}`
+                    }
+                ]);
+
+                const recommendations = result.choices[0].message.content;
+                setStatus(testNum, 'success');
+                showResult(testNum, 'success', `✅ Success!\n\n${recommendations}\n\n---\nTokens: ${result.usage.total_tokens}`);
+            } catch (error) {
+                setStatus(testNum, 'failed');
+                showResult(testNum, 'error', `❌ Failed: ${error.message}`);
+            }
+        }
+
+        async function testFinancialAnalysis() {
+            const testNum = 4;
+            setStatus(testNum, 'running');
+            showResult(testNum, 'loading', '⏳ Analyzing financial data...');
+
+            try {
+                const financialData = {
+                    revenue: { current: 125000, previous: 118000, target: 135000 },
+                    collections: { rate: 92, aging30: 15000, aging60: 8000 },
+                    appointments: { completed: 450, cancelled: 23, noShow: 12 }
+                };
+
+                const result = await callOpenAI([
+                    {
+                        role: 'user',
+                        content: `Analyze this financial data and provide key insights:\n\n${JSON.stringify(financialData, null, 2)}`
+                    }
+                ]);
+
+                const analysis = result.choices[0].message.content;
+                setStatus(testNum, 'success');
+                showResult(testNum, 'success', `✅ Success!\n\n${analysis}\n\n---\nTokens: ${result.usage.total_tokens}`);
+            } catch (error) {
+                setStatus(testNum, 'failed');
+                showResult(testNum, 'error', `❌ Failed: ${error.message}`);
+            }
+        }
+
+        async function testOperationalMetrics() {
+            const testNum = 5;
+            setStatus(testNum, 'running');
+            showResult(testNum, 'loading', '⏳ Analyzing operational metrics...');
+
+            try {
+                const metricsData = {
+                    utilization: { current: 78, target: 85, trend: 'increasing' },
+                    waitTime: { avg: 12, max: 35, target: 15 },
+                    patientSatisfaction: { score: 4.6, responses: 234 },
+                    staffProductivity: { treatments_per_day: 8.2, target: 9.0 }
+                };
+
+                const result = await callOpenAI([
+                    {
+                        role: 'user',
+                        content: `Analyze these operational metrics and identify improvement opportunities:\n\n${JSON.stringify(metricsData, null, 2)}`
+                    }
+                ]);
+
+                const analysis = result.choices[0].message.content;
+                setStatus(testNum, 'success');
+                showResult(testNum, 'success', `✅ Success!\n\n${analysis}\n\n---\nTokens: ${result.usage.total_tokens}`);
+            } catch (error) {
+                setStatus(testNum, 'failed');
+                showResult(testNum, 'error', `❌ Failed: ${error.message}`);
+            }
+        }
+
+        async function runAllTests() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                alert('Please login first before running tests!');
+                return;
+            }
+
+            showResult(1, 'loading', '⏳ Running all tests...');
+
+            await testEdgeFunction();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await testScheduleOptimization();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await testSchedulingRecommendations();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await testFinancialAnalysis();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await testOperationalMetrics();
+
+            alert('✅ All tests completed! Check results above.');
+        }
+    </script>
+</body>
+</html>
