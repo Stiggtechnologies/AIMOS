@@ -184,3 +184,111 @@ export async function generateExecutiveSummary(data: any): Promise<string> {
 
   return response.choices[0].message.content;
 }
+
+export async function analyzeScheduleOptimization(scheduleData: {
+  appointments: any[];
+  providers: any[];
+  date: string;
+}): Promise<string> {
+  const response = await callOpenAI({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are an expert in healthcare operations and clinic scheduling optimization. Analyze schedule data and provide actionable insights.'
+      },
+      {
+        role: 'user',
+        content: `Analyze this clinic schedule for ${scheduleData.date} and provide specific recommendations for optimization:
+
+Providers: ${scheduleData.providers.length}
+Appointments: ${scheduleData.appointments.length}
+
+Schedule Data:
+${JSON.stringify(scheduleData, null, 2)}
+
+Focus on:
+1. Utilization gaps and opportunities
+2. No-show risk mitigation
+3. Capacity optimization
+4. Revenue opportunities
+5. Provider workload balance
+
+Provide 3-5 specific, actionable insights.`
+      }
+    ],
+    model: 'gpt-4o-mini',
+    temperature: 0.5,
+    max_tokens: 1200,
+    context: { type: 'schedule_optimization', data: scheduleData }
+  });
+
+  return response.choices[0].message.content;
+}
+
+export async function predictNoShowRisk(appointmentData: {
+  patient_name: string;
+  appointment_type: string;
+  appointment_date: string;
+  start_time: string;
+  patient_history?: any;
+}): Promise<number> {
+  const response = await callOpenAI({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a predictive analytics expert. Based on appointment details, estimate no-show risk as a percentage (0-100).'
+      },
+      {
+        role: 'user',
+        content: `Estimate no-show risk for this appointment:
+Patient: ${appointmentData.patient_name}
+Type: ${appointmentData.appointment_type}
+Date/Time: ${appointmentData.appointment_date} at ${appointmentData.start_time}
+
+Respond with ONLY a number between 0 and 100 representing the percentage risk.`
+      }
+    ],
+    model: 'gpt-4o-mini',
+    temperature: 0.3,
+    max_tokens: 50,
+    context: { type: 'noshow_prediction', data: appointmentData }
+  });
+
+  const riskStr = response.choices[0].message.content.trim();
+  const risk = parseInt(riskStr.replace(/[^0-9]/g, ''));
+  return Math.min(100, Math.max(0, risk || 15));
+}
+
+export async function generateSchedulingRecommendations(data: {
+  gaps: any[];
+  underutilizedProviders: any[];
+  overbookedSlots: any[];
+}): Promise<string> {
+  const response = await callOpenAI({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a healthcare scheduling expert. Provide specific, actionable recommendations to optimize clinic operations.'
+      },
+      {
+        role: 'user',
+        content: `Based on this scheduling analysis, provide specific recommendations:
+
+Schedule Gaps: ${data.gaps.length}
+Underutilized Providers: ${data.underutilizedProviders.length}
+Overbooked Slots: ${data.overbookedSlots.length}
+
+Details:
+${JSON.stringify(data, null, 2)}
+
+Provide 3-5 prioritized recommendations that can be implemented today.`
+      }
+    ],
+    model: 'gpt-4o-mini',
+    temperature: 0.6,
+    max_tokens: 1000,
+    context: { type: 'scheduling_recommendations', data }
+  });
+
+  return response.choices[0].message.content;
+}

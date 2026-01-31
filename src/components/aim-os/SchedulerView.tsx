@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search } from 'lucide-react';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
+import AIScheduleInsights from './AIScheduleInsights';
 
 interface WeekData {
   date: string;
@@ -395,7 +396,9 @@ export default function SchedulerView() {
             <p className="text-xs text-gray-500 mt-1">AI-powered insights for today</p>
           </div>
 
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-4">
+            <AIScheduleInsights clinicId={selectedClinic} date={selectedDate} />
+
             {insights.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
                 No insights for this schedule

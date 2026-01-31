@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { analyzeScheduleOptimization, generateSchedulingRecommendations } from './openaiService';
 
 export interface SchedulerAppointment {
   id: string;
@@ -313,6 +314,49 @@ class SchedulerService {
       no_show: '🚫',
     };
     return icons[status] || '○';
+  }
+
+  async getAIScheduleAnalysis(
+    clinicId: string,
+    date: string
+  ): Promise<{ analysis: string; recommendations: string } | null> {
+    try {
+      const appointments = await this.getAppointments(clinicId, date);
+      const providers = await this.getProviders(clinicId);
+      const insights = await this.getScheduleIntelligence(clinicId, date);
+
+      const gaps = insights.filter(i => i.type === 'capacity_gap');
+      const underutilized = insights.filter(i => i.type === 'underutilization');
+      const overbooked = insights.filter(i => i.type === 'overbooking');
+
+      const [analysis, recommendations] = await Promise.all([
+        analyzeScheduleOptimization({
+          appointments: appointments.map(a => ({
+            patient: a.patient_name,
+            type: a.appointment_type,
+            time: `${a.start_time}-${a.end_time}`,
+            provider: a.provider_name,
+            status: a.status
+          })),
+          providers: providers.map(p => ({
+            name: p.name,
+            role: p.role,
+            utilization: p.utilization
+          })),
+          date
+        }),
+        generateSchedulingRecommendations({
+          gaps,
+          underutilizedProviders: underutilized,
+          overbookedSlots: overbooked
+        })
+      ]);
+
+      return { analysis, recommendations };
+    } catch (error) {
+      console.error('[SchedulerService] AI analysis failed:', error);
+      return null;
+    }
   }
 }
 
