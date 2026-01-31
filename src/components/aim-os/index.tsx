@@ -10,3 +10,4 @@ export { default as WorkforceHealthView } from './WorkforceHealthView';
 export { default as ClinicIntegrationView } from './ClinicIntegrationView';
 export { default as EmergencyView } from './EmergencyView';
 export { ClinicalIntelligenceDashboard } from './ClinicalIntelligenceDashboard';
+export { CIIAutomationDashboard } from './CIIAutomationDashboard';
