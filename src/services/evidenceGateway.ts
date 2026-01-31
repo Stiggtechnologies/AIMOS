@@ -26,22 +26,25 @@ class EvidenceGateway {
    */
   async getClinicianEvidenceView(patientProfile: PatientProfile): Promise<ClinicianEvidenceView> {
     try {
-      // Get matched evidence
+      // Get matched evidence (already domain-filtered in cdsService)
       const matchedClaims = await cdsService.matchEvidence(patientProfile);
       const topClaims = matchedClaims.slice(0, 5).map(m => m.claim);
 
-      // Get triggered rules
-      const rules = await researchIntelligenceService.getActiveRules();
+      // Get triggered rules (domain-filtered)
+      const rules = await researchIntelligenceService.getActiveRules(patientProfile.domain);
       const triggeredRules = researchIntelligenceService.evaluateRules(rules, patientProfile);
 
-      // Get recommendations
+      // Get recommendations (already domain-filtered in cdsService)
       const recommendations = await cdsService.getRecommendations(patientProfile);
 
       // Get safety alerts
       const safetyAlerts = cdsService.getSafetyAlerts(patientProfile);
 
-      // Get suggested pathway
-      const pathways = await researchIntelligenceService.getPathways({ isActive: true });
+      // Get suggested pathway (domain-filtered)
+      const pathways = await researchIntelligenceService.getPathways({
+        isActive: true,
+        domain: patientProfile.domain
+      });
       const suggestedPathway = pathways.find(p => this.pathwayMatches(p, patientProfile));
 
       return {
@@ -67,16 +70,17 @@ class EvidenceGateway {
    */
   async getPatientEvidenceView(patientProfile: PatientProfile): Promise<PatientEvidenceView> {
     try {
-      // Get education assets
+      // Get education assets (domain-filtered)
       const educationAssets = await researchIntelligenceService.getEducationAssets({
         readingLevel: 6,
-        topicTags: this.getPatientRelevantTopics(patientProfile)
+        topicTags: this.getPatientRelevantTopics(patientProfile),
+        domain: patientProfile.domain
       });
 
       // Get safety messages
       const safetyMessages = cdsService.getSafetyAlerts(patientProfile);
 
-      // Build simple recommendations
+      // Build simple recommendations (already domain-filtered in cdsService)
       const recommendations = await cdsService.getRecommendations(patientProfile);
       const simpleRecommendations = recommendations
         .filter(r => r.priority <= 2)
@@ -109,12 +113,14 @@ class EvidenceGateway {
     region?: string;
     evidenceLevel?: string;
     tags?: string[];
+    domain?: string;
   }) {
     try {
       const claims = await researchIntelligenceService.searchClaims({
         region: filters?.region,
         evidenceLevel: filters?.evidenceLevel,
         tags: filters?.tags,
+        domain: filters?.domain,
         status: 'approved'
       });
 

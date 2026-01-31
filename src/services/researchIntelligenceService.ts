@@ -53,7 +53,37 @@ class ResearchIntelligenceService {
     acuity?: string;
     evidenceLevel?: string;
     status?: string;
+    domain?: string;
   }): Promise<EvidenceClaim[]> {
+    // If domain filter is specified, join with research_sources and evidence_authorities
+    if (filters.domain) {
+      const { data, error } = await supabase
+        .from('evidence_claims')
+        .select(`
+          *,
+          research_sources!inner(
+            id,
+            evidence_authorities!inner(
+              domain
+            )
+          )
+        `)
+        .eq('research_sources.evidence_authorities.domain', filters.domain)
+        .eq('status', filters.status || 'approved')
+        .order('confidence_score', { ascending: false });
+
+      if (error) {
+        console.error('Error searching claims with domain filter:', error);
+        return [];
+      }
+
+      return (data || []).map((item: any) => {
+        const { research_sources, ...claim } = item;
+        return claim;
+      });
+    }
+
+    // Default query without domain filter
     let query = supabase
       .from('evidence_claims')
       .select('*');
@@ -89,12 +119,17 @@ class ResearchIntelligenceService {
   /**
    * Get all active clinical rules
    */
-  async getActiveRules(): Promise<ClinicalRule[]> {
-    const { data, error } = await supabase
+  async getActiveRules(domain?: string): Promise<ClinicalRule[]> {
+    let query = supabase
       .from('clinical_rules')
       .select('*')
-      .eq('is_active', true)
-      .order('priority', { ascending: true });
+      .eq('is_active', true);
+
+    if (domain) {
+      query = query.eq('domain', domain);
+    }
+
+    const { data, error } = await query.order('priority', { ascending: true });
 
     if (error) {
       console.error('Error fetching rules:', error);
@@ -191,6 +226,7 @@ class ResearchIntelligenceService {
   async getPathways(filters?: {
     region?: string;
     isActive?: boolean;
+    domain?: string;
   }): Promise<CarePathwayTemplate[]> {
     let query = supabase.from('care_pathway_templates').select('*');
 
@@ -198,6 +234,10 @@ class ResearchIntelligenceService {
       query = query.eq('is_active', filters.isActive);
     } else {
       query = query.eq('is_active', true);
+    }
+
+    if (filters?.domain) {
+      query = query.eq('domain', filters.domain);
     }
 
     const { data, error } = await query;
@@ -216,6 +256,7 @@ class ResearchIntelligenceService {
   async getEducationAssets(filters?: {
     readingLevel?: number;
     topicTags?: string[];
+    domain?: string;
   }): Promise<PatientEducationAsset[]> {
     let query = supabase
       .from('patient_education_assets')
@@ -228,6 +269,35 @@ class ResearchIntelligenceService {
 
     if (filters?.topicTags && filters.topicTags.length > 0) {
       query = query.contains('topic_tags', filters.topicTags);
+    }
+
+    // Filter by domain - check if domain name is in topic_tags or title
+    if (filters?.domain) {
+      // For now, we'll filter client-side since education assets use topic tags
+      // In future, could add a domain column to patient_education_assets table
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching education assets:', error);
+        return [];
+      }
+
+      // Match by domain-specific keywords in title or tags
+      const domainKeywords: Record<string, string[]> = {
+        'chronic_pain': ['pain', 'chronic', 'pacing', 'flare', 'stress', 'sleep'],
+        'acl': ['acl', 'strength', 'landing', 'sport', 'hop', 'knee'],
+        'neuro': ['neuro', 'repetition', 'balance', 'fatigue', 'gait', 'walking', 'stroke', 'falls']
+      };
+
+      const keywords = domainKeywords[filters.domain] || [];
+      return (data || []).filter(asset => {
+        const titleLower = asset.title.toLowerCase();
+        const tags = asset.topic_tags || [];
+        return keywords.some(keyword =>
+          titleLower.includes(keyword) ||
+          tags.some((tag: string) => tag.toLowerCase().includes(keyword))
+        );
+      });
     }
 
     const { data, error } = await query;
