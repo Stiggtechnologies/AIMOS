@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { clinicalIntelligenceService } from '../../services/clinicalIntelligenceService';
 import { useToast } from '../../hooks/useToast';
+import { DomainSwitcher } from '../shared/DomainSwitcher';
+import { ClinicalDomain } from '../../services/evidenceAuthorityService';
 
 export function ClinicalIntelligenceDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
@@ -20,11 +22,12 @@ export function ClinicalIntelligenceDashboard() {
   const [researchSources, setResearchSources] = useState<any[]>([]);
   const [evidencePacks, setEvidencePacks] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState<'digest' | 'query' | 'papers' | 'translations' | 'pilots' | 'priorities' | 'packs'>('digest');
+  const [selectedDomain, setSelectedDomain] = useState<ClinicalDomain | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedDomain]);
 
   const loadData = async () => {
     const [
@@ -116,13 +119,22 @@ export function ClinicalIntelligenceDashboard() {
     <div className="h-full bg-gray-50 overflow-auto">
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Microscope className="w-8 h-8 text-blue-600" />
-            Clinical Intelligence & Innovation
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Research-to-practice translation • Evidence synthesis • Outcomes measurement
-          </p>
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <Microscope className="w-8 h-8 text-blue-600" />
+                Clinical Intelligence & Innovation
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Research-to-practice translation • Evidence synthesis • Outcomes measurement
+              </p>
+            </div>
+            <DomainSwitcher
+              selectedDomain={selectedDomain}
+              onDomainChange={setSelectedDomain}
+              showAuthorities={false}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">

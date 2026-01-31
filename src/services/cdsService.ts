@@ -1,6 +1,8 @@
 import { researchIntelligenceService, EvidenceClaim, ClinicalRule } from './researchIntelligenceService';
+import { ClinicalDomain } from './evidenceAuthorityService';
 
 export interface PatientProfile {
+  domain?: ClinicalDomain;
   region: string;
   condition_type: string;
   acuity: string;
@@ -32,11 +34,16 @@ export interface CDSRecommendation {
 class ClinicalDecisionSupportService {
   /**
    * Match patient profile against evidence claims
+   * Domain-aware: filters claims by specified domain
    */
   async matchEvidence(patientProfile: PatientProfile): Promise<CDSMatch[]> {
     const searchFilters: any = {
       status: 'approved'
     };
+
+    if (patientProfile.domain) {
+      searchFilters.domain = patientProfile.domain;
+    }
 
     if (patientProfile.region) {
       searchFilters.region = patientProfile.region;
@@ -70,12 +77,16 @@ class ClinicalDecisionSupportService {
 
   /**
    * Get clinical recommendations based on patient profile
+   * Domain-aware: only returns recommendations relevant to the specified domain
    */
   async getRecommendations(patientProfile: PatientProfile): Promise<CDSRecommendation[]> {
     const recommendations: CDSRecommendation[] = [];
 
-    // Get and evaluate rules
-    const rules = await researchIntelligenceService.getActiveRules();
+    // Get and evaluate rules (filtered by domain if specified)
+    const allRules = await researchIntelligenceService.getActiveRules();
+    const rules = patientProfile.domain
+      ? allRules.filter(r => !r.domain || r.domain === patientProfile.domain)
+      : allRules;
     const triggeredRules = researchIntelligenceService.evaluateRules(rules, patientProfile);
 
     for (const rule of triggeredRules) {
@@ -103,8 +114,11 @@ class ClinicalDecisionSupportService {
       });
     }
 
-    // Get care pathway templates
-    const pathways = await researchIntelligenceService.getPathways();
+    // Get care pathway templates (filtered by domain if specified)
+    const allPathways = await researchIntelligenceService.getPathways();
+    const pathways = patientProfile.domain
+      ? allPathways.filter(p => !p.domain || p.domain === patientProfile.domain)
+      : allPathways;
     const matchedPathway = pathways.find(p =>
       this.pathwayMatches(p, patientProfile)
     );
@@ -263,6 +277,7 @@ class ClinicalDecisionSupportService {
 
   /**
    * Get safety alerts based on profile
+   * Domain-aware: applies domain-specific safety checks
    */
   getSafetyAlerts(profile: PatientProfile): string[] {
     const alerts: string[] = [];
@@ -273,6 +288,53 @@ class ClinicalDecisionSupportService {
 
     if (profile.fear_avoidance && profile.acuity === 'chronic') {
       alerts.push('High fear avoidance in chronic pain - education critical');
+    }
+
+    if (profile.domain) {
+      const domainAlerts = this.getDomainSpecificSafetyAlerts(profile);
+      alerts.push(...domainAlerts);
+    }
+
+    return alerts;
+  }
+
+  /**
+   * Get domain-specific safety alerts
+   */
+  private getDomainSpecificSafetyAlerts(profile: PatientProfile): string[] {
+    const alerts: string[] = [];
+
+    switch (profile.domain) {
+      case 'concussion':
+        if (profile.visits_completed && profile.visits_completed < 2) {
+          alerts.push('Concussion: Ensure proper baseline assessment completed');
+        }
+        break;
+
+      case 'spine_mdt':
+        if (!profile.classification) {
+          alerts.push('MDT: Mechanical assessment required for classification');
+        }
+        break;
+
+      case 'acl':
+        if (profile.visits_completed && profile.visits_completed > 0) {
+          alerts.push('ACL: Follow return-to-sport criteria before clearance');
+        }
+        break;
+
+      case 'chronic_pain':
+        if (!profile.fear_avoidance) {
+          alerts.push('Chronic Pain: Consider psychosocial assessment');
+        }
+        break;
+
+      case 'neuro':
+        alerts.push('Neuro: Monitor for neurological changes each visit');
+        break;
+
+      default:
+        break;
     }
 
     return alerts;

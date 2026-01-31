@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Save, X, ChevronRight, FileText } from 'lucide-react';
 import { EvidenceOverlay } from '../aim-os/EvidenceOverlay';
 import { PatientProfile } from '../../services/cdsService';
+import { DomainSwitcher } from '../shared/DomainSwitcher';
+import { ClinicalDomain } from '../../services/evidenceAuthorityService';
 
 interface ChartingNote {
   timestamp: string;
@@ -26,6 +28,15 @@ export const ClinicalChartingWorkflow: React.FC<ClinicalChartingProps> = ({
   const [newFinding, setNewFinding] = useState('');
   const [showEvidencePanel, setShowEvidencePanel] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState<ClinicalDomain | null>(patientProfile.domain || null);
+  const [activeProfile, setActiveProfile] = useState<PatientProfile>(patientProfile);
+
+  useEffect(() => {
+    setActiveProfile({
+      ...patientProfile,
+      domain: selectedDomain || patientProfile.domain
+    });
+  }, [selectedDomain, patientProfile]);
 
   const handleAddFinding = () => {
     if (newFinding.trim()) {
@@ -79,8 +90,18 @@ export const ClinicalChartingWorkflow: React.FC<ClinicalChartingProps> = ({
       <div className="flex-1 flex flex-col bg-white rounded-lg shadow">
         {/* Header */}
         <div className="border-b border-gray-200 p-6">
-          <h2 className="text-2xl font-bold text-gray-900">Clinical Charting</h2>
-          <p className="text-gray-600 text-sm mt-1">Document patient assessment, interventions, and progress with evidence guidance</p>
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Clinical Charting</h2>
+              <p className="text-gray-600 text-sm mt-1">Document patient assessment, interventions, and progress with evidence guidance</p>
+            </div>
+            <DomainSwitcher
+              selectedDomain={selectedDomain}
+              onDomainChange={setSelectedDomain}
+              showAuthorities={false}
+              className="shrink-0"
+            />
+          </div>
         </div>
 
         {/* Tabs */}
@@ -204,7 +225,7 @@ export const ClinicalChartingWorkflow: React.FC<ClinicalChartingProps> = ({
 
           <div className="flex-1 overflow-auto">
             <EvidenceOverlay
-              patientProfile={patientProfile}
+              patientProfile={activeProfile}
               onSelectPathway={(pathwayId) => {
                 console.log('Selected pathway:', pathwayId);
               }}
