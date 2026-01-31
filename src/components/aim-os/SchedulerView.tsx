@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search } from 'lucide-react';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
+
+interface WeekData {
+  date: string;
+  dayName: string;
+  appointments: SchedulerAppointment[];
+  blocks: {[providerId: string]: any[]};
+}
 
 export default function SchedulerView() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -12,29 +19,69 @@ export default function SchedulerView() {
   const [selectedAppointment, setSelectedAppointment] = useState<SchedulerAppointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAIOverlays, setShowAIOverlays] = useState(true);
+  const [weekData, setWeekData] = useState<WeekData[]>([]);
 
   const timeSlots = generateTimeSlots();
 
   useEffect(() => {
     loadScheduleData();
-  }, [selectedDate, selectedClinic]);
+  }, [selectedDate, selectedClinic, view]);
 
   async function loadScheduleData() {
     try {
       setLoading(true);
-      const [appts, provs, intel] = await Promise.all([
-        schedulerService.getAppointments(selectedClinic, selectedDate),
-        schedulerService.getProviders(selectedClinic),
-        schedulerService.getScheduleIntelligence(selectedClinic, selectedDate),
-      ]);
-      setAppointments(appts);
+      const provs = await schedulerService.getProviders(selectedClinic);
       setProviders(provs);
-      setInsights(intel);
+
+      if (view === 'week') {
+        await loadWeekData();
+      } else {
+        const [appts, intel] = await Promise.all([
+          schedulerService.getAppointments(selectedClinic, selectedDate),
+          schedulerService.getScheduleIntelligence(selectedClinic, selectedDate),
+        ]);
+        setAppointments(appts);
+        setInsights(intel);
+      }
     } catch (error) {
       console.error('Error loading schedule:', error);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadWeekData() {
+    const startOfWeek = getMonday(new Date(selectedDate));
+    const days: WeekData[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      const appts = await schedulerService.getAppointments(selectedClinic, dateStr);
+      const blocks: {[key: string]: any[]} = {};
+
+      for (const provider of providers) {
+        blocks[provider.id] = await schedulerService.getProviderBlocks(provider.id, dateStr);
+      }
+
+      days.push({
+        date: dateStr,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        appointments: appts,
+        blocks
+      });
+    }
+
+    setWeekData(days);
+  }
+
+  function getMonday(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
   }
 
   function generateTimeSlots(): string[] {
@@ -48,8 +95,101 @@ export default function SchedulerView() {
     return slots;
   }
 
-  function getAppointmentsForProvider(providerId: string): SchedulerAppointment[] {
-    return appointments.filter(a => a.provider_id === providerId);
+  function getAppointmentsForProvider(providerId: string, appts?: SchedulerAppointment[]): SchedulerAppointment[] {
+    const source = appts || appointments;
+    return source.filter(a => a.provider_id === providerId);
+  }
+
+  function renderProviderColumn(
+    provider: SchedulerProvider,
+    appts: SchedulerAppointment[],
+    date: string,
+    compact: boolean = false
+  ) {
+    const providerAppts = getAppointmentsForProvider(provider.id, appts);
+
+    return (
+      <div key={`${provider.id}-${date}`} className={`${compact ? 'w-48' : 'w-64'} border-r border-gray-200 flex-shrink-0`}>
+        {!compact && (
+          /* Provider Header for Day View */
+          <div className="h-12 border-b border-gray-200 px-3 py-2 bg-white sticky top-0 z-10">
+            <div className="font-medium text-sm text-gray-900 truncate">{provider.name}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-500">{provider.role}</span>
+              {provider.utilization && (
+                <div className="flex-1 max-w-20">
+                  <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${provider.utilization > 85 ? 'bg-green-600' : 'bg-blue-600'}`}
+                      style={{ width: `${provider.utilization}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {compact && (
+          /* Provider Sub-header for Week View */
+          <div className="h-10 border-b border-gray-100 px-2 py-1 bg-white text-center">
+            <div className="font-medium text-xs text-gray-900 truncate">{provider.name.split(' ')[1] || provider.name}</div>
+          </div>
+        )}
+
+        {/* Appointment Grid */}
+        <div className="relative bg-white" style={{ height: `${timeSlots.length * 6}px` }}>
+          {timeSlots.map((time, i) => (
+            <div
+              key={time}
+              className={`absolute left-0 right-0 border-b ${i % 4 === 0 ? 'border-gray-200' : 'border-gray-100'}`}
+              style={{ top: `${i * 24}px`, height: '24px' }}
+            ></div>
+          ))}
+
+          {/* Appointment Blocks */}
+          {providerAppts.map((appt) => {
+            const { top, height } = calculateBlockPosition(appt.start_time, appt.end_time);
+            const hasRisk = (appt.no_show_risk || 0) > 70;
+            const isLate = schedulerService.isAppointmentLate(appt);
+
+            return (
+              <button
+                key={appt.id}
+                onClick={() => setSelectedAppointment(appt)}
+                className={`absolute left-1 right-1 rounded-md border-2 p-1 text-left hover:ring-2 hover:ring-blue-400 transition-shadow cursor-pointer overflow-hidden ${isLate ? 'animate-pulse' : ''}`}
+                style={{
+                  top: `${top}px`,
+                  height: `${height}px`,
+                  backgroundColor: isLate ? '#FCA5A5' : appt.color_code,
+                  borderColor: isLate ? '#EF4444' : (hasRisk && showAIOverlays ? '#F59E0B' : 'transparent'),
+                }}
+              >
+                {isLate && (
+                  <div className="text-xs font-bold text-red-900 mb-1">LATE</div>
+                )}
+                <div className="text-xs font-semibold truncate">{appt.patient_name}</div>
+                {!compact && (
+                  <>
+                    <div className="text-xs text-gray-600">
+                      {schedulerService.getStatusIcon(appt.status)} {appt.start_time.substring(0, 5)}
+                    </div>
+                    {appt.appointment_type && height > 60 && (
+                      <div className="text-xs text-gray-500 truncate">{appt.appointment_type}</div>
+                    )}
+                    {hasRisk && showAIOverlays && height > 80 && !isLate && (
+                      <div className="mt-1 text-xs text-orange-700 font-medium">
+                        🧠 {appt.no_show_risk?.toFixed(0)}%
+                      </div>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   }
 
   function calculateBlockPosition(startTime: string, endTime: string) {
@@ -68,7 +208,11 @@ export default function SchedulerView() {
 
   function changeDate(delta: number) {
     const current = new Date(selectedDate);
-    current.setDate(current.getDate() + delta);
+    if (view === 'week') {
+      current.setDate(current.getDate() + (delta * 7));
+    } else {
+      current.setDate(current.getDate() + delta);
+    }
     setSelectedDate(current.toISOString().split('T')[0]);
   }
 
@@ -109,6 +253,14 @@ export default function SchedulerView() {
               <option value="0931b80a-e808-4afe-b464-ecab6c86b2b8">Calgary North</option>
               <option value="25a1a69d-cdb7-4083-bba9-050266b85e82">Calgary South</option>
             </select>
+          </div>
+          <div className="flex items-center gap-2 bg-slate-700 rounded-lg px-3 py-2">
+            <Search className="h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search patient..."
+              className="bg-transparent border-none text-white placeholder-gray-400 focus:outline-none w-48"
+            />
           </div>
         </div>
 
@@ -199,85 +351,42 @@ export default function SchedulerView() {
           </div>
         </div>
 
-        {/* Provider Columns (Center) */}
-        <div className="flex-1 overflow-x-auto overflow-y-auto">
-          <div className="flex min-w-max">
-            {providers.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center h-96">
-                <div className="text-center">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600">No providers scheduled for this day</p>
-                </div>
-              </div>
-            ) : (
-              providers.map((provider) => (
-                <div key={provider.id} className="w-64 border-r border-gray-200 flex-shrink-0">
-                  {/* Provider Header */}
-                  <div className="h-12 border-b border-gray-200 px-3 py-2 bg-white sticky top-0 z-10">
-                    <div className="font-medium text-sm text-gray-900 truncate">{provider.name}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500">{provider.role}</span>
-                      {provider.utilization && (
-                        <div className="flex-1 max-w-20">
-                          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${provider.utilization > 85 ? 'bg-green-600' : 'bg-blue-600'}`}
-                              style={{ width: `${provider.utilization}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Appointment Grid */}
-                  <div className="relative bg-white" style={{ height: `${timeSlots.length * 6}px` }}>
-                    {timeSlots.map((time, i) => (
-                      <div
-                        key={time}
-                        className={`absolute left-0 right-0 border-b ${i % 4 === 0 ? 'border-gray-200' : 'border-gray-100'}`}
-                        style={{ top: `${i * 24}px`, height: '24px' }}
-                      ></div>
-                    ))}
-
-                    {/* Appointment Blocks */}
-                    {getAppointmentsForProvider(provider.id).map((appt) => {
-                      const { top, height } = calculateBlockPosition(appt.start_time, appt.end_time);
-                      const hasRisk = (appt.no_show_risk || 0) > 70;
-
-                      return (
-                        <button
-                          key={appt.id}
-                          onClick={() => setSelectedAppointment(appt)}
-                          className="absolute left-1 right-1 rounded-md border-2 p-2 text-left hover:ring-2 hover:ring-blue-400 transition-shadow cursor-pointer"
-                          style={{
-                            top: `${top}px`,
-                            height: `${height}px`,
-                            backgroundColor: appt.color_code,
-                            borderColor: hasRisk && showAIOverlays ? '#F59E0B' : 'transparent',
-                          }}
-                        >
-                          <div className="text-xs font-semibold truncate">{appt.patient_name}</div>
-                          <div className="text-xs text-gray-600">
-                            {schedulerService.getStatusIcon(appt.status)} {appt.start_time} – {appt.end_time}
-                          </div>
-                          {appt.appointment_type && (
-                            <div className="text-xs text-gray-500 truncate">{appt.appointment_type}</div>
-                          )}
-                          {hasRisk && showAIOverlays && (
-                            <div className="mt-1 text-xs text-orange-700 font-medium">
-                              🧠 {appt.no_show_risk?.toFixed(0)}% no-show risk
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
+        {view === 'day' ? (
+          /* Day View - Provider Columns */
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <div className="flex min-w-max">
+              {providers.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center h-96">
+                  <div className="text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600">No providers scheduled for this day</p>
                   </div>
                 </div>
-              ))
-            )}
+              ) : (
+                providers.map((provider) => renderProviderColumn(provider, appointments, selectedDate))
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Week View - Day Columns with Providers */
+          <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <div className="flex min-w-max">
+              {weekData.map((day) => (
+                <div key={day.date} className="border-r border-gray-200">
+                  {/* Day Header */}
+                  <div className="h-12 border-b border-gray-200 px-3 py-2 bg-gray-50 sticky top-0 z-20 text-center">
+                    <div className="font-semibold text-sm text-gray-900">{day.dayName}</div>
+                  </div>
+
+                  {/* Provider Sub-columns */}
+                  <div className="flex">
+                    {providers.map((provider) => renderProviderColumn(provider, day.appointments, day.date, true))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Intelligence Panel (Right) */}
         <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 overflow-y-auto">

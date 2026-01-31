@@ -44,6 +44,42 @@ const demoUsers: DemoUser[] = [
     clinicCode: 'YEG-C'
   },
   {
+    email: 'sarah.mitchell@aimrehab.ca',
+    password: 'Demo2026!Clinician',
+    firstName: 'Sarah',
+    lastName: 'Mitchell',
+    role: 'clinician',
+    phone: '780-555-2002',
+    clinicCode: 'YEG-C'
+  },
+  {
+    email: 'james.chen@aimrehab.ca',
+    password: 'Demo2026!Clinician',
+    firstName: 'James',
+    lastName: 'Chen',
+    role: 'clinician',
+    phone: '780-555-2003',
+    clinicCode: 'YEG-C'
+  },
+  {
+    email: 'lisa.thompson@aimrehab.ca',
+    password: 'Demo2026!Clinician',
+    firstName: 'Lisa',
+    lastName: 'Thompson',
+    role: 'clinician',
+    phone: '780-555-2004',
+    clinicCode: 'YEG-C'
+  },
+  {
+    email: 'david.kim@aimrehab.ca',
+    password: 'Demo2026!Clinician',
+    firstName: 'David',
+    lastName: 'Kim',
+    role: 'clinician',
+    phone: '780-555-2005',
+    clinicCode: 'YEG-C'
+  },
+  {
     email: 'david.admin@aimrehab.ca',
     password: 'Demo2026!Admin',
     firstName: 'David',

@@ -182,8 +182,10 @@ class SchedulerService {
     date: string
   ): Promise<ScheduleIntelligence[]> {
     const appointments = await this.getAppointments(clinicId, date);
+    const providers = await this.getProviders(clinicId);
     const insights: ScheduleIntelligence[] = [];
 
+    // No-show risk detection
     appointments.forEach(appt => {
       if ((appt.no_show_risk || 0) > 70) {
         insights.push({
@@ -199,6 +201,7 @@ class SchedulerService {
       }
     });
 
+    // Overbooking detection
     const appointmentsByHour = appointments.reduce((acc, appt) => {
       const hour = appt.start_time.substring(0, 2);
       acc[hour] = (acc[hour] || 0) + 1;
@@ -218,7 +221,71 @@ class SchedulerService {
       }
     });
 
+    // Underutilization detection
+    providers.forEach(provider => {
+      const providerAppts = appointments.filter(a => a.provider_id === provider.id);
+      const totalHours = providerAppts.reduce((sum, appt) => {
+        const start = this.timeToMinutes(appt.start_time);
+        const end = this.timeToMinutes(appt.end_time);
+        return sum + (end - start) / 60;
+      }, 0);
+
+      if (totalHours < 4 && providerAppts.length > 0) {
+        insights.push({
+          type: 'underutilization',
+          title: 'Low Provider Utilization',
+          description: `${provider.name} has only ${totalHours.toFixed(1)} hours booked`,
+          confidence: 90,
+          provider_id: provider.id,
+          suggested_action: 'Review scheduling or add appointments',
+          severity: 'low',
+        });
+      }
+    });
+
+    // Capacity gap detection (large gaps between appointments)
+    appointments.forEach((appt, idx) => {
+      if (idx < appointments.length - 1) {
+        const nextAppt = appointments[idx + 1];
+        if (appt.provider_id === nextAppt.provider_id) {
+          const endMinutes = this.timeToMinutes(appt.end_time);
+          const nextStartMinutes = this.timeToMinutes(nextAppt.start_time);
+          const gapMinutes = nextStartMinutes - endMinutes;
+
+          if (gapMinutes >= 90) {
+            insights.push({
+              type: 'capacity_gap',
+              title: 'Scheduling Gap',
+              description: `${(gapMinutes / 60).toFixed(1)}h gap between ${appt.end_time} and ${nextAppt.start_time}`,
+              confidence: 80,
+              provider_id: appt.provider_id || undefined,
+              suggested_action: 'Consider filling with waitlist patients',
+              severity: 'low',
+            });
+          }
+        }
+      }
+    });
+
     return insights;
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  isAppointmentLate(appt: SchedulerAppointment): boolean {
+    if (appt.status !== 'scheduled' && appt.status !== 'confirmed') {
+      return false;
+    }
+
+    const now = new Date();
+    const apptDate = new Date(appt.appointment_date + 'T' + appt.start_time);
+    const diff = now.getTime() - apptDate.getTime();
+    const minutesLate = Math.floor(diff / 1000 / 60);
+
+    return minutesLate > 5;
   }
 
   private getStatusColor(status: string): string {
@@ -230,6 +297,7 @@ class SchedulerService {
       completed: '#86EFAC',
       cancelled: '#FCA5A5',
       no_show: '#EF4444',
+      late: '#FCA5A5',
     };
     return colors[status] || '#E5E7EB';
   }
