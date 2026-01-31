@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Seed Endpoint Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .content {
+      padding: 2rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      background: #667eea;
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 200px;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: #718096;
+      margin-top: 0.25rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .result {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result.success {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      color: #166534;
+    }
+
+    .result.skipped {
+      background: #fef3c7;
+      border: 2px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .result.error {
+      background: #fef2f2;
+      border: 2px solid #fca5a5;
+      color: #991b1b;
+    }
+
+    .result-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .result-content {
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .example-section {
+      background: #f7fafc;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .example-title {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 1rem;
+    }
+
+    .example-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s;
+    }
+
+    .example-item:hover {
+      border-color: #667eea;
+      transform: translateX(4px);
+    }
+
+    .example-name {
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.25rem;
+    }
+
+    .example-desc {
+      font-size: 0.85rem;
+      color: #718096;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 2px solid #fcd34d;
+      color: #92400e;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .warning-box strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔒 Admin Seed Endpoint</h1>
+      <p>Test the production-safe seed deployment endpoint</p>
+    </div>
+
+    <div class="content">
+      <div class="warning-box">
+        <strong>⚠️ Security Notice</strong>
+        This endpoint requires an admin key. Never commit admin keys to your repository or expose them in client-side code.
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>Configuration</span>
+          <span class="badge">Required</span>
+        </div>
+
+        <div class="form-group">
+          <label for="supabaseUrl">Supabase URL</label>
+          <input
+            type="text"
+            id="supabaseUrl"
+            placeholder="https://your-project.supabase.co"
+            value=""
+          />
+          <div class="hint">Your project URL from Supabase Dashboard</div>
+        </div>
+
+        <div class="form-group">
+          <label for="adminKey">Admin Key</label>
+          <input
+            type="password"
+            id="adminKey"
+            placeholder="Your ADMIN_SEED_KEY"
+          />
+          <div class="hint">Set in Supabase Dashboard → Edge Functions → Secrets</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>Seed Data</span>
+        </div>
+
+        <div class="form-group">
+          <label for="seedName">Seed Name</label>
+          <input
+            type="text"
+            id="seedName"
+            placeholder="Starter Pack Bundle v1"
+            value="Test Seed Bundle"
+          />
+          <div class="hint">Unique identifier for this seed (used for idempotency)</div>
+        </div>
+
+        <div class="form-group">
+          <label for="sqlContent">SQL Content</label>
+          <textarea
+            id="sqlContent"
+            placeholder="INSERT INTO evidence_authorities..."
+          >-- Example: Minimal seed
+INSERT INTO evidence_authorities (domain, name, description, authority_type, website_url, established_date)
+VALUES
+  ('test_domain', 'Test Authority', 'Test authority for demo', 'international', 'https://example.com', '2024-01-01');
+</textarea>
+          <div class="hint">Complete SQL to execute (transaction-safe)</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="button-group">
+          <button class="btn-primary" onclick="testSeed()" id="testBtn">
+            <span>🚀 Deploy Seed</span>
+          </button>
+          <button class="btn-secondary" onclick="clearResult()">
+            Clear Result
+          </button>
+          <button class="btn-secondary" onclick="loadExampleSQL()">
+            Load Example
+          </button>
+        </div>
+      </div>
+
+      <div class="result" id="result"></div>
+
+      <div class="example-section">
+        <div class="example-title">Example Seed Bundles</div>
+
+        <div class="example-item" onclick="loadExample('minimal')">
+          <div class="example-name">Minimal Test</div>
+          <div class="example-desc">Single authority record for testing</div>
+        </div>
+
+        <div class="example-item" onclick="loadExample('full')">
+          <div class="example-name">Full Bundle</div>
+          <div class="example-desc">Complete evidence pack (authority → sources → claims → rules → pathways)</div>
+        </div>
+
+        <div class="example-item" onclick="loadExample('claims')">
+          <div class="example-name">Claims Only</div>
+          <div class="example-desc">Evidence claims for existing authority</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const examples = {
+      minimal: {
+        name: 'Minimal Test Seed',
+        sql: `-- Minimal test seed
+INSERT INTO evidence_authorities (domain, name, description, authority_type, website_url, established_date)
+VALUES
+  ('test_domain', 'Test Authority', 'Test authority for demo', 'international', 'https://example.com', '2024-01-01');`
+      },
+      full: {
+        name: 'Full Evidence Bundle',
+        sql: `-- Full evidence bundle example
+
+-- 1. Authority
+INSERT INTO evidence_authorities (domain, name, description, authority_type, website_url, established_date)
+VALUES
+  ('test_domain', 'Test Authority', 'Example authority', 'international', 'https://example.com', '2024-01-01');
+
+-- 2. Source (get authority_id from previous insert)
+WITH auth AS (
+  SELECT authority_id FROM evidence_authorities WHERE domain = 'test_domain' AND name = 'Test Authority' LIMIT 1
+)
+INSERT INTO research_sources (authority_id, name, publication_date, tier, url)
+SELECT authority_id, 'Test Study 2024', '2024-01-01', 'tier_1', 'https://example.com/study'
+FROM auth;
+
+-- 3. Claim (get source_id from previous insert)
+WITH src AS (
+  SELECT source_id FROM research_sources WHERE name = 'Test Study 2024' LIMIT 1
+)
+INSERT INTO evidence_claims (source_id, claim_text, confidence_score, evidence_level)
+SELECT source_id, 'Test intervention improves outcomes', 0.85, 'rct'
+FROM src;
+
+-- 4. Rule
+INSERT INTO clinical_rules (domain, rule_name, recommendation_text, patient_explanation_text, priority)
+VALUES
+  ('test_domain', 'Test Rule', 'Apply test intervention', 'This helps your recovery', 1);
+
+-- 5. Pathway
+INSERT INTO care_pathway_templates (domain, name, description, intended_population)
+VALUES
+  ('test_domain', 'Test Pathway', 'Example care pathway', '{"acuity": "acute"}'::jsonb);`
+      },
+      claims: {
+        name: 'Evidence Claims Only',
+        sql: `-- Add claims to existing authority
+
+-- Get existing authority/source
+WITH src AS (
+  SELECT source_id
+  FROM research_sources
+  WHERE name = 'Your Source Name'
+  LIMIT 1
+)
+INSERT INTO evidence_claims (source_id, claim_text, confidence_score, evidence_level)
+SELECT source_id, 'New evidence claim text here', 0.80, 'systematic_review'
+FROM src;`
+      }
+    };
+
+    function loadExample(type) {
+      const example = examples[type];
+      document.getElementById('seedName').value = example.name;
+      document.getElementById('sqlContent').value = example.sql;
+      clearResult();
+    }
+
+    function loadExampleSQL() {
+      loadExample('minimal');
+    }
+
+    async function testSeed() {
+      const supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+      const adminKey = document.getElementById('adminKey').value.trim();
+      const seedName = document.getElementById('seedName').value.trim();
+      const sqlContent = document.getElementById('sqlContent').value.trim();
+
+      if (!supabaseUrl) {
+        showResult('error', 'Error', 'Please enter Supabase URL');
+        return;
+      }
+
+      if (!adminKey) {
+        showResult('error', 'Error', 'Please enter Admin Key');
+        return;
+      }
+
+      if (!seedName || seedName.length < 3) {
+        showResult('error', 'Error', 'Seed name must be at least 3 characters');
+        return;
+      }
+
+      if (!sqlContent) {
+        showResult('error', 'Error', 'Please enter SQL content');
+        return;
+      }
+
+      const testBtn = document.getElementById('testBtn');
+      testBtn.disabled = true;
+      testBtn.innerHTML = '<span class="loader"></span><span>Deploying...</span>';
+
+      try {
+        const startTime = Date.now();
+        const response = await fetch(`${supabaseUrl}/functions/v1/admin-seed`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey,
+          },
+          body: JSON.stringify({
+            seed_name: seedName,
+            sql_content: sqlContent,
+          }),
+        });
+
+        const duration = Date.now() - startTime;
+        const result = await response.json();
+
+        if (result.status === 'applied') {
+          showResult('success', '✅ Seed Applied Successfully',
+            `Seed Name: ${result.seed_name}\n` +
+            `Status: ${result.status}\n` +
+            `Duration: ${duration}ms\n\n` +
+            `Full Response:\n${JSON.stringify(result, null, 2)}`
+          );
+        } else if (result.status === 'skipped') {
+          showResult('skipped', '⏭️ Seed Already Applied',
+            `Seed Name: ${result.seed_name}\n` +
+            `Message: ${result.message}\n` +
+            `Duration: ${duration}ms\n\n` +
+            `This seed has already been applied. Use a different seed_name to deploy new data.`
+          );
+        } else {
+          showResult('error', '❌ Seed Failed',
+            `Message: ${result.message}\n` +
+            `Detail: ${result.detail || 'No additional details'}\n` +
+            `Duration: ${duration}ms\n\n` +
+            `Full Response:\n${JSON.stringify(result, null, 2)}`
+          );
+        }
+      } catch (error) {
+        showResult('error', '❌ Request Failed',
+          `Error: ${error.message}\n\n` +
+          `Check:\n` +
+          `1. Supabase URL is correct\n` +
+          `2. Admin key is valid\n` +
+          `3. Edge function is deployed\n` +
+          `4. Network connectivity`
+        );
+      } finally {
+        testBtn.disabled = false;
+        testBtn.innerHTML = '<span>🚀 Deploy Seed</span>';
+      }
+    }
+
+    function showResult(type, title, content) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = `result show ${type}`;
+      resultDiv.innerHTML = `
+        <div class="result-title">${title}</div>
+        <div class="result-content">${content}</div>
+      `;
+    }
+
+    function clearResult() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = 'result';
+      resultDiv.innerHTML = '';
+    }
+
+    // Load Supabase URL from .env if available (for local dev)
+    window.addEventListener('DOMContentLoaded', () => {
+      // Try to load from local storage (if previously saved)
+      const savedUrl = localStorage.getItem('supabaseUrl');
+      if (savedUrl) {
+        document.getElementById('supabaseUrl').value = savedUrl;
+      }
+
+      // Save URL on change
+      document.getElementById('supabaseUrl').addEventListener('change', (e) => {
+        localStorage.setItem('supabaseUrl', e.target.value);
+      });
+    });
+  </script>
+</body>
+</html>
