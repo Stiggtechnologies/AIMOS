@@ -64,6 +64,13 @@ Deno.serve(async (req: Request) => {
       documentText
     );
 
+    // QA Agent: Second-pass validation
+    const qaValidatedClaims = await qaValidateClaims(
+      openaiApiKey,
+      extractedClaims,
+      documentText
+    );
+
     // Store extracted claims in database
     const headers = {
       "Content-Type": "application/json",
@@ -72,7 +79,7 @@ Deno.serve(async (req: Request) => {
 
     const storedClaims = [];
 
-    for (const claim of extractedClaims) {
+    for (const claim of qaValidatedClaims) {
       const claimData = {
         source_id: sourceId,
         ...claim,
@@ -206,6 +213,84 @@ Extract 3-10 of the most clinically relevant claims. Never invent data.`;
 
   const extractedClaims = JSON.parse(jsonMatch[0]);
   return Array.isArray(extractedClaims) ? extractedClaims : [];
+}
+
+async function qaValidateClaims(
+  apiKey: string,
+  extractedClaims: any[],
+  originalDocument: string
+): Promise<any[]> {
+  const qaPrompt = `You are AIM OS QA Agent - second-pass validator for research evidence.
+Review these extracted claims for quality and accuracy:
+
+${JSON.stringify(extractedClaims, null, 2)}
+
+Original document excerpt:
+${originalDocument.substring(0, 2000)}
+
+For EACH claim, validate:
+1. No invented numbers or statistics
+2. All claims have proper citations from document
+3. No overly broad generalizations beyond evidence
+4. Risk of bias properly noted if applicable
+5. Confidence score is realistic (0-1)
+6. Evidence level matches claim strength
+
+Return a JSON array with same claims, but with a new field "qa_status": "approved" | "rejected".
+For rejected claims, add "qa_notes": "reason for rejection".
+ONLY include claims with qa_status: "approved" in final output.
+Remove rejected claims entirely from the returned array.`;
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: qaPrompt,
+        },
+        {
+          role: "user",
+          content: "Validate these claims and return only approved ones.",
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 2000,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error(`QA validation failed: ${response.statusText}`);
+    return extractedClaims;
+  }
+
+  const data = await response.json();
+  const content = data.choices[0]?.message?.content;
+
+  if (!content) {
+    return extractedClaims;
+  }
+
+  try {
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      return extractedClaims;
+    }
+
+    const validatedClaims = JSON.parse(jsonMatch[0]);
+    const approvedClaims = validatedClaims.filter(
+      (claim: any) => claim.qa_status === "approved"
+    );
+
+    return Array.isArray(approvedClaims) ? approvedClaims : extractedClaims;
+  } catch (_e) {
+    return extractedClaims;
+  }
 }
 
 async function updateJobStatus(

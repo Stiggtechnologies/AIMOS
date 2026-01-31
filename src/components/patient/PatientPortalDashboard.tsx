@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { patientPortalService, PatientProfile, PatientAppointment, PatientDocument, PatientMessage, TreatmentPlan } from '../../services/patientPortalService';
+import { PatientEducationPanel } from './PatientEducationPanel';
 
 type ViewType = 'dashboard' | 'appointments' | 'documents' | 'messages' | 'treatment-plans' | 'profile';
 
@@ -206,6 +207,8 @@ export default function PatientPortalDashboard() {
           </div>
         </div>
       </div>
+
+      <PatientEducationPanel patientProfile={profile || undefined} />
     </div>
   );
 
