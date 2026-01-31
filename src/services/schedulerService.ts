@@ -58,6 +58,8 @@ class SchedulerService {
     date: string,
     providers?: string[]
   ): Promise<SchedulerAppointment[]> {
+    console.log('[SchedulerService] Fetching appointments:', { clinicId, date, providers });
+
     let query = supabase
       .from('patient_appointments')
       .select(`
@@ -89,11 +91,11 @@ class SchedulerService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching appointments:', error);
+      console.error('[SchedulerService] Error fetching appointments:', error);
       throw error;
     }
 
-    console.log(`Loaded ${data?.length || 0} appointments for ${selectedDate} at clinic ${clinicId}`);
+    console.log(`[SchedulerService] Loaded ${data?.length || 0} appointments for ${date} at clinic ${clinicId}`, data);
 
     return (data || []).map(appt => ({
       id: appt.id,
@@ -120,6 +122,8 @@ class SchedulerService {
   }
 
   async getProviders(clinicId: string): Promise<SchedulerProvider[]> {
+    console.log('[SchedulerService] Fetching providers for clinic:', clinicId);
+
     const { data, error } = await supabase
       .from('user_profiles')
       .select('id, display_name, first_name, last_name, role, is_active, primary_clinic_id')
@@ -127,11 +131,16 @@ class SchedulerService {
       .eq('is_active', true);
 
     if (error) {
-      console.error('Error fetching providers:', error);
+      console.error('[SchedulerService] Error fetching providers:', error);
       throw error;
     }
 
-    return (data || []).filter(p => p.primary_clinic_id === clinicId || !p.primary_clinic_id).map(provider => ({
+    console.log('[SchedulerService] Raw providers from DB:', data);
+
+    const filtered = (data || []).filter(p => p.primary_clinic_id === clinicId || !p.primary_clinic_id);
+    console.log('[SchedulerService] Filtered providers for clinic:', filtered);
+
+    const providers = filtered.map(provider => ({
       id: provider.id,
       name: provider.display_name || `${provider.first_name || ''} ${provider.last_name || ''}`.trim(),
       role: provider.role,
@@ -139,6 +148,9 @@ class SchedulerService {
       utilization: Math.random() * 40 + 60,
       active: provider.is_active,
     }));
+
+    console.log('[SchedulerService] Final providers array:', providers);
+    return providers;
   }
 
   async getProviderBlocks(
