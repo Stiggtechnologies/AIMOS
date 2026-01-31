@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDS Endpoint Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #374151;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        textarea {
+            font-family: monospace;
+            min-height: 100px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        .item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        .item-title {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+        .item-meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-orange { background: #fed7aa; color: #9a3412; }
+        .error {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .meta-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CDS Match Endpoint Test</h1>
+        <p>Test the clinical decision support endpoint with domain-filtered evidence matching.</p>
+
+        <form id="cdsForm">
+            <div class="form-group">
+                <label for="domain">Clinical Domain *</label>
+                <select id="domain" required>
+                    <option value="">-- Select Domain --</option>
+                    <option value="chronic_pain">Chronic Pain</option>
+                    <option value="acl">ACL / Return-to-Sport</option>
+                    <option value="neuro">Neuro Rehab</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Clinical Tags (comma-separated)</label>
+                <input type="text" id="tags" placeholder="e.g., sleep, pacing, exercise">
+            </div>
+
+            <div class="form-group">
+                <label for="outcomes">Outcome Focus (comma-separated)</label>
+                <input type="text" id="outcomes" placeholder="e.g., function, pain, RTW">
+            </div>
+
+            <div class="form-group">
+                <label for="limit">Limit Claims</label>
+                <input type="number" id="limit" value="10" min="1" max="50">
+            </div>
+
+            <div class="form-group">
+                <label for="patientProfile">Patient Profile (JSON)</label>
+                <textarea id="patientProfile" placeholder='{"age": 35, "acuity": "chronic"}'></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="clinicalFindings">Clinical Findings (JSON)</label>
+                <textarea id="clinicalFindings" placeholder='{"centralization": true, "pain_level": 6}'></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">Match Evidence</button>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://xtdewfoxawxqcnzjqkgx.supabase.co';
+        const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0ZGV3Zm94YXd4cWNuempxa2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4MjcxMzEsImV4cCI6MjA1MTQwMzEzMX0.HCzgHl1LNDlJQn9G21WJ9Bb_ynP9jVtzEHbkMFQCBXE';
+
+        document.getElementById('cdsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const domain = document.getElementById('domain').value;
+            const tags = document.getElementById('tags').value.split(',').map(s => s.trim()).filter(Boolean);
+            const outcomes = document.getElementById('outcomes').value.split(',').map(s => s.trim()).filter(Boolean);
+            const limit = parseInt(document.getElementById('limit').value);
+
+            let patientProfile = {};
+            let clinicalFindings = {};
+
+            try {
+                const ppText = document.getElementById('patientProfile').value.trim();
+                if (ppText) patientProfile = JSON.parse(ppText);
+            } catch (e) {
+                alert('Invalid JSON in Patient Profile');
+                return;
+            }
+
+            try {
+                const cfText = document.getElementById('clinicalFindings').value.trim();
+                if (cfText) clinicalFindings = JSON.parse(cfText);
+            } catch (e) {
+                alert('Invalid JSON in Clinical Findings');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Calling CDS endpoint...</div>';
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${supabaseUrl}/functions/v1/cds-match`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabaseKey}`,
+                    },
+                    body: JSON.stringify({
+                        domain,
+                        patient_profile: patientProfile,
+                        clinical_findings: clinicalFindings,
+                        preferences: {
+                            tags: tags.length > 0 ? tags : undefined,
+                            outcome_focus: outcomes.length > 0 ? outcomes : undefined,
+                            limit_claims: limit
+                        }
+                    })
+                });
+
+                const elapsed = Date.now() - startTime;
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || response.statusText);
+                }
+
+                const data = await response.json();
+
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <h2>Results for ${data.domain}</h2>
+                        <p style="color: #6b7280; margin-bottom: 20px;">Response time: ${elapsed}ms</p>
+
+                        <div class="section">
+                            <h3>Meta Statistics</h3>
+                            <div class="meta-stats">
+                                <div class="stat">
+                                    <div class="stat-value">${data.meta.claim_count}</div>
+                                    <div class="stat-label">Total Claims</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${data.meta.returned_claims}</div>
+                                    <div class="stat-label">Returned Claims</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${data.meta.returned_rules}</div>
+                                    <div class="stat-label">Matched Rules</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${data.meta.returned_pathways}</div>
+                                    <div class="stat-label">Care Pathways</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <h3>Evidence Claims (${data.outputs.claims.length})</h3>
+                            ${data.outputs.claims.map(claim => `
+                                <div class="item">
+                                    <div class="item-title">${claim.claim_text}</div>
+                                    <div class="item-meta">
+                                        <span class="badge badge-green">Score: ${claim.score.toFixed(2)}</span>
+                                        <span class="badge badge-blue">${claim.evidence_level}</span>
+                                        <span class="badge badge-orange">${claim.risk_of_bias} bias</span>
+                                        <br>
+                                        Tags: ${(claim.clinical_tags || []).join(', ')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="section">
+                            <h3>Clinical Rules (${data.outputs.rules.length})</h3>
+                            ${data.outputs.rules.map(rule => `
+                                <div class="item">
+                                    <div class="item-title">${rule.rule_name}</div>
+                                    <p style="margin: 8px 0; color: #374151; font-size: 14px;">${rule.recommendation_text}</p>
+                                    <div class="item-meta">
+                                        <span class="badge badge-blue">Priority: ${rule.priority}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="section">
+                            <h3>Care Pathways (${data.outputs.pathways.length})</h3>
+                            ${data.outputs.pathways.map(pathway => `
+                                <div class="item">
+                                    <div class="item-title">${pathway.name}</div>
+                                    <div class="item-meta">
+                                        ${pathway.domain ? `<span class="badge badge-blue">${pathway.domain}</span>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
