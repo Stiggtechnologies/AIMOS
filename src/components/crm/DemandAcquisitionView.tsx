@@ -3,6 +3,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, Target, Activity,
   PauseCircle, PlayCircle, AlertCircle, CheckCircle, ArrowRight
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { crmCampaignService } from '../../services/crmCampaignService';
 import { crmCapacityService } from '../../services/crmCapacityService';
 
@@ -34,18 +35,18 @@ export default function DemandAcquisitionView() {
       const funnel = await crmCampaignService.getFunnelData(serviceLineId, 30);
       setFunnelData(funnel);
 
-      const { data: clinics } = await (window as any).supabase
+      const { data: clinics } = await supabase
         .from('clinics')
         .select('*')
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (clinics) {
         const status = await crmCapacityService.getCapacityStatus(clinics.id);
         setCapacityStatus(status);
       }
 
-      const { data: services } = await (window as any).supabase
+      const { data: services } = await supabase
         .from('crm_service_lines')
         .select('*')
         .eq('active', true)

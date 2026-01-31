@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, TrendingUp, Settings, AlertTriangle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { crmCapacityService } from '../../services/crmCapacityService';
 
 export default function ClinicOperationsView() {
@@ -21,7 +22,7 @@ export default function ClinicOperationsView() {
 
   async function loadClinics() {
     try {
-      const { data } = await (window as any).supabase
+      const { data } = await supabase
         .from('clinics')
         .select('*')
         .order('name');
