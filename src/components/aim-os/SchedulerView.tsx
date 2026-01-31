@@ -18,6 +18,8 @@ export default function SchedulerView() {
   const [providers, setProviders] = useState<SchedulerProvider[]>([]);
   const [insights, setInsights] = useState<ScheduleIntelligence[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<SchedulerAppointment | null>(null);
+  const [selectedInsight, setSelectedInsight] = useState<ScheduleIntelligence | null>(null);
+  const [highlightedAppointmentIds, setHighlightedAppointmentIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAIOverlays, setShowAIOverlays] = useState(true);
   const [weekData, setWeekData] = useState<WeekData[]>([]);
@@ -101,6 +103,40 @@ export default function SchedulerView() {
     return source.filter(a => a.provider_id === providerId);
   }
 
+  function handleInsightClick(insight: ScheduleIntelligence) {
+    setSelectedInsight(selectedInsight?.id === insight.id ? null : insight);
+
+    const affectedIds: string[] = [];
+    if (insight.type === 'no_show_risk') {
+      appointments.forEach(appt => {
+        if ((appt.no_show_risk || 0) > 70) {
+          affectedIds.push(appt.id);
+        }
+      });
+    } else if (insight.type === 'overbooking') {
+      appointments.forEach(appt => {
+        if (appt.provider_id === insight.metadata?.provider_id) {
+          affectedIds.push(appt.id);
+        }
+      });
+    } else if (insight.type === 'capacity_gap') {
+      appointments.forEach(appt => {
+        if (appt.status === 'available' || appt.status === 'gap') {
+          affectedIds.push(appt.id);
+        }
+      });
+    } else if (insight.type === 'waitlist_opportunity') {
+      const patientIds = insight.metadata?.patient_ids || [];
+      appointments.forEach(appt => {
+        if (patientIds.includes(appt.patient_id)) {
+          affectedIds.push(appt.id);
+        }
+      });
+    }
+
+    setHighlightedAppointmentIds(affectedIds);
+  }
+
   function renderProviderColumn(
     provider: SchedulerProvider,
     appts: SchedulerAppointment[],
@@ -154,16 +190,21 @@ export default function SchedulerView() {
             const hasRisk = (appt.no_show_risk || 0) > 70;
             const isLate = schedulerService.isAppointmentLate(appt);
 
+            const isHighlighted = highlightedAppointmentIds.includes(appt.id);
+
             return (
               <button
                 key={appt.id}
                 onClick={() => setSelectedAppointment(appt)}
-                className={`absolute left-1 right-1 rounded-md border-2 p-1 text-left hover:ring-2 hover:ring-blue-400 transition-shadow cursor-pointer overflow-hidden ${isLate ? 'animate-pulse' : ''}`}
+                className={`absolute left-1 right-1 rounded-md border-2 p-1 text-left transition-all cursor-pointer overflow-hidden ${
+                  isHighlighted ? 'ring-4 ring-yellow-400 shadow-lg' : 'hover:ring-2 hover:ring-blue-400'
+                } ${isLate ? 'animate-pulse' : ''}`}
                 style={{
                   top: `${top}px`,
                   height: `${height}px`,
                   backgroundColor: isLate ? '#FCA5A5' : appt.color_code,
-                  borderColor: isLate ? '#EF4444' : (hasRisk && showAIOverlays ? '#F59E0B' : 'transparent'),
+                  borderColor: isHighlighted ? '#FCD34D' : (isLate ? '#EF4444' : (hasRisk && showAIOverlays ? '#F59E0B' : 'transparent')),
+                  opacity: isHighlighted ? 1 : 1,
                 }}
               >
                 {isLate && (
@@ -391,9 +432,28 @@ export default function SchedulerView() {
 
         {/* Intelligence Panel (Right) */}
         <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 overflow-y-auto">
-          <div className="p-4 border-b border-gray-200">
+          <div className={`p-4 border-b-2 transition-colors ${
+            selectedInsight
+              ? 'bg-yellow-50 border-yellow-200'
+              : 'bg-white border-gray-200'
+          }`}>
             <h3 className="font-semibold text-gray-900">Scheduling Intelligence</h3>
-            <p className="text-xs text-gray-500 mt-1">AI-powered insights for today</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedInsight
+                ? `Highlighting ${highlightedAppointmentIds.length} affected appointment(s)`
+                : 'AI-powered insights for today'}
+            </p>
+            {selectedInsight && (
+              <button
+                onClick={() => {
+                  setSelectedInsight(null);
+                  setHighlightedAppointmentIds([]);
+                }}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Clear selection
+              </button>
+            )}
           </div>
 
           <div className="p-4 space-y-4">
@@ -404,40 +464,58 @@ export default function SchedulerView() {
                 No insights for this schedule
               </div>
             ) : (
-              insights.map((insight, idx) => (
-                <div
-                  key={idx}
-                  className={`p-3 rounded-lg border-2 ${
-                    insight.severity === 'critical' ? 'bg-red-50 border-red-200' :
-                    insight.severity === 'high' ? 'bg-orange-50 border-orange-200' :
-                    insight.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
-                    'bg-blue-50 border-blue-200'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg">
-                      {insight.type === 'no_show_risk' ? '🔶' :
-                       insight.type === 'overbooking' ? '🔴' :
-                       insight.type === 'capacity_gap' ? '🔵' :
-                       insight.type === 'waitlist_opportunity' ? '🟢' : '🟣'}
-                    </span>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm text-gray-900">{insight.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1">{insight.description}</p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          Confidence: {insight.confidence}%
-                        </span>
-                      </div>
-                      {insight.suggested_action && (
-                        <div className="mt-2 text-xs font-medium text-gray-700 bg-white p-2 rounded">
-                          💡 {insight.suggested_action}
+              insights.map((insight, idx) => {
+                const isSelected = selectedInsight?.id === insight.id;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleInsightClick(insight)}
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
+                      isSelected
+                        ? `ring-2 ring-yellow-400 ${
+                          insight.severity === 'critical' ? 'bg-red-100 border-red-400' :
+                          insight.severity === 'high' ? 'bg-orange-100 border-orange-400' :
+                          insight.severity === 'medium' ? 'bg-yellow-100 border-yellow-400' :
+                          'bg-blue-100 border-blue-400'
+                        }`
+                        : `${
+                          insight.severity === 'critical' ? 'bg-red-50 border-red-200' :
+                          insight.severity === 'high' ? 'bg-orange-50 border-orange-200' :
+                          insight.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+                          'bg-blue-50 border-blue-200'
+                        }`
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">
+                        {insight.type === 'no_show_risk' ? '🔶' :
+                         insight.type === 'overbooking' ? '🔴' :
+                         insight.type === 'capacity_gap' ? '🔵' :
+                         insight.type === 'waitlist_opportunity' ? '🟢' : '🟣'}
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-gray-900">{insight.title}</h4>
+                        <p className="text-xs text-gray-600 mt-1">{insight.description}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            Confidence: {insight.confidence}%
+                          </span>
+                          {isSelected && (
+                            <span className="text-xs font-semibold text-yellow-600 bg-yellow-200 px-2 py-1 rounded">
+                              Selected
+                            </span>
+                          )}
                         </div>
-                      )}
+                        {insight.suggested_action && (
+                          <div className="mt-2 text-xs font-medium text-gray-700 bg-white p-2 rounded">
+                            💡 {insight.suggested_action}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
