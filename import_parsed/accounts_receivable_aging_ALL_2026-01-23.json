@@ -1,0 +1,10 @@
+{
+  "snapshot_date": "2026-01-23",
+  "payer_name": "ALL",
+  "payer_type": "other",
+  "current_0_30_days": 19233.52,
+  "days_31_60": 0,
+  "days_61_90": 0,
+  "days_over_90": 0,
+  "notes": "Aggregate-only extraction (no client-level rows). Totals computed by summing detected invoice lines with $ amounts; aging buckets not reliably parsed from this PDF export."
+}

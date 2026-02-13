@@ -1,0 +1,11 @@
+{
+  "snapshot_date": "2026-01-23",
+  "clinic_name": "Alberta Injury Management",
+  "clinic_city": "Edmonton",
+  "total_outstanding": 19233.52,
+  "payer_name": "ALL",
+  "payer_type": "other",
+  "risk_level": "medium",
+  "risk_reason": "Aggregate-only AR snapshot (no aging buckets provided).",
+  "recommended_action": "Export AR aging buckets from Practice Perfect CSV to refine."
+}

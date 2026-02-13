@@ -1,0 +1,941 @@
+{
+  "report_metadata": {
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "clinic_name": "Alberta Injury Management",
+    "clinic_city": "Edmonton"
+  },
+  "overall_metrics": {
+    "total_revenue": 45086.92,
+    "total_visits": 549
+  },
+  "service_lines": [
+    {
+      "service_line": "Cancellation",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "CANCEL"
+      }
+    },
+    {
+      "service_line": "Did not attend",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "DNA"
+      }
+    },
+    {
+      "service_line": "1 30 MINUTES MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 143.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "MASSAGE"
+      }
+    },
+    {
+      "service_line": "3 60 MINUTES MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 2421.5,
+      "total_visits": 23,
+      "metadata": {
+        "fee_code": "MASSAGE"
+      }
+    },
+    {
+      "service_line": "INIT Manual Osteopathy ASSESS AND",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "TREAT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "TREAT"
+      }
+    },
+    {
+      "service_line": "1.98%",
+      "service_category": "Clinical",
+      "total_revenue": 450.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "1.98%"
+      }
+    },
+    {
+      "service_line": "TRT 1 30 MINS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "TRT 3 Manual Osteopathy TREATMENT",
+      "service_category": "Clinical",
+      "total_revenue": 1820.0,
+      "total_visits": 14,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "TRT 4 90 MINS TREATMENT",
+      "service_category": "Clinical",
+      "total_revenue": 655.0,
+      "total_visits": 4,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "F/U ORTHOTIC 3 WEEK FOLLOW UP",
+      "service_category": "Products",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ORTHOTIC"
+      }
+    },
+    {
+      "service_line": "VISIT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "VISIT"
+      }
+    },
+    {
+      "service_line": "0.00%",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "0.00%"
+      }
+    },
+    {
+      "service_line": "P/U ORTHOTIC PICK UP VISIT",
+      "service_category": "Products",
+      "total_revenue": 0.0,
+      "total_visits": 10,
+      "metadata": {
+        "fee_code": "ORTHOTIC"
+      }
+    },
+    {
+      "service_line": "ORTHOTIC",
+      "service_category": "Products",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ORTHOTIC"
+      }
+    },
+    {
+      "service_line": "REG",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "REG"
+      }
+    },
+    {
+      "service_line": "MADE PRESCRIPTION",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "CUSTOM"
+      }
+    },
+    {
+      "service_line": "ORTHOTIC",
+      "service_category": "Products",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ORTHOTIC"
+      }
+    },
+    {
+      "service_line": "4.63%",
+      "service_category": "Clinical",
+      "total_revenue": 1050.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "4.63%"
+      }
+    },
+    {
+      "service_line": "EX FOLLOW",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "UP",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "UP"
+      }
+    },
+    {
+      "service_line": "EXERCISE PROGRAM",
+      "service_category": "Clinical",
+      "total_revenue": 180.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "FOLLOW-UP"
+      }
+    },
+    {
+      "service_line": "INIT 1 PHYSIOTHERAPY  ASSESSMENT 1",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "PART",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "BODY"
+      }
+    },
+    {
+      "service_line": "0.53%",
+      "service_category": "Clinical",
+      "total_revenue": 120.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "0.53%"
+      }
+    },
+    {
+      "service_line": "INIT 1",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PLUS"
+      }
+    },
+    {
+      "service_line": "ASSESSMENT PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 435.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "PHYSIOTHERAPY"
+      }
+    },
+    {
+      "service_line": "INIT 2 MULTIPLE BODY PARTS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "ASSESSMENT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ASSESSMENT"
+      }
+    },
+    {
+      "service_line": "0.64%",
+      "service_category": "Clinical",
+      "total_revenue": 145.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "0.64%"
+      }
+    },
+    {
+      "service_line": "INIT SW",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MULT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MULT"
+      }
+    },
+    {
+      "service_line": "ASSESSMENT AND TREAMENT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "SW"
+      }
+    },
+    {
+      "service_line": "AREA",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MULTIPLE"
+      }
+    },
+    {
+      "service_line": "3.33%",
+      "service_category": "Clinical",
+      "total_revenue": 755.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "3.33%"
+      }
+    },
+    {
+      "service_line": "MAGNETIC",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "FIEL",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "FIEL"
+      }
+    },
+    {
+      "service_line": "FIELD",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ELECTRO-MAGNETIC"
+      }
+    },
+    {
+      "service_line": "THERAPY",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "THERAPY"
+      }
+    },
+    {
+      "service_line": "0.26%",
+      "service_category": "Clinical",
+      "total_revenue": 60.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "0.26%"
+      }
+    },
+    {
+      "service_line": "MVA AAIB",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "REG",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "REG"
+      }
+    },
+    {
+      "service_line": "3/POST SECTION B RX",
+      "service_category": "Clinical",
+      "total_revenue": 145.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "WAD"
+      }
+    },
+    {
+      "service_line": "MVA AB4",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "REPT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "REPT"
+      }
+    },
+    {
+      "service_line": "Discharge Report",
+      "service_category": "Clinical",
+      "total_revenue": 120.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "AB4"
+      }
+    },
+    {
+      "service_line": "MVA COMP SECTION B- COMPREHENSIVE",
+      "service_category": "Clinical",
+      "total_revenue": 2500.0,
+      "total_visits": 10,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MVA PRI",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MULT+",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MULT+"
+      }
+    },
+    {
+      "service_line": "B MULTIPLE AREAS PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 1160.0,
+      "total_visits": 8,
+      "metadata": {
+        "fee_code": "SECTION"
+      }
+    },
+    {
+      "service_line": "MVA REG Protocol Regular",
+      "service_category": "Clinical",
+      "total_revenue": 492.0,
+      "total_visits": 12,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT  1 PHYSIOTHERAPY VISIT",
+      "service_category": "Clinical",
+      "total_revenue": 630.0,
+      "total_visits": 7,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 1 PLUS PHYSIOTHERAPY PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 1440.0,
+      "total_visits": 12,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 2 PHYSIOTHERAPY MULTIPLE BODY",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "PARTS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PARTS"
+      }
+    },
+    {
+      "service_line": "4.36%",
+      "service_category": "Clinical",
+      "total_revenue": 990.0,
+      "total_visits": 8,
+      "metadata": {
+        "fee_code": "4.36%"
+      }
+    },
+    {
+      "service_line": "TRT 2 PLUS PHYSIOTHERAPY MULTPLE PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 725.0,
+      "total_visits": 5,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT COMP",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "HR",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "1"
+      }
+    },
+    {
+      "service_line": "MSK",
+      "service_category": "Clinical",
+      "total_revenue": 1500.0,
+      "total_visits": 6,
+      "metadata": {
+        "fee_code": "COMPREHENSIVE"
+      }
+    },
+    {
+      "service_line": "TRT SW PHYSIO SHOCKWAVE SINGLE AREA",
+      "service_category": "Clinical",
+      "total_revenue": 1700.0,
+      "total_visits": 10,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT SW",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MUL",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MUL"
+      }
+    },
+    {
+      "service_line": "SHOCKWAVE MULTIPLE",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PHYSIO"
+      }
+    },
+    {
+      "service_line": "90 MINS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "AREA"
+      }
+    },
+    {
+      "service_line": "4.96%",
+      "service_category": "Clinical",
+      "total_revenue": 1125.0,
+      "total_visits": 5,
+      "metadata": {
+        "fee_code": "4.96%"
+      }
+    },
+    {
+      "service_line": "TRT SW",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PLUS"
+      }
+    },
+    {
+      "service_line": "SINGLE BODY AREA",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "SHOCKWAVE"
+      }
+    },
+    {
+      "service_line": "ADDITIONAL RX",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PLUS"
+      }
+    },
+    {
+      "service_line": "0.99%",
+      "service_category": "Clinical",
+      "total_revenue": 225.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "0.99%"
+      }
+    },
+    {
+      "service_line": "WCB",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INITIAL",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "INITIAL"
+      }
+    },
+    {
+      "service_line": "ASSESSMENT",
+      "service_category": "Clinical",
+      "total_revenue": 160.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "WCB"
+      }
+    },
+    {
+      "service_line": "WCB Phase",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "1",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "1"
+      }
+    },
+    {
+      "service_line": "WKS SPRAIN & STRAIN",
+      "service_category": "Clinical",
+      "total_revenue": 140.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "0-4"
+      }
+    },
+    {
+      "service_line": "WCB Phase",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "2",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "2"
+      }
+    },
+    {
+      "service_line": "& STRAIN",
+      "service_category": "Clinical",
+      "total_revenue": 1000.0,
+      "total_visits": 20,
+      "metadata": {
+        "fee_code": "SPRAIN"
+      }
+    },
+    {
+      "service_line": "WCB",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "REPORT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "REPORT"
+      }
+    },
+    {
+      "service_line": "ABV &",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ASSESSMENT/STATUS"
+      }
+    },
+    {
+      "service_line": "COMP/DISCHARGE",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "COMP/DISCHARGE"
+      }
+    },
+    {
+      "service_line": "0.71%",
+      "service_category": "Clinical",
+      "total_revenue": 160.0,
+      "total_visits": 4,
+      "metadata": {
+        "fee_code": "0.71%"
+      }
+    },
+    {
+      "service_line": "WCB",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRANS",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "TRANS"
+      }
+    },
+    {
+      "service_line": "VISIT",
+      "service_category": "Clinical",
+      "total_revenue": 50.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "TRANSITIONAL"
+      }
+    },
+    {
+      "service_line": "REBOOKED APPOINTMENT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "RE-BOOKED"
+      }
+    },
+    {
+      "service_line": "Soothe Muscle & Joint",
+      "service_category": "Clinical",
+      "total_revenue": 186.96,
+      "total_visits": 6,
+      "metadata": {
+        "fee_code": "TALLAWAH"
+      }
+    },
+    {
+      "service_line": "units",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "2.00"
+      }
+    },
+    {
+      "service_line": "visits; 15 items",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 176,
+      "metadata": {
+        "fee_code": "176"
+      }
+    },
+    {
+      "service_line": "hours",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "27:15"
+      }
+    },
+    {
+      "service_line": "/ POST-REHAB TRAINING",
+      "service_category": "Clinical",
+      "total_revenue": 180.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "KINESIOLOGIST"
+      }
+    },
+    {
+      "service_line": "REVENUE",
+      "service_category": "Clinical",
+      "total_revenue": 110.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "MEDICAL"
+      }
+    },
+    {
+      "service_line": "MOT",
+      "service_category": "Clinical",
+      "total_revenue": 2925.0,
+      "total_visits": 21,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 2454.5,
+      "total_visits": 24,
+      "metadata": {
+        "fee_code": "MASSAGE"
+      }
+    },
+    {
+      "service_line": "ORTHOTICS",
+      "service_category": "Products",
+      "total_revenue": 1050.0,
+      "total_visits": 11,
+      "metadata": {
+        "fee_code": "ORTHOTICS"
+      }
+    },
+    {
+      "service_line": "THERAPY",
+      "service_category": "Clinical",
+      "total_revenue": 11692.0,
+      "total_visits": 98,
+      "metadata": {
+        "fee_code": "PHYSICAL"
+      }
+    },
+    {
+      "service_line": "WITH SHOCKWAVE MODALITY",
+      "service_category": "Clinical",
+      "total_revenue": 3805.0,
+      "total_visits": 19,
+      "metadata": {
+        "fee_code": "PHYSIO"
+      }
+    },
+    {
+      "service_line": "TARGETED RELIEF",
+      "service_category": "Clinical",
+      "total_revenue": 186.96,
+      "total_visits": 6,
+      "metadata": {
+        "fee_code": "TALLAWAH"
+      }
+    },
+    {
+      "service_line": "PRODUCTS",
+      "service_category": "Products",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "MISC."
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "as_of_date": "2026-01-23",
+  "source_file": "AccountsReceivable20260123152224305.pdf",
+  "notes": "Aggregate-only extraction (no client-level rows). Totals computed by summing detected invoice lines with $ amounts; aging buckets not reliably parsed from this PDF export.",
+  "invoiced_total": 20270.309999999998,
+  "current_total": 19233.519999999997,
+  "total_due_total": 19233.519999999997,
+  "invoice_count": 72
+}

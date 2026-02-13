@@ -4,7 +4,7 @@ import LoginPage from './components/LoginPage';
 import {
   LayoutDashboard, Briefcase, Users, Bot, TrendingUp, Menu, X,
   Building2, BookOpen, Shield, Megaphone, LogOut, UserCircle, Cpu, Zap, Settings, Brain,
-  Rocket, Handshake, Bell, Search, Target
+  Rocket, Handshake, Bell, Search, Target, MessageCircle, Phone
 } from 'lucide-react';
 import { GlobalSearch } from './components/GlobalSearch';
 import { NotificationsCenter } from './components/NotificationsCenter';
@@ -41,14 +41,16 @@ import PatientPortalDashboard from './components/patient/PatientPortalDashboard'
 import ClinicianMobileDashboard from './components/clinician/ClinicianMobileDashboard';
 import { ExcellenceDemoView } from './components/operations/ExcellenceDemoView';
 import CRMDashboard from './components/crm/CRMDashboard';
+import CommunicationsView from './components/communications/CommunicationsView';
 import { AgentExecutionDashboard } from './components/agents/AgentExecutionDashboard';
 import { ClinicalIntelligenceDashboard } from './components/aim-os';
 import RevenueReportImport from './components/operations/RevenueReportImport';
+import AfterHoursView from './components/after-hours/AfterHoursView';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -108,6 +110,8 @@ function App() {
     { key: 'agent-execution', label: 'Agent Execution', icon: Bot, section: 'main', roles: ['executive', 'admin', 'operations'] },
     { key: 'clinical-intelligence', label: 'Clinical Intelligence', icon: BookOpen, section: 'main', roles: ['executive', 'admin', 'clinician'] },
     { key: 'crm', label: 'CRM Automation', icon: Target, section: 'main' },
+    { key: 'after-hours', label: 'After Hours', icon: Phone, section: 'main', roles: ['executive', 'admin', 'operations', 'clinic_manager'] },
+    { key: 'communications', label: 'Communications', icon: MessageCircle, section: 'main', roles: ['executive', 'admin', 'operations'] },
     { key: 'excellence-demo', label: 'Excellence Demo', icon: Zap, section: 'main', roles: ['executive', 'admin'] },
     { key: 'clinician-mobile', label: 'Clinician Mobile', icon: UserCircle, section: 'main', roles: ['clinician', 'executive', 'admin'] },
     { key: 'clinics', label: 'Clinics', icon: Building2, section: 'main' },
@@ -140,6 +144,8 @@ function App() {
       case 'agent-execution': return <AgentExecutionDashboard />;
       case 'clinical-intelligence': return <ClinicalIntelligenceDashboard />;
       case 'crm': return <CRMDashboard />;
+      case 'after-hours': return <AfterHoursView />;
+      case 'communications': return <CommunicationsView />;
       case 'clinics': return <ClinicsView />;
       case 'people': return <PeopleView />;
       case 'launches': return <LaunchManagementDashboard />;
