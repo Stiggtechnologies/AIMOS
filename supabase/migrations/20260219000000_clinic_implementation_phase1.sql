@@ -405,8 +405,8 @@ INSERT INTO public.clinic_hours (clinic_id, day_of_week, open_time, close_time, 
 SELECT 
   id,
   dow.day,
-  dow.open_t,
-  dow.close_t,
+  dow.open_t::TIME,
+  dow.close_t::TIME,
   dow.closed
 FROM public.clinics c
 CROSS JOIN (VALUES

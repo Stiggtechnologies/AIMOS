@@ -60,6 +60,15 @@ CREATE INDEX idx_after_hours_calls_urgency ON after_hours_calls(urgency_level);
 CREATE INDEX idx_after_hours_calls_from_number ON after_hours_calls(from_number);
 CREATE INDEX idx_after_hours_calls_outcome ON after_hours_calls(outcome) WHERE outcome IS NOT NULL;
 
+-- Create update_updated_at_column function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Update timestamp trigger
 CREATE TRIGGER update_after_hours_calls_updated_at
   BEFORE UPDATE ON after_hours_calls
@@ -70,21 +79,19 @@ CREATE TRIGGER update_after_hours_calls_updated_at
 -- 2. ADD "AFTER HOURS CALL" LEAD SOURCE
 -- =============================================================================
 
-INSERT INTO crm_lead_sources (slug, name, description, active, created_at, updated_at)
+INSERT INTO crm_lead_sources (slug, name, type, active, created_at)
 VALUES (
   'after-hours-call',
   'After Hours Call',
-  'Leads generated from after-hours phone calls via Twilio voice system',
+  'organic',
   true,
-  NOW(),
   NOW()
 )
 ON CONFLICT (slug) DO UPDATE
 SET
   name = EXCLUDED.name,
-  description = EXCLUDED.description,
-  active = EXCLUDED.active,
-  updated_at = NOW();
+  type = EXCLUDED.type,
+  active = EXCLUDED.active;
 
 -- =============================================================================
 -- 3. ROW LEVEL SECURITY (RLS)
