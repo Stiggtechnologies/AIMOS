@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     const recordingDuration = formData.get('RecordingDuration') as string;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceKey = Deno.env.get('SERVICE_ROLE_KEY')!;
     
     // Analyze transcription with AI
     const extracted = await analyzeTranscription(transcription);

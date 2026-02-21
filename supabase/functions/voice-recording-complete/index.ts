@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     const duration = formData.get('RecordingDuration') as string;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceKey = Deno.env.get('SERVICE_ROLE_KEY')!;
     
     // Update call with recording info
     await fetch(`${supabaseUrl}/rest/v1/after_hours_calls?twilio_call_sid=eq.${callSid}`, {
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     // Return TwiML to thank caller and hang up
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Joanna">Thank you for calling Alberta Injury Management. We've recorded your information and will contact you tomorrow during business hours. Have a great evening.</Say>
+  <Say voice="Polly.Ruth-Neural">Thank you for calling Alberta Injury Management. We've recorded your information and will contact you tomorrow during business hours. Have a great evening.</Say>
   <Hangup/>
 </Response>`;
     
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     
     const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Joanna">Thank you for calling. We'll get back to you soon.</Say>
+  <Say voice="Polly.Ruth-Neural">Thank you for calling. We'll get back to you soon.</Say>
   <Hangup/>
 </Response>`;
     

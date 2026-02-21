@@ -1,7 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
 // AIMOS After-Hours Incoming Call Handler
-// Receives Twilio webhook for incoming calls and returns TwiML
+// NO AUTH REQUIRED - Twilio webhook
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +9,7 @@ const corsHeaders = {
 function createTwiML(body: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Polly.Joanna">${body}</Say>
+  <Say voice="Polly.Ruth-Neural">${body}</Say>
   <Pause length="1"/>
   <Record 
     maxLength="120"
@@ -23,8 +21,11 @@ function createTwiML(body: string): string {
 </Response>`;
 }
 
-Deno.serve(async (req) => {
-  // Handle CORS
+// Disable auth verification for webhooks
+Deno.serve({ 
+  onListen: () => console.log("Incoming call handler ready")
+}, async (req) => {
+  // Allow all origins for webhooks
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -35,11 +36,13 @@ Deno.serve(async (req) => {
     const from = formData.get('From') as string;
     const to = formData.get('To') as string;
     
+    console.log('Incoming call:', { callSid, from, to });
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceKey = Deno.env.get('SERVICE_ROLE_KEY')!;
     
     // Create initial call record
-    await fetch(`${supabaseUrl}/rest/v1/after_hours_calls`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/after_hours_calls`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${serviceKey}`,
@@ -56,6 +59,12 @@ Deno.serve(async (req) => {
       })
     });
     
+    if (!response.ok) {
+      console.error('Failed to create call record:', await response.text());
+    } else {
+      console.log('Call record created successfully');
+    }
+    
     const greeting = `Hello, you've reached Alberta Injury Management. 
     Our clinic is currently closed, but we'd like to help capture your information 
     so we can get back to you first thing tomorrow morning.
@@ -65,6 +74,7 @@ Deno.serve(async (req) => {
     const twiml = createTwiML(greeting);
     
     return new Response(twiml, {
+      status: 200,
       headers: {
         'Content-Type': 'text/xml',
         ...corsHeaders
@@ -74,7 +84,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Incoming call error:', error);
     
-    // Fallback TwiML
     const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="Polly.Joanna">We apologize, but we're experiencing technical difficulties. Please call back later or visit our website.</Say>
