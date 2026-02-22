@@ -46,11 +46,12 @@ import { AgentExecutionDashboard } from './components/agents/AgentExecutionDashb
 import { ClinicalIntelligenceDashboard } from './components/aim-os';
 import RevenueReportImport from './components/operations/RevenueReportImport';
 import AfterHoursView from './components/after-hours/AfterHoursView';
+import { DigitalGovernanceView } from './components/digital-governance';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours' | 'digital-governance';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -125,6 +126,7 @@ function App() {
     { key: 'revenue-import', label: 'Revenue Import', icon: TrendingUp, section: 'main', roles: ['executive', 'admin', 'finance'] },
     { key: 'aim-os', label: 'AIM OS', icon: Cpu, section: 'main' },
     { key: 'growth-os', label: 'Growth OS', icon: Zap, section: 'main' },
+    { key: 'digital-governance', label: 'Digital Governance', icon: Shield, section: 'main', roles: ['executive'] },
   ];
 
   const talentNavigation = [
@@ -170,6 +172,7 @@ function App() {
       case 'talent-pipeline': return <CandidatePipeline />;
       case 'talent-agents': return <AgentsView />;
       case 'talent-analytics': return <AnalyticsView />;
+      case 'digital-governance': return <DigitalGovernanceView />;
       default: return <IntranetDashboard onNavigate={(view) => setCurrentView(view as View)} />;
     }
   };
