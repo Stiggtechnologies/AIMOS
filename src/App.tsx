@@ -46,12 +46,13 @@ import { AgentExecutionDashboard } from './components/agents/AgentExecutionDashb
 import { ClinicalIntelligenceDashboard } from './components/aim-os';
 import RevenueReportImport from './components/operations/RevenueReportImport';
 import AfterHoursView from './components/after-hours/AfterHoursView';
+import CallTrackingView from './components/call-tracking/CallTrackingView';
 import { DigitalGovernanceView } from './components/digital-governance';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours' | 'digital-governance';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours' | 'call-tracking' | 'digital-governance';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -112,6 +113,7 @@ function App() {
     { key: 'clinical-intelligence', label: 'Clinical Intelligence', icon: BookOpen, section: 'main', roles: ['executive', 'admin', 'clinician'] },
     { key: 'crm', label: 'CRM Automation', icon: Target, section: 'main' },
     { key: 'after-hours', label: 'After Hours', icon: Phone, section: 'main', roles: ['executive', 'admin', 'operations', 'clinic_manager'] },
+    { key: 'call-tracking', label: 'Call Tracking', icon: Phone, section: 'main', roles: ['executive', 'admin', 'operations', 'clinic_manager'] },
     { key: 'communications', label: 'Communications', icon: MessageCircle, section: 'main', roles: ['executive', 'admin', 'operations'] },
     { key: 'excellence-demo', label: 'Excellence Demo', icon: Zap, section: 'main', roles: ['executive', 'admin'] },
     { key: 'clinician-mobile', label: 'Clinician Mobile', icon: UserCircle, section: 'main', roles: ['clinician', 'executive', 'admin'] },
@@ -147,6 +149,7 @@ function App() {
       case 'clinical-intelligence': return <ClinicalIntelligenceDashboard />;
       case 'crm': return <CRMDashboard />;
       case 'after-hours': return <AfterHoursView />;
+      case 'call-tracking': return <CallTrackingView />;
       case 'communications': return <CommunicationsView />;
       case 'clinics': return <ClinicsView />;
       case 'people': return <PeopleView />;
