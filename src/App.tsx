@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
-import {
-  LayoutDashboard, Briefcase, Users, Bot, TrendingUp, Menu, X,
-  Building2, BookOpen, Shield, Megaphone, LogOut, UserCircle, Cpu, Zap, Settings, Brain,
-  Rocket, Handshake, Bell, Search, Target, MessageCircle, Phone
-} from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, Bot, TrendingUp, Menu, X, Building2, BookOpen, Shield, Megaphone, LogOut, CircleUser as UserCircle, Cpu, Zap, Settings, Brain, Rocket, Handshake, Bell, Search, Target, MessageCircle, Phone } from 'lucide-react';
 import { GlobalSearch } from './components/GlobalSearch';
 import { NotificationsCenter } from './components/NotificationsCenter';
 import { ToastContainer } from './components/shared/Toast';
@@ -48,11 +44,14 @@ import RevenueReportImport from './components/operations/RevenueReportImport';
 import AfterHoursView from './components/after-hours/AfterHoursView';
 import CallTrackingView from './components/call-tracking/CallTrackingView';
 import { DigitalGovernanceView } from './components/digital-governance';
+import BranchLaunchReadinessDashboard from './components/launches/BranchLaunchReadinessDashboard';
+import GymRehabWorkflow from './components/clinic/GymRehabWorkflow';
+import RetailProductsView from './components/clinic/RetailProductsView';
 
 type View = 'dashboard' | 'clinics' | 'people' | 'academy' | 'compliance' | 'announcements' | 'documents' |
   'dashboards' | 'sops' | 'forms' | 'operations' | 'aim-os' | 'growth-os' | 'ai-assistant' | 'launches' | 'partners' |
   'talent-dashboard' | 'talent-jobs' | 'talent-pipeline' | 'talent-agents' | 'talent-analytics' | 'notifications' |
-  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours' | 'call-tracking' | 'digital-governance';
+  'patient-portal' | 'clinician-mobile' | 'excellence-demo' | 'crm' | 'communications' | 'agent-execution' | 'clinical-intelligence' | 'revenue-import' | 'after-hours' | 'call-tracking' | 'digital-governance' | 'south-commons' | 'gym-rehab' | 'retail-products';
 
 function App() {
   const { user, profile, loading, signOut } = useAuth();
@@ -117,6 +116,7 @@ function App() {
     { key: 'communications', label: 'Communications', icon: MessageCircle, section: 'main', roles: ['executive', 'admin', 'operations'] },
     { key: 'excellence-demo', label: 'Excellence Demo', icon: Zap, section: 'main', roles: ['executive', 'admin'] },
     { key: 'clinician-mobile', label: 'Clinician Mobile', icon: UserCircle, section: 'main', roles: ['clinician', 'executive', 'admin'] },
+    { key: 'south-commons', label: 'AIM South Commons', icon: Rocket, section: 'main', roles: ['executive', 'admin', 'clinic_manager'] },
     { key: 'clinics', label: 'Clinics', icon: Building2, section: 'main' },
     { key: 'people', label: 'People', icon: Users, section: 'main' },
     { key: 'launches', label: 'Clinic Launches', icon: Rocket, section: 'main' },
@@ -176,6 +176,9 @@ function App() {
       case 'talent-agents': return <AgentsView />;
       case 'talent-analytics': return <AnalyticsView />;
       case 'digital-governance': return <DigitalGovernanceView />;
+      case 'south-commons': return <BranchLaunchReadinessDashboard />;
+      case 'gym-rehab': return <GymRehabWorkflow />;
+      case 'retail-products': return <RetailProductsView />;
       default: return <IntranetDashboard onNavigate={(view) => setCurrentView(view as View)} />;
     }
   };
