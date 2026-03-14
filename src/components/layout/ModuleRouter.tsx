@@ -1,6 +1,7 @@
 import type { ModuleKey } from '../../types/enterprise';
+import { useAuth } from '../../contexts/AuthContext';
 
-import { CommandCenter } from '../command-center/CommandCenter';
+import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter } from '../command-center';
 import { NotificationsCenter } from '../NotificationsCenter';
 import AIAssistantDashboard from '../AIAssistantDashboard';
 
@@ -61,8 +62,25 @@ interface ModuleRouterProps {
 }
 
 export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: ModuleRouterProps) {
+  const { profile } = useAuth();
+
   const handleNavigate = (module: string, subModule: string) => {
     onNavigate(module as ModuleKey, subModule);
+  };
+
+  const getRoleBasedCommandCenter = () => {
+    const role = profile?.role;
+    switch (role) {
+      case 'executive':
+      case 'admin':
+        return <ExecutiveCommandCenter onNavigate={handleNavigate} />;
+      case 'clinic_manager':
+        return <ClinicCommandCenter onNavigate={handleNavigate} />;
+      case 'clinician':
+        return <ClinicianCommandCenter onNavigate={handleNavigate} />;
+      default:
+        return <CommandCenter onNavigate={handleNavigate} />;
+    }
   };
 
   switch (currentModule) {
@@ -72,8 +90,14 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <NotificationsCenter />;
         case 'ai-insights':
           return <AIAssistantDashboard />;
+        case 'executive':
+          return <ExecutiveCommandCenter onNavigate={handleNavigate} />;
+        case 'clinic':
+          return <ClinicCommandCenter onNavigate={handleNavigate} />;
+        case 'clinician':
+          return <ClinicianCommandCenter onNavigate={handleNavigate} />;
         default:
-          return <CommandCenter onNavigate={handleNavigate} />;
+          return getRoleBasedCommandCenter();
       }
 
     case 'operations':
