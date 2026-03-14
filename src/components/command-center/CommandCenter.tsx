@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Clock,
-  DollarSign, Users, Building2, Activity, Brain, Bell,
-  ArrowUpRight, ArrowDownRight, MoreHorizontal, RefreshCw,
-  Target, Calendar, FileText, Zap
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, DollarSign, Users, Building2, Activity, Brain, Bell, ArrowUpRight, ArrowDownRight, MoveHorizontal as MoreHorizontal, RefreshCw, Target, Calendar, FileText, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { enterpriseService } from '../../services/enterpriseService';
 import type { NetworkStats, RegionalPerformance, ClinicPerformance } from '../../types/enterprise';

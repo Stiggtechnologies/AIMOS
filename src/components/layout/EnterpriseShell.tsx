@@ -1,9 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import {
-  LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp,
-  BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut,
-  ChevronRight, ChevronDown, CircleUser as UserCircle
-} from 'lucide-react';
+import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { moduleConfig, filterSubItemsByRole, type NavModule, type NavSubItem } from '../../config/navigation';
 import { GlobalSearch } from '../GlobalSearch';
