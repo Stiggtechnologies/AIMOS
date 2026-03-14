@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Users, DollarSign, TrendingUp, AlertTriangle, MapPin, Activity, Clock, ArrowUpRight, ArrowDownRight, ChevronRight, UserMinus } from 'lucide-react';
+import { Building2, Users, DollarSign, TrendingUp, TriangleAlert as AlertTriangle, MapPin, Activity, Clock, ArrowUpRight, ArrowDownRight, ChevronRight, UserMinus } from 'lucide-react';
 
 interface RegionalOpsCommandCenterProps {
   onNavigate: (module: string, subModule: string) => void;

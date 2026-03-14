@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DollarSign, FileText, Clock, AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, CheckCircle, XCircle, RefreshCw, CreditCard, Building2 } from 'lucide-react';
+import { DollarSign, FileText, Clock, TriangleAlert as AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, CircleCheck as CheckCircle, Circle as XCircle, RefreshCw, CreditCard, Building2 } from 'lucide-react';
 
 interface RevenueCycleCommandCenterProps {
   onNavigate: (module: string, subModule: string) => void;

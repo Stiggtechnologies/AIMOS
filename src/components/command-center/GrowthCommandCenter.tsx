@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Users, UserPlus, Star, Phone, Mail, Dumbbell, Building2, ArrowUpRight, ArrowDownRight, Clock, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, UserPlus, Star, Phone, Mail, Dumbbell, Building2, ArrowUpRight, ArrowDownRight, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
 
 interface GrowthCommandCenterProps {
   onNavigate: (module: string, subModule: string) => void;
