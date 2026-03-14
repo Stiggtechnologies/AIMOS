@@ -1,7 +1,7 @@
 import type { ModuleKey } from '../../types/enterprise';
 import { useAuth } from '../../contexts/AuthContext';
 
-import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter } from '../command-center';
+import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter, RegionalOpsCommandCenter, RevenueCycleCommandCenter, GrowthCommandCenter } from '../command-center';
 import { NotificationsCenter } from '../NotificationsCenter';
 import AIAssistantDashboard from '../AIAssistantDashboard';
 
@@ -92,10 +92,16 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <AIAssistantDashboard />;
         case 'executive':
           return <ExecutiveCommandCenter onNavigate={handleNavigate} />;
+        case 'regional':
+          return <RegionalOpsCommandCenter onNavigate={handleNavigate} />;
         case 'clinic':
           return <ClinicCommandCenter onNavigate={handleNavigate} />;
         case 'clinician':
           return <ClinicianCommandCenter onNavigate={handleNavigate} />;
+        case 'revenue-cycle':
+          return <RevenueCycleCommandCenter onNavigate={handleNavigate} />;
+        case 'growth':
+          return <GrowthCommandCenter onNavigate={handleNavigate} />;
         default:
           return getRoleBasedCommandCenter();
       }

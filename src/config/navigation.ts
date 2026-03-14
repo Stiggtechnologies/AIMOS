@@ -31,10 +31,15 @@ export const moduleConfig: NavModule[] = [
     gradient: 'from-blue-600 to-blue-700',
     subItems: [
       { key: 'overview', label: 'Overview', icon: 'LayoutDashboard' },
+      { key: 'executive', label: 'Executive', icon: 'Crown', roles: ['executive', 'admin'] },
+      { key: 'regional', label: 'Regional Ops', icon: 'Map', roles: ['executive', 'admin', 'regional_director'] },
+      { key: 'clinic', label: 'Clinic Ops', icon: 'Building2', roles: ['executive', 'admin', 'clinic_manager'] },
+      { key: 'clinician', label: 'Clinician', icon: 'Stethoscope', roles: ['clinician'] },
+      { key: 'revenue-cycle', label: 'Revenue Cycle', icon: 'DollarSign', roles: ['executive', 'admin', 'finance'] },
+      { key: 'growth', label: 'Growth', icon: 'TrendingUp', roles: ['executive', 'admin', 'marketing'] },
       { key: 'alerts', label: 'Alerts', icon: 'AlertTriangle', badge: { type: 'count' } },
       { key: 'tasks', label: 'My Tasks', icon: 'CheckSquare' },
       { key: 'ai-insights', label: 'AI Insights', icon: 'Brain' },
-      { key: 'performance', label: 'Performance', icon: 'TrendingUp' },
       { key: 'notifications', label: 'Notifications', icon: 'Bell', badge: { type: 'count' } }
     ]
   },
