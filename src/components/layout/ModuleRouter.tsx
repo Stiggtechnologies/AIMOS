@@ -142,6 +142,12 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <ClinicalIntelligenceDashboard />;
         case 'mobile':
           return <ClinicianMobileDashboard />;
+        case 'cases':
+        case 'assessments':
+        case 'treatment-plans':
+        case 'exercises':
+        case 'rtw-rts':
+        case 'documents':
         default:
           return <ClinicalIntelligenceDashboard />;
       }
@@ -153,10 +159,16 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'cash-flow':
           return <CashFlowView />;
         case 'analytics':
+        case 'revenue-analytics':
           return <RevenueAnalyticsView />;
         case 'fee-schedules':
         case 'pricing':
           return <PricingPayerView />;
+        case 'dashboard':
+        case 'claims':
+        case 'invoices':
+        case 'payments':
+        case 'ar':
         default:
           return <FinancialView />;
       }
@@ -167,9 +179,11 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'pipeline':
           return <IntakePipelineView />;
         case 'marketing':
+        case 'campaigns':
           return <MarketingIntelligenceView />;
         case 'referral-sources':
         case 'trainers':
+        case 'employers':
           return <ReferralGrowthView />;
         case 'revops':
           return <RevOpsView />;
@@ -179,6 +193,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <CRMDashboard />;
         case 'call-tracking':
           return <CallTrackingView />;
+        case 'reviews':
+          return <MarketingIntelligenceView />;
+        case 'dashboard':
         default:
           return <GrowthOSDashboard />;
       }
@@ -197,6 +214,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <UtilizationView />;
         case 'agent-execution':
           return <AgentExecutionDashboard />;
+        case 'acquisition':
+        case 'forecasting':
+        case 'reports':
+        case 'dashboard':
         default:
           return <ExecutiveIntelligenceView />;
       }
@@ -204,9 +225,11 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
     case 'strategy':
       switch (currentSubModule) {
         case 'okrs':
+        case 'strategic-plan':
           return <StrategyOKRView />;
         case 'budgets':
         case 'capital':
+        case 'forecasts':
           return <CapitalAllocationView />;
         case 'controls':
           return <InternalControlsView />;
@@ -217,6 +240,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <VendorRiskView />;
         case 'governance':
           return <DigitalGovernanceView />;
+        case 'initiatives':
+        case 'expansion':
+          return <StrategyOKRView />;
+        case 'dashboard':
         default:
           return <StrategyOKRView />;
       }
