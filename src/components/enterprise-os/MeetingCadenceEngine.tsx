@@ -97,8 +97,16 @@ function AgendaTimeline({ items }: { items: AgendaItem[] }) {
   );
 }
 
+const DEMO_SESSIONS: MeetingSession[] = [
+  { id: 's1', cadence_type: 'weekly_tactical', title: 'Weekly Tactical — Mar 10', scheduled_at: '2026-03-10T08:00:00', duration_minutes: 60, status: 'completed', attendance_count: 8, notes: 'AR days escalated. EPC onboarding on track.', meeting_action_items: [{ id: 'a1', title: 'Escalate Blue Cross AR', status: 'open', priority: 'high', due_date: '2026-03-14' }, { id: 'a2', title: 'EPC onboarding check-in', status: 'complete', priority: 'medium', due_date: '2026-03-12' }, { id: 'a3', title: 'Crowfoot contractor update', status: 'open', priority: 'high', due_date: '2026-03-15' }] },
+  { id: 's2', cadence_type: 'weekly_tactical', title: 'Weekly Tactical — Mar 3', scheduled_at: '2026-03-03T08:00:00', duration_minutes: 60, status: 'completed', attendance_count: 7, notes: null, meeting_action_items: [{ id: 'a4', title: 'Review payer mix analysis', status: 'complete', priority: 'medium', due_date: '2026-03-07' }, { id: 'a5', title: 'Finalize employer program deck', status: 'open', priority: 'medium', due_date: '2026-03-10' }] },
+  { id: 's3', cadence_type: 'monthly_business_review', title: 'Monthly Business Review — February 2026', scheduled_at: '2026-02-28T09:00:00', duration_minutes: 90, status: 'completed', attendance_count: 12, notes: 'Strong ops performance. Revenue below budget due to EPC ramp.', meeting_action_items: [{ id: 'a6', title: 'EPC 90-day ramp plan review', status: 'open', priority: 'high', due_date: '2026-03-15' }, { id: 'a7', title: 'Update rolling 12-month forecast', status: 'open', priority: 'high', due_date: '2026-03-20' }, { id: 'a8', title: 'Provider vacancy recruitment plan', status: 'open', priority: 'medium', due_date: '2026-03-25' }] },
+  { id: 's4', cadence_type: 'weekly_tactical', title: 'Weekly Tactical — Mar 17', scheduled_at: '2026-03-17T08:00:00', duration_minutes: 60, status: 'scheduled', attendance_count: 0, notes: null, meeting_action_items: [] },
+];
+
 export function MeetingCadenceEngine() {
   const [templates, setTemplates] = useState<MeetingTemplate[]>(DEMO_TEMPLATES);
+  const [sessions, setSessions] = useState<MeetingSession[]>(DEMO_SESSIONS);
   const [loading, setLoading] = useState(false);
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>('t2');
   const [activeTab, setActiveTab] = useState<'templates' | 'sessions'>('templates');
@@ -108,10 +116,14 @@ export function MeetingCadenceEngine() {
   async function load() {
     setLoading(true);
     try {
-      const data = await enterpriseOSService.getMeetingTemplates();
-      setTemplates(data.length > 0 ? data : DEMO_TEMPLATES);
+      const [tplData, sessData] = await Promise.all([
+        enterpriseOSService.getMeetingTemplates(),
+        enterpriseOSService.getMeetingSessions(),
+      ]);
+      if (tplData.length > 0) setTemplates(tplData);
+      if (sessData.length > 0) setSessions(sessData);
     } catch {
-      setTemplates(DEMO_TEMPLATES);
+      // keep demo data
     } finally {
       setLoading(false);
     }
@@ -250,25 +262,22 @@ export function MeetingCadenceEngine() {
             <h3 className="font-medium text-gray-900">Recent Sessions</h3>
           </div>
           <div className="divide-y divide-gray-50">
-            {[
-              { cadence: 'weekly_tactical', title: 'Weekly Tactical — Mar 10', date: 'Mar 10, 2026', status: 'completed', attendance: 8, actions: 3, reds_resolved: 1 },
-              { cadence: 'weekly_tactical', title: 'Weekly Tactical — Mar 3', date: 'Mar 3, 2026', status: 'completed', attendance: 7, actions: 5, reds_resolved: 0 },
-              { cadence: 'monthly_business_review', title: 'Monthly Business Review — February 2026', date: 'Feb 28, 2026', status: 'completed', attendance: 12, actions: 8, reds_resolved: 2 },
-              { cadence: 'weekly_tactical', title: 'Weekly Tactical — Mar 17 (Upcoming)', date: 'Mar 17, 2026', status: 'scheduled', attendance: 0, actions: 0, reds_resolved: 0 },
-            ].map((s, i) => {
-              const cfg = CADENCE_CONFIG[s.cadence];
+            {sessions.map((s) => {
+              const cfg = CADENCE_CONFIG[s.cadence_type] ?? CADENCE_CONFIG['weekly_tactical'];
+              const actionCount = s.meeting_action_items?.length ?? 0;
+              const dateStr = new Date(s.scheduled_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
               return (
-                <div key={i} className="px-5 py-3 flex items-center gap-4">
+                <div key={s.id} className="px-5 py-3 flex items-center gap-4">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded ${cfg.bg} ${cfg.color} flex-shrink-0`}>{cfg.label}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-900">{s.title}</div>
-                    <div className="text-xs text-gray-500">{s.date}</div>
+                    <div className="text-xs text-gray-500">{dateStr}</div>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
                     {s.status === 'completed' && (
                       <>
-                        <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{s.attendance}</span>
-                        {s.actions > 0 && <span className="flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5 text-emerald-500" />{s.actions} actions</span>}
+                        <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{s.attendance_count}</span>
+                        {actionCount > 0 && <span className="flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5 text-emerald-500" />{actionCount} actions</span>}
                       </>
                     )}
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${s.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>

@@ -2,7 +2,7 @@ import type { ModuleKey } from '../../types/enterprise';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Command Center
-import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter, RegionalOpsCommandCenter, RevenueCycleCommandCenter, GrowthCommandCenter, NetworkCommandCenter } from '../command-center';
+import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter, RegionalOpsCommandCenter, RevenueCycleCommandCenter, GrowthCommandCenter, NetworkCommandCenter, StrategyCommandCenter } from '../command-center';
 import { NotificationsCenter } from '../NotificationsCenter';
 import AIAssistantDashboard from '../AIAssistantDashboard';
 import AlertsView from '../command-center/AlertsView';
@@ -117,6 +117,13 @@ import TalentDashboard from '../Dashboard';
 import { ProcurementDashboard } from '../procurement/ProcurementDashboard';
 import { QuickPurchaseRequest } from '../procurement/QuickPurchaseRequest';
 
+// Enterprise OS
+import { ScorecardEngine } from '../enterprise-os/ScorecardEngine';
+import { GoalCascadeEngine } from '../enterprise-os/GoalCascadeEngine';
+import { MeetingCadenceEngine } from '../enterprise-os/MeetingCadenceEngine';
+import { KPIGovernanceView } from '../enterprise-os/KPIGovernanceView';
+import { FHIREventBusView } from '../enterprise-os/FHIREventBusView';
+
 // Admin
 import SOPHubView from '../intranet/SOPHubView';
 import FormsView from '../intranet/FormsView';
@@ -183,7 +190,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'growth':
           return <GrowthCommandCenter onNavigate={handleNavigate} />;
         case 'strategy':
-          return <StrategyOKRView />;
+          return <StrategyCommandCenter onNavigate={handleNavigate} />;
         case 'alerts':
           return <AlertsView />;
         case 'tasks':
@@ -403,6 +410,16 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <DigitalGovernanceView />;
         case 'ai-governance':
           return <AIGovernanceView />;
+        case 'scorecard':
+          return <ScorecardEngine />;
+        case 'goal-cascade':
+          return <GoalCascadeEngine />;
+        case 'meeting-cadence':
+          return <MeetingCadenceEngine />;
+        case 'kpi-governance':
+          return <KPIGovernanceView />;
+        case 'fhir-event-bus':
+          return <FHIREventBusView />;
         case 'initiatives':
           return <InitiativesView />;
         case 'expansion':

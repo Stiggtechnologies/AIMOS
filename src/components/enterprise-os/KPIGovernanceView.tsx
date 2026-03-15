@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, ChevronDown, ChevronUp, RefreshCw, Filter, Search, ArrowUpRight, ArrowDownRight, Minus, CircleCheck as CheckCircle } from 'lucide-react';
 import { enterpriseOSService, KpiDefinition } from '../../services/enterpriseOSService';
+import { supabase } from '../../lib/supabase';
 
 const CATEGORY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   operations:        { label: 'Operations',         color: 'text-teal-700',   bg: 'bg-teal-50'   },
@@ -58,6 +59,7 @@ const RAG_STYLE = {
 
 export function KPIGovernanceView() {
   const [kpis, setKpis] = useState<KpiDefinition[]>(DEMO_KPIS);
+  const [liveValues, setLiveValues] = useState<Record<string, { actual: number; projected: number }> | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -69,14 +71,32 @@ export function KPIGovernanceView() {
   async function load() {
     setLoading(true);
     try {
-      const data = await enterpriseOSService.getKpiDefinitions();
-      setKpis(data.length > 0 ? data : DEMO_KPIS);
+      const [kpiData, valuesResult] = await Promise.all([
+        enterpriseOSService.getKpiDefinitions(),
+        supabase
+          .from('kpi_values')
+          .select('kpi_slug, actual_value, projected_value')
+          .order('period_end', { ascending: false })
+          .limit(50),
+      ]);
+      if (kpiData.length > 0) setKpis(kpiData);
+      if (!valuesResult.error && valuesResult.data && valuesResult.data.length > 0) {
+        const map: Record<string, { actual: number; projected: number }> = {};
+        for (const row of valuesResult.data) {
+          if (!map[row.kpi_slug]) {
+            map[row.kpi_slug] = { actual: row.actual_value, projected: row.projected_value };
+          }
+        }
+        setLiveValues(map);
+      }
     } catch {
-      setKpis(DEMO_KPIS);
+      // keep demo data
     } finally {
       setLoading(false);
     }
   }
+
+  const kpiValues = liveValues ?? DEMO_VALUES;
 
   const filtered = kpis.filter(k => {
     const matchSearch = k.name.toLowerCase().includes(search.toLowerCase()) || k.description.toLowerCase().includes(search.toLowerCase());
@@ -106,7 +126,7 @@ export function KPIGovernanceView() {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Current Network Performance — February 2026</h3>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {filtered.map(kpi => {
-            const val = DEMO_VALUES[kpi.slug];
+            const val = kpiValues[kpi.slug];
             if (!val) return null;
             const rag = computeRag(kpi, val.actual);
             const style = RAG_STYLE[rag as keyof typeof RAG_STYLE] ?? RAG_STYLE.green;
@@ -163,7 +183,7 @@ export function KPIGovernanceView() {
         <div className="divide-y divide-gray-50">
           {filtered.map(kpi => {
             const catCfg = CATEGORY_CONFIG[kpi.category] ?? { label: kpi.category, color: 'text-gray-600', bg: 'bg-gray-50' };
-            const val = DEMO_VALUES[kpi.slug];
+            const val = kpiValues[kpi.slug];
             const rag = val ? computeRag(kpi, val.actual) : 'not_set';
             const ragStyle = RAG_STYLE[rag as keyof typeof RAG_STYLE];
             const isExpanded = expandedKpi === kpi.id;
