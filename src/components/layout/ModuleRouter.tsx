@@ -37,6 +37,12 @@ import { PatientEducationPanel } from '../patient/PatientEducationPanel';
 import { SemanticSearchPanel } from '../aim-os/SemanticSearchPanel';
 import { CIIAutomationDashboard } from '../aim-os/CIIAutomationDashboard';
 import { EvidenceLibraryAdmin } from '../aim-os/EvidenceLibraryAdmin';
+import CasesView from '../clinical/CasesView';
+import AssessmentsView from '../clinical/AssessmentsView';
+import TreatmentPlansView from '../clinical/TreatmentPlansView';
+import ExerciseProgramsView from '../clinical/ExerciseProgramsView';
+import RTWRTSView from '../clinical/RTWRTSView';
+import ClinicalDocumentsView from '../clinical/ClinicalDocumentsView';
 
 // Revenue
 import FinancialView from '../aim-os/FinancialView';
@@ -49,6 +55,7 @@ import { ExecutiveFinancialDashboard } from '../finance/ExecutiveFinancialDashbo
 import ClaimsView from '../revenue/ClaimsView';
 import InvoicesView from '../revenue/InvoicesView';
 import PaymentsView from '../revenue/PaymentsView';
+import InventoryView from '../revenue/InventoryView';
 
 // Growth
 import GrowthOSDashboard from '../growth-os/GrowthOSDashboard';
@@ -62,6 +69,9 @@ import CallTrackingView from '../call-tracking/CallTrackingView';
 import IntakeConversionView from '../crm/IntakeConversionView';
 import DemandAcquisitionView from '../crm/DemandAcquisitionView';
 import ExperienceReputationView from '../aim-os/ExperienceReputationView';
+import ReviewsView from '../growth/ReviewsView';
+import TrainerReferralsView from '../growth/TrainerReferralsView';
+import EmployerProgramsView from '../growth/EmployerProgramsView';
 
 // Intelligence
 import ExecutiveAnalyticsView from '../aim-os/ExecutiveAnalyticsView';
@@ -82,6 +92,10 @@ import ValuationReadinessView from '../aim-os/ValuationReadinessView';
 import CapitalAllocationView from '../aim-os/CapitalAllocationView';
 import InternalControlsView from '../aim-os/InternalControlsView';
 import VendorRiskView from '../aim-os/VendorRiskView';
+import InitiativesView from '../strategy/InitiativesView';
+import ExpansionPipelineView from '../strategy/ExpansionPipelineView';
+import BudgetsView from '../strategy/BudgetsView';
+import ForecastsView from '../strategy/ForecastsView';
 import { DigitalGovernanceView } from '../digital-governance';
 import AIGovernanceView from '../aim-os/AIGovernanceView';
 
@@ -239,17 +253,17 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'cii':
           return <CIIAutomationDashboard />;
         case 'cases':
-          return <ClinicalChartingWorkflow />;
+          return <CasesView />;
         case 'assessments':
-          return <ClinicalChartingWorkflow />;
+          return <AssessmentsView />;
         case 'treatment-plans':
-          return <ClinicalChartingWorkflow />;
+          return <TreatmentPlansView />;
         case 'exercises':
-          return <ClinicalChartingWorkflow />;
+          return <ExerciseProgramsView />;
         case 'rtw-rts':
-          return <ClinicalChartingWorkflow />;
+          return <RTWRTSView />;
         case 'documents':
-          return <ClinicalIntelligenceDashboard />;
+          return <ClinicalDocumentsView />;
         default:
           return <ClinicalIntelligenceDashboard />;
       }
@@ -276,7 +290,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'retail':
           return <RetailProductsView />;
         case 'inventory':
-          return <RetailProductsView />;
+          return <InventoryView />;
         case 'executive-finance':
           return <ExecutiveFinancialDashboard />;
         case 'import':
@@ -300,11 +314,13 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'demand-acquisition':
           return <DemandAcquisitionView />;
         case 'referral-sources':
-        case 'trainers':
-        case 'employers':
           return <ReferralGrowthView />;
+        case 'trainers':
+          return <TrainerReferralsView />;
+        case 'employers':
+          return <EmployerProgramsView />;
         case 'reviews':
-          return <MarketingIntelligenceView />;
+          return <ReviewsView />;
         case 'experience':
           return <ExperienceReputationView />;
         case 'call-tracking':
@@ -359,8 +375,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'strategic-plan':
           return <StrategyOKRView />;
         case 'budgets':
+          return <BudgetsView />;
         case 'forecasts':
-          return <CapitalAllocationView />;
+          return <ForecastsView />;
         case 'capital':
           return <CapitalAllocationView />;
         case 'controls':
@@ -376,8 +393,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'ai-governance':
           return <AIGovernanceView />;
         case 'initiatives':
+          return <InitiativesView />;
         case 'expansion':
-          return <StrategyOKRView />;
+          return <ExpansionPipelineView />;
         case 'dashboard':
         default:
           return <StrategyOKRView />;

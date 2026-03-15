@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Bot, Play, Clock, CheckCircle, AlertTriangle, TrendingUp,
-  Activity, Zap, Users, FileText, ChevronRight, XCircle
-} from 'lucide-react';
+import { Bot, Play, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, TrendingUp, Activity, Zap, Users, FileText, ChevronRight, Circle as XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { agentExecutionService, type AgentExecutionResult, type HITLEscalation } from '../../services/agentExecutionService';
 import { useToast } from '../../hooks/useToast';
@@ -113,7 +110,12 @@ export function AgentExecutionDashboard() {
 
       await loadMetrics();
     } catch (error: any) {
-      showToast(error.message || 'Failed to execute agent', 'error');
+      const rawMsg: string = error?.message ?? '';
+      const isApiKeyError = rawMsg.toLowerCase().includes('api key') || rawMsg.includes('401') || rawMsg.includes('invalid_api_key');
+      const displayMsg = isApiKeyError
+        ? 'OpenAI API key is not configured correctly. Please update the OPENAI_API_KEY secret in Supabase.'
+        : rawMsg || 'Failed to execute agent';
+      showToast(displayMsg, 'error');
     } finally {
       setExecuting(false);
     }

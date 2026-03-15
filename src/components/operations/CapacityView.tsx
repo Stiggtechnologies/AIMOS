@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Home, TrendingUp, Calendar } from 'lucide-react';
+import { Chrome as Home, TrendingUp, Calendar } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { capacityService, TreatmentRoom } from '../../services/operationsService';
 
@@ -14,20 +14,20 @@ export default function CapacityView() {
   }, [profile?.primary_clinic_id]);
 
   const loadData = async () => {
-    if (!profile?.primary_clinic_id) return;
-
     try {
       const today = new Date();
       const weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 7);
 
+      const clinicId = profile?.primary_clinic_id;
+
       const [roomsData, utilizationData] = await Promise.all([
-        capacityService.getTreatmentRooms(profile.primary_clinic_id),
-        capacityService.calculateUtilization(
-          profile.primary_clinic_id,
+        clinicId ? capacityService.getTreatmentRooms(clinicId) : Promise.resolve([]),
+        clinicId ? capacityService.calculateUtilization(
+          clinicId,
           weekAgo.toISOString().split('T')[0],
           today.toISOString().split('T')[0]
-        )
+        ) : Promise.resolve(null)
       ]);
 
       setRooms(roomsData);
@@ -49,6 +49,13 @@ export default function CapacityView() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Rooms &amp; Capacity</h2>
+          <p className="text-gray-600 mt-1">Treatment room availability and utilization tracking</p>
+        </div>
+      </div>
+
       {utilization && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
