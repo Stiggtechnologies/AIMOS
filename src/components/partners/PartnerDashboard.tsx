@@ -16,10 +16,10 @@ import {
 import { partnerService, type PartnerClinic, type PartnerDashboardSummary } from '../../services/partnerService';
 
 interface PartnerDashboardProps {
-  partnerClinicId: string;
+  partnerClinicId?: string;
 }
 
-export default function PartnerDashboard({ partnerClinicId }: PartnerDashboardProps) {
+export default function PartnerDashboard({ partnerClinicId = '' }: PartnerDashboardProps) {
   const [partner, setPartner] = useState<PartnerClinic | null>(null);
   const [summary, setSummary] = useState<PartnerDashboardSummary | null>(null);
   const [revenueShare, setRevenueShare] = useState<any[]>([]);

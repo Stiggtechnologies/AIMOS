@@ -3,7 +3,7 @@ import {
   LayoutDashboard, TrendingUp, Activity, UserCheck,
   Menu, X
 } from 'lucide-react';
-import ExecutiveCommandCenter from './ExecutiveCommandCenter';
+import { ExecutiveCommandCenter } from '../command-center';
 import DemandAcquisitionView from './DemandAcquisitionView';
 import ClinicOperationsView from './ClinicOperationsView';
 import IntakeConversionView from './IntakeConversionView';
@@ -48,7 +48,7 @@ export default function CRMDashboard() {
   function renderView() {
     switch (activeView) {
       case 'executive':
-        return <ExecutiveCommandCenter />;
+        return <ExecutiveCommandCenter onNavigate={() => {}} />;
       case 'marketing':
         return <DemandAcquisitionView />;
       case 'operations':
@@ -56,7 +56,7 @@ export default function CRMDashboard() {
       case 'intake':
         return <IntakeConversionView />;
       default:
-        return <ExecutiveCommandCenter />;
+        return <ExecutiveCommandCenter onNavigate={() => {}} />;
     }
   }
 

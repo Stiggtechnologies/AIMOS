@@ -5,10 +5,10 @@ import { procurementService } from '../../services/procurementService';
 import type { PurchaseRequest, ClinicBudgetAllocation } from '../../services/procurementService';
 
 interface ProcurementDashboardProps {
-  clinicId: string;
+  clinicId?: string;
 }
 
-export function ProcurementDashboard({ clinicId }: ProcurementDashboardProps) {
+export function ProcurementDashboard({ clinicId = '' }: ProcurementDashboardProps) {
   const [view, setView] = useState<'overview' | 'new-request' | 'my-requests'>('overview');
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [budgetSummary, setBudgetSummary] = useState<any>(null);

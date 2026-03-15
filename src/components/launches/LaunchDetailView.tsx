@@ -3,13 +3,13 @@ import { ArrowLeft, Rocket, CircleCheck as CheckCircle2, Circle, TriangleAlert a
 import { launchService, type ClinicLaunch } from '../../services/launchService';
 
 interface LaunchDetailViewProps {
-  launchId: string;
-  onBack: () => void;
+  launchId?: string;
+  onBack?: () => void;
 }
 
 type TabType = 'overview' | 'wbs' | 'tasks' | 'timeline' | 'deliverables' | 'metrics';
 
-export default function LaunchDetailView({ launchId, onBack }: LaunchDetailViewProps) {
+export default function LaunchDetailView({ launchId = '', onBack }: LaunchDetailViewProps) {
   const [launch, setLaunch] = useState<ClinicLaunch | null>(null);
   const [phases, setPhases] = useState<any[]>([]);
   const [workstreams, setWorkstreams] = useState<any[]>([]);

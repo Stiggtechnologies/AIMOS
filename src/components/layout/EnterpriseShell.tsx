@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle } from 'lucide-react';
+import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle, Users, Package } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { moduleConfig, filterSubItemsByRole, type NavModule, type NavSubItem } from '../../config/navigation';
+import { moduleConfig, filterSubItemsByRole, type NavModule } from '../../config/navigation';
 import { GlobalSearch } from '../GlobalSearch';
 import { ToastContainer } from '../shared/Toast';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
@@ -11,8 +11,16 @@ import { notificationService } from '../../services/notificationService';
 import type { ModuleKey } from '../../types/enterprise';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp,
-  BarChart3, Compass, Cog
+  LayoutDashboard,
+  Settings,
+  Stethoscope,
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+  Compass,
+  Cog,
+  Users,
+  Package
 };
 
 interface EnterpriseShellProps {
@@ -38,9 +46,9 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
                       profile?.role === 'admin' ? 'corporate' : 'support';
 
     const modulesByLevel: Record<string, ModuleKey[]> = {
-      corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'admin'],
-      regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence'],
-      clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth'],
+      corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin'],
+      regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce'],
+      clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain'],
       clinical: ['command_center', 'clinical', 'operations'],
       support: ['command_center', 'operations', 'revenue']
     };
@@ -116,8 +124,10 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
       teal: 'text-teal-400',
       amber: 'text-amber-400',
       rose: 'text-rose-400',
-      violet: 'text-violet-400',
+      cyan: 'text-cyan-400',
       sky: 'text-sky-400',
+      orange: 'text-orange-400',
+      stone: 'text-stone-400',
       slate: 'text-slate-400'
     };
     return colors[color] || 'text-blue-400';
@@ -325,7 +335,7 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
         <GlobalSearch
           isOpen={searchOpen}
           onClose={() => setSearchOpen(false)}
-          onNavigate={(url) => {
+          onNavigate={() => {
             setSearchOpen(false);
           }}
         />

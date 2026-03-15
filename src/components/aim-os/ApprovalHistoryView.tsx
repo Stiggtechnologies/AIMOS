@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle, XCircle, Activity, Search, Filter } from 'lucide-react';
+import { Clock, CircleCheck as CheckCircle, Circle as XCircle, Activity, Search, Filter } from 'lucide-react';
 import { writeBackService, AuditEntry } from '../../services/writeBackService';
 
 interface ApprovalHistoryViewProps {
-  clinicId: string;
+  clinicId?: string;
 }
 
-export default function ApprovalHistoryView({ clinicId }: ApprovalHistoryViewProps) {
+export default function ApprovalHistoryView({ clinicId = '' }: ApprovalHistoryViewProps) {
   const [history, setHistory] = useState<AuditEntry[]>([]);
   const [filteredHistory, setFilteredHistory] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);

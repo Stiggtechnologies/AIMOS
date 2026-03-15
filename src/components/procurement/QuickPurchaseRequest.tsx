@@ -4,11 +4,11 @@ import { procurementService } from '../../services/procurementService';
 import type { BudgetCategory, PreferredVendor } from '../../services/procurementService';
 
 interface QuickPurchaseRequestProps {
-  clinicId: string;
+  clinicId?: string;
   onSuccess?: () => void;
 }
 
-export function QuickPurchaseRequest({ clinicId, onSuccess }: QuickPurchaseRequestProps) {
+export function QuickPurchaseRequest({ clinicId = '', onSuccess }: QuickPurchaseRequestProps) {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [vendors, setVendors] = useState<PreferredVendor[]>([]);
   const [loading, setLoading] = useState(false);
