@@ -31,6 +31,7 @@ export const moduleConfig: NavModule[] = [
     gradient: 'from-blue-600 to-blue-700',
     subItems: [
       { key: 'overview', label: 'Overview', icon: 'LayoutDashboard' },
+      { key: 'network', label: 'Network', icon: 'Globe', roles: ['executive', 'admin'] },
       { key: 'executive', label: 'Executive', icon: 'Crown', roles: ['executive', 'admin'] },
       { key: 'regional', label: 'Regional Ops', icon: 'Map', roles: ['executive', 'admin', 'regional_director'] },
       { key: 'clinic', label: 'Clinic Ops', icon: 'Building2', roles: ['executive', 'admin', 'clinic_manager'] },

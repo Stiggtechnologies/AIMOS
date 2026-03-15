@@ -2,7 +2,7 @@ import type { ModuleKey } from '../../types/enterprise';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Command Center
-import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter, RegionalOpsCommandCenter, RevenueCycleCommandCenter, GrowthCommandCenter } from '../command-center';
+import { CommandCenter, ExecutiveCommandCenter, ClinicCommandCenter, ClinicianCommandCenter, RegionalOpsCommandCenter, RevenueCycleCommandCenter, GrowthCommandCenter, NetworkCommandCenter } from '../command-center';
 import { NotificationsCenter } from '../NotificationsCenter';
 import AIAssistantDashboard from '../AIAssistantDashboard';
 import AlertsView from '../command-center/AlertsView';
@@ -164,6 +164,8 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
     // ─── COMMAND CENTER ─────────────────────────────────────────────────────────
     case 'command_center':
       switch (currentSubModule) {
+        case 'network':
+          return <NetworkCommandCenter onNavigate={handleNavigate} />;
         case 'notifications':
           return <NotificationsCenter />;
         case 'ai-insights':
