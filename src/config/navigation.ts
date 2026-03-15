@@ -88,7 +88,9 @@ export const moduleConfig: NavModule[] = [
       { key: 'documents', label: 'Documents', icon: 'FileStack' },
       { key: 'patient-education', label: 'Patient Education', icon: 'BookOpen' },
       { key: 'intelligence', label: 'Clinical Intelligence', icon: 'Brain', roles: ['executive', 'admin', 'clinician'] },
+      { key: 'cii', label: 'CII Automation', icon: 'Cpu', roles: ['executive', 'admin', 'clinician'] },
       { key: 'evidence', label: 'Evidence & Research', icon: 'FlaskConical', roles: ['executive', 'admin', 'clinician'] },
+      { key: 'semantic-search', label: 'Semantic Search', icon: 'Search', roles: ['executive', 'admin', 'clinician'] },
       { key: 'mobile', label: 'Mobile Dashboard', icon: 'Smartphone', roles: ['clinician'] }
     ]
   },
@@ -199,6 +201,7 @@ export const moduleConfig: NavModule[] = [
       { key: 'credentials', label: 'Credentials', icon: 'BadgeCheck' },
       { key: 'academy', label: 'Training Academy', icon: 'GraduationCap' },
       { key: 'workforce-health', label: 'Workforce Health', icon: 'Heart' },
+      { key: 'talent-metrics', label: 'Talent Metrics', icon: 'BarChart2', roles: ['executive', 'admin', 'clinic_manager'] },
       { key: 'capacity-planning', label: 'Capacity Planning', icon: 'BarChart3' },
       { key: 'roles', label: 'Roles & Permissions', icon: 'Shield', roles: ['executive', 'admin'] }
     ]

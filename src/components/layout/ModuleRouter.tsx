@@ -34,7 +34,6 @@ import { ClinicalChartingWorkflow } from '../clinician/ClinicalChartingWorkflow'
 import PatientPortalDashboard from '../patient/PatientPortalDashboard';
 import GymRehabWorkflow from '../clinic/GymRehabWorkflow';
 import { PatientEducationPanel } from '../patient/PatientEducationPanel';
-import { EvidenceOverlay } from '../aim-os/EvidenceOverlay';
 import { SemanticSearchPanel } from '../aim-os/SemanticSearchPanel';
 import { CIIAutomationDashboard } from '../aim-os/CIIAutomationDashboard';
 import { EvidenceLibraryAdmin } from '../aim-os/EvidenceLibraryAdmin';
@@ -95,6 +94,7 @@ import AcademyView from '../intranet/AcademyView';
 import WorkforceHealthView from '../aim-os/WorkforceHealthView';
 import OrgStructureView from '../workforce/OrgStructureView';
 import RecruitingView from '../workforce/RecruitingView';
+import TalentDashboard from '../Dashboard';
 
 // Supply Chain
 import { ProcurementDashboard } from '../procurement/ProcurementDashboard';
@@ -406,6 +406,8 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <CapacityView />;
         case 'roles':
           return <PeopleView />;
+        case 'talent-metrics':
+          return <TalentDashboard />;
         default:
           return <PeopleView />;
       }
