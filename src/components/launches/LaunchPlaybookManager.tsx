@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, ChevronDown, ChevronRight, CircleCheck as CheckCircle, Clock, CircleAlert as AlertCircle, Building2, Wifi, Stethoscope, Users, Megaphone, CreditCard, Package, Plus, Search } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, CircleCheck as CheckCircle, Clock, CircleAlert as AlertCircle, Building2, Wifi, Stethoscope, Users, Megaphone, CreditCard, Package, Plus, Search, HeartPulse, FileText, Link } from 'lucide-react';
 
 const DOMAIN_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
   Facilities: { icon: <Building2 className="h-4 w-4" />, color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
@@ -9,6 +9,13 @@ const DOMAIN_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: 
   Marketing: { icon: <Megaphone className="h-4 w-4" />, color: 'text-pink-700', bg: 'bg-pink-50 border-pink-200' },
   Billing: { icon: <CreditCard className="h-4 w-4" />, color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
   Equipment: { icon: <Package className="h-4 w-4" />, color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
+  'Provider Credentialing': { icon: <HeartPulse className="h-4 w-4" />, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+  'Payer Setup': { icon: <CreditCard className="h-4 w-4" />, color: 'text-cyan-700', bg: 'bg-cyan-50 border-cyan-200' },
+  'Referral Pathways': { icon: <Link className="h-4 w-4" />, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
+  'Clinical Protocols': { icon: <FileText className="h-4 w-4" />, color: 'text-teal-700', bg: 'bg-teal-50 border-teal-200' },
+  'IT & EMR': { icon: <Wifi className="h-4 w-4" />, color: 'text-indigo-700', bg: 'bg-slate-50 border-slate-200' },
+  'EPC Staffing': { icon: <Users className="h-4 w-4" />, color: 'text-green-700', bg: 'bg-green-50 border-green-200' },
+  'EPC Marketing': { icon: <Megaphone className="h-4 w-4" />, color: 'text-pink-700', bg: 'bg-pink-50 border-pink-200' },
 };
 
 interface PlaybookTask {
@@ -63,6 +70,48 @@ const NEW_CLINIC_TASKS: PlaybookTask[] = [
   { id: '39', domain: 'Equipment', title: 'Gym rehab area equipped and tested', day: 38, priority: 'medium', status: 'not_started', owner: 'Operations' },
 ];
 
+const EPC_TASKS: PlaybookTask[] = [
+  { id: 'e1', domain: 'Provider Credentialing', title: 'Submit college registration for all EPC providers', day: 1, priority: 'critical', status: 'completed', owner: 'Clinical Lead' },
+  { id: 'e2', domain: 'Provider Credentialing', title: 'WCB physician registration and provider codes', day: 3, priority: 'critical', status: 'completed', owner: 'Billing' },
+  { id: 'e3', domain: 'Provider Credentialing', title: 'DVA (Veterans Affairs) provider application submitted', day: 5, priority: 'critical', status: 'in_progress', owner: 'Billing' },
+  { id: 'e4', domain: 'Provider Credentialing', title: 'AHS (Alberta Health Services) enrollment', day: 7, priority: 'critical', status: 'in_progress', owner: 'Billing' },
+  { id: 'e5', domain: 'Provider Credentialing', title: 'CPSBC / CPSA registration verified for all providers', day: 14, priority: 'critical', status: 'in_progress', owner: 'HR' },
+  { id: 'e6', domain: 'Provider Credentialing', title: 'Malpractice and liability insurance confirmed', day: 14, priority: 'high', status: 'not_started', owner: 'HR' },
+  { id: 'e7', domain: 'Provider Credentialing', title: 'All payer credentialing approvals received', day: 45, priority: 'critical', status: 'not_started', owner: 'Billing' },
+  { id: 'e8', domain: 'Payer Setup', title: 'EMR billing codes mapped for EPC service lines', day: 5, priority: 'critical', status: 'completed', owner: 'Billing' },
+  { id: 'e9', domain: 'Payer Setup', title: 'Direct billing configuration tested (WCB, DVA, group benefits)', day: 14, priority: 'critical', status: 'in_progress', owner: 'Billing' },
+  { id: 'e10', domain: 'Payer Setup', title: 'Fee schedule loaded and validated in EMR', day: 21, priority: 'high', status: 'in_progress', owner: 'Billing' },
+  { id: 'e11', domain: 'Payer Setup', title: 'Test claim submitted and adjudicated successfully (WCB)', day: 30, priority: 'critical', status: 'not_started', owner: 'Billing' },
+  { id: 'e12', domain: 'Payer Setup', title: 'Group benefits / extended health plans activated', day: 35, priority: 'high', status: 'not_started', owner: 'Billing' },
+  { id: 'e13', domain: 'Payer Setup', title: 'AIM OS revenue tracking integrated for EPC billing codes', day: 40, priority: 'high', status: 'not_started', owner: 'IT' },
+  { id: 'e14', domain: 'Referral Pathways', title: 'Identify top 20 GP/specialist referral targets in catchment', day: 1, priority: 'high', status: 'completed', owner: 'Clinical Lead' },
+  { id: 'e15', domain: 'Referral Pathways', title: 'Draft referral MOU template and service description one-pager', day: 7, priority: 'high', status: 'completed', owner: 'Clinical Lead' },
+  { id: 'e16', domain: 'Referral Pathways', title: 'Outreach meetings scheduled with target GPs (10+ confirmed)', day: 14, priority: 'critical', status: 'in_progress', owner: 'Clinical Lead' },
+  { id: 'e17', domain: 'Referral Pathways', title: 'Referral intake form and triage protocol designed', day: 21, priority: 'high', status: 'not_started', owner: 'Clinical Lead' },
+  { id: 'e18', domain: 'Referral Pathways', title: 'Minimum 5 GP MOUs signed', day: 30, priority: 'critical', status: 'not_started', owner: 'Clinical Lead' },
+  { id: 'e19', domain: 'Referral Pathways', title: 'Referral tracking dashboard configured in AIM OS', day: 35, priority: 'medium', status: 'not_started', owner: 'IT' },
+  { id: 'e20', domain: 'Referral Pathways', title: 'Feedback loop established with referring GPs', day: 60, priority: 'medium', status: 'not_started', owner: 'Clinical Lead' },
+  { id: 'e21', domain: 'Clinical Protocols', title: 'EPC chronic care management pathways documented', day: 7, priority: 'critical', status: 'completed', owner: 'Clinical Lead' },
+  { id: 'e22', domain: 'Clinical Protocols', title: 'Concussion / post-concussion protocol finalized', day: 10, priority: 'high', status: 'completed', owner: 'Clinical Lead' },
+  { id: 'e23', domain: 'Clinical Protocols', title: 'MSK (musculoskeletal) assessment and care pathway documented', day: 14, priority: 'high', status: 'in_progress', owner: 'Clinical Lead' },
+  { id: 'e24', domain: 'Clinical Protocols', title: 'Pain management and RTW/RTS protocols localized', day: 21, priority: 'high', status: 'not_started', owner: 'Clinical Lead' },
+  { id: 'e25', domain: 'Clinical Protocols', title: 'Staff clinical protocol training completed', day: 50, priority: 'critical', status: 'not_started', owner: 'Clinical Lead' },
+  { id: 'e26', domain: 'IT & EMR', title: 'EPC clinic profile created in Jane App / EMR', day: 3, priority: 'critical', status: 'completed', owner: 'IT' },
+  { id: 'e27', domain: 'IT & EMR', title: 'AIM OS clinic integration and data sync activated', day: 7, priority: 'critical', status: 'completed', owner: 'IT' },
+  { id: 'e28', domain: 'IT & EMR', title: 'Patient intake forms and consent templates loaded', day: 14, priority: 'high', status: 'in_progress', owner: 'IT' },
+  { id: 'e29', domain: 'IT & EMR', title: 'Chronic care outcome tracking fields configured', day: 21, priority: 'high', status: 'not_started', owner: 'IT' },
+  { id: 'e30', domain: 'IT & EMR', title: 'Referral tracking and GP communication module tested', day: 30, priority: 'medium', status: 'not_started', owner: 'IT' },
+  { id: 'e31', domain: 'EPC Staffing', title: 'EPC physician or NP lead hired and contracted', day: 7, priority: 'critical', status: 'completed', owner: 'HR' },
+  { id: 'e32', domain: 'EPC Staffing', title: 'Secondary EPC provider offer accepted', day: 21, priority: 'critical', status: 'in_progress', owner: 'HR' },
+  { id: 'e33', domain: 'EPC Staffing', title: 'Medical office admin with EPC billing experience hired', day: 21, priority: 'high', status: 'not_started', owner: 'HR' },
+  { id: 'e34', domain: 'EPC Staffing', title: 'Allied health team (PT, OT) rostered and onboarded', day: 35, priority: 'high', status: 'not_started', owner: 'HR' },
+  { id: 'e35', domain: 'EPC Staffing', title: 'All staff complete EPC orientation and protocol training', day: 55, priority: 'critical', status: 'not_started', owner: 'HR' },
+  { id: 'e36', domain: 'EPC Marketing', title: 'EPC service page live on AIM website', day: 7, priority: 'high', status: 'completed', owner: 'Marketing' },
+  { id: 'e37', domain: 'EPC Marketing', title: 'GP referral package printed and distributed', day: 14, priority: 'high', status: 'in_progress', owner: 'Marketing' },
+  { id: 'e38', domain: 'EPC Marketing', title: 'LinkedIn and Google Ads targeting chronic care patients', day: 21, priority: 'medium', status: 'not_started', owner: 'Marketing' },
+  { id: 'e39', domain: 'EPC Marketing', title: 'Patient testimonials and outcome stories collected', day: 75, priority: 'low', status: 'not_started', owner: 'Marketing' },
+];
+
 const STATUS_CONFIG = {
   completed: { label: 'Done', icon: <CheckCircle className="h-4 w-4 text-green-600" />, color: 'text-green-700', bg: 'bg-green-100' },
   in_progress: { label: 'In Progress', icon: <Clock className="h-4 w-4 text-blue-600" />, color: 'text-blue-700', bg: 'bg-blue-100' },
@@ -79,16 +128,21 @@ const PRIORITY_COLORS = {
 
 const TEMPLATES = [
   { id: 'new_clinic', label: 'New Clinic Launch', days: 45, tasks: 39, description: 'Complete 45-day playbook — lease to first patient' },
+  { id: 'epc', label: 'EPC Flagship Clinic', days: 90, tasks: 39, description: '90-day EPC launch — credentialing, referral pathways, and payer setup' },
   { id: 'acquisition', label: 'Acquired Clinic Integration', days: 90, tasks: 68, description: '90-day integration for acquired clinics into AIM OS' },
   { id: 'partner', label: 'Partner Clinic Onboarding', days: 30, tasks: 34, description: '30-day affiliate onboarding to the AIM network' },
   { id: 'satellite', label: 'Satellite Clinic Setup', days: 21, tasks: 22, description: 'Rapid 21-day setup for satellite/mobile locations' },
 ];
+
+const EPC_DOMAINS_ORDER = ['Provider Credentialing', 'Payer Setup', 'Referral Pathways', 'Clinical Protocols', 'IT & EMR', 'EPC Staffing', 'EPC Marketing'];
 
 export default function LaunchPlaybookManager() {
   const [activeTemplate, setActiveTemplate] = useState('new_clinic');
   const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({
     Facilities: true, IT: true, 'Clinical Ops': true, 'Staff Hiring': true,
     Marketing: false, Billing: false, Equipment: false,
+    'Provider Credentialing': true, 'Payer Setup': true, 'Referral Pathways': true,
+    'Clinical Protocols': false, 'IT & EMR': false, 'EPC Staffing': false, 'EPC Marketing': false,
   });
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -97,17 +151,22 @@ export default function LaunchPlaybookManager() {
     setExpandedDomains(prev => ({ ...prev, [domain]: !prev[domain] }));
   };
 
-  const tasks = NEW_CLINIC_TASKS.filter(t => {
+  const activeTasks = activeTemplate === 'epc' ? EPC_TASKS : NEW_CLINIC_TASKS;
+
+  const tasks = activeTasks.filter(t => {
     const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || t.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const domains = Object.keys(DOMAIN_CONFIG);
-  const completedCount = NEW_CLINIC_TASKS.filter(t => t.status === 'completed').length;
-  const inProgressCount = NEW_CLINIC_TASKS.filter(t => t.status === 'in_progress').length;
-  const blockedCount = NEW_CLINIC_TASKS.filter(t => t.status === 'blocked').length;
-  const overallPct = Math.round((completedCount / NEW_CLINIC_TASKS.length) * 100);
+  const domains = activeTemplate === 'epc'
+    ? EPC_DOMAINS_ORDER
+    : ['Facilities', 'IT', 'Clinical Ops', 'Staff Hiring', 'Marketing', 'Billing', 'Equipment'];
+
+  const completedCount = activeTasks.filter(t => t.status === 'completed').length;
+  const inProgressCount = activeTasks.filter(t => t.status === 'in_progress').length;
+  const blockedCount = activeTasks.filter(t => t.status === 'blocked').length;
+  const overallPct = Math.round((completedCount / activeTasks.length) * 100);
 
   return (
     <div className="space-y-6">
@@ -122,31 +181,53 @@ export default function LaunchPlaybookManager() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {TEMPLATES.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTemplate(t.id)}
-            className={`p-4 rounded-lg border-2 text-left transition-all ${activeTemplate === t.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300'}`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <BookOpen className={`h-5 w-5 ${activeTemplate === t.id ? 'text-blue-600' : 'text-gray-400'}`} />
-              <span className="text-xs font-semibold text-gray-500">{t.days}d</span>
-            </div>
-            <div className={`text-sm font-semibold ${activeTemplate === t.id ? 'text-blue-700' : 'text-gray-800'}`}>{t.label}</div>
-            <div className="text-xs text-gray-500 mt-1">{t.tasks} tasks</div>
-          </button>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {TEMPLATES.map(t => {
+          const isEpc = t.id === 'epc';
+          const isActive = activeTemplate === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTemplate(t.id)}
+              className={`p-4 rounded-lg border-2 text-left transition-all ${isActive
+                ? isEpc ? 'border-emerald-500 bg-emerald-50' : 'border-blue-500 bg-blue-50'
+                : isEpc ? 'border-emerald-200 bg-white hover:border-emerald-400' : 'border-gray-200 bg-white hover:border-blue-300'}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                {isEpc
+                  ? <HeartPulse className={`h-5 w-5 ${isActive ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                  : <BookOpen className={`h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                }
+                <span className="text-xs font-semibold text-gray-500">{t.days}d</span>
+              </div>
+              <div className={`text-sm font-semibold ${isActive
+                ? isEpc ? 'text-emerald-700' : 'text-blue-700'
+                : isEpc ? 'text-emerald-800' : 'text-gray-800'}`}>{t.label}</div>
+              <div className="text-xs text-gray-500 mt-1">{t.tasks} tasks</div>
+            </button>
+          );
+        })}
       </div>
 
-      {activeTemplate === 'new_clinic' && (
+      {(activeTemplate === 'new_clinic' || activeTemplate === 'epc') && (
         <>
+          {activeTemplate === 'epc' && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <HeartPulse className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-emerald-800 text-sm">EPC Flagship Clinic — 90-Day Launch Playbook</div>
+                  <p className="text-xs text-emerald-700 mt-1">Enhanced Primary Care launch with focus on provider credentialing, payer enrollment (WCB, DVA, AHS), GP referral pathway establishment, and chronic care management protocol rollout. All 7 domains must reach 85%+ readiness before full program launch.</p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="text-2xl font-bold text-blue-600">{overallPct}%</div>
+              <div className={`text-2xl font-bold ${activeTemplate === 'epc' ? 'text-emerald-600' : 'text-blue-600'}`}>{overallPct}%</div>
               <div className="text-sm text-gray-600">Overall Progress</div>
               <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-                <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${overallPct}%` }} />
+                <div className={`h-1.5 rounded-full ${activeTemplate === 'epc' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${overallPct}%` }} />
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -254,7 +335,7 @@ export default function LaunchPlaybookManager() {
         </>
       )}
 
-      {activeTemplate !== 'new_clinic' && (
+      {activeTemplate !== 'new_clinic' && activeTemplate !== 'epc' && (
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
           <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">

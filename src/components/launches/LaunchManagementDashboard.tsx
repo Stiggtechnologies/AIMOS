@@ -4,7 +4,7 @@ import { Rocket, Plus, TriangleAlert as AlertTriangle, CircleCheck as CheckCircl
 interface LaunchProject {
   id: string;
   name: string;
-  type: 'new_clinic' | 'acquisition' | 'partner' | 'satellite';
+  type: 'new_clinic' | 'acquisition' | 'partner' | 'satellite' | 'epc';
   status: 'planning' | 'active' | 'at_risk' | 'completed' | 'on_hold';
   goLiveDate: string;
   kickoffDate: string;
@@ -19,6 +19,22 @@ interface LaunchProject {
 }
 
 const PROJECTS: LaunchProject[] = [
+  {
+    id: '0',
+    name: 'AIM EPC Flagship',
+    type: 'epc',
+    status: 'at_risk',
+    goLiveDate: '2026-04-01',
+    kickoffDate: '2026-01-15',
+    readiness: 63,
+    budget: 320000,
+    spent: 198000,
+    staffingFilled: 3,
+    staffingTarget: 5,
+    pm: 'Dr. Aisha Okonkwo',
+    risks: ['2 providers still onboarding (WCB credentialing)', 'Payer billing setup delayed — DVA not yet active', 'Referral pathway MOU with 4 GPs pending sign-off'],
+    domainProgress: { 'Provider Credentialing': 60, 'Payer Setup': 45, 'Referral Pathways': 55, 'Clinical Protocols': 78, 'IT & EMR': 82, 'Staffing': 65, 'Marketing': 70 },
+  },
   {
     id: '1',
     name: 'AIM South Commons',
@@ -82,9 +98,19 @@ const TYPE_LABELS: Record<string, string> = {
   acquisition: 'Acquisition',
   partner: 'Partner',
   satellite: 'Satellite',
+  epc: 'EPC Flagship',
+};
+
+const TYPE_BADGE_COLORS: Record<string, string> = {
+  new_clinic: 'bg-blue-100 text-blue-700',
+  acquisition: 'bg-amber-100 text-amber-700',
+  partner: 'bg-teal-100 text-teal-700',
+  satellite: 'bg-gray-100 text-gray-600',
+  epc: 'bg-emerald-100 text-emerald-700',
 };
 
 const DOMAINS = ['Facilities', 'IT', 'Clinical Ops', 'Staffing', 'Marketing', 'Billing', 'Equipment'];
+const EPC_DOMAINS = ['Provider Credentialing', 'Payer Setup', 'Referral Pathways', 'Clinical Protocols', 'IT & EMR', 'Staffing', 'Marketing'];
 const DOMAIN_COLORS = ['bg-orange-500', 'bg-blue-500', 'bg-teal-500', 'bg-green-500', 'bg-pink-500', 'bg-amber-500', 'bg-gray-500'];
 
 function daysUntil(dateStr: string) {
@@ -158,16 +184,16 @@ export default function LaunchManagementDashboard() {
               <div
                 key={project.id}
                 onClick={() => setSelectedProject(project)}
-                className="border border-gray-200 rounded-lg p-5 hover:border-blue-300 cursor-pointer transition-colors hover:shadow-sm"
+                className={`border rounded-lg p-5 cursor-pointer transition-colors hover:shadow-sm ${project.type === 'epc' ? 'border-emerald-200 hover:border-emerald-400 bg-emerald-50/30' : 'border-gray-200 hover:border-blue-300'}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+                    <Building2 className={`h-5 w-5 ${project.type === 'epc' ? 'text-emerald-500' : 'text-gray-400'}`} />
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-gray-900">{project.name}</span>
                         <span className={`px-2 py-0.5 text-xs rounded-full ${sc.color}`}>{sc.label}</span>
-                        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">{TYPE_LABELS[project.type]}</span>
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${TYPE_BADGE_COLORS[project.type] ?? 'bg-gray-100 text-gray-600'}`}>{TYPE_LABELS[project.type]}</span>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
                         <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Go-Live: {new Date(project.goLiveDate).toLocaleDateString()}</span>
@@ -210,7 +236,7 @@ export default function LaunchManagementDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {DOMAINS.map((domain, idx) => {
+                  {(project.type === 'epc' ? EPC_DOMAINS : DOMAINS).map((domain, idx) => {
                     const pct = project.domainProgress[domain] ?? 0;
                     return (
                       <div key={domain} className="flex items-center gap-1.5">
@@ -246,7 +272,17 @@ function ProjectDetail({ project, onBack }: { project: LaunchProject; onBack: ()
   const daysLeft = daysUntil(project.goLiveDate);
   const budgetPct = Math.round(project.spent / project.budget * 100);
 
-  const TIMELINE = [
+  const EPC_TIMELINE = [
+    { day: 1, label: 'EPC Program Kickoff', desc: 'Service model confirmed, referral agreements drafted, job postings live', done: true },
+    { day: 14, label: 'Provider Recruitment', desc: 'EPC physicians/NPs shortlisted, credentialing applications submitted', done: true },
+    { day: 21, label: 'Payer & Billing Setup', desc: 'WCB, DVA, and group benefits credentialing packages submitted', done: true },
+    { day: 30, label: 'Referral MOUs Signed', desc: 'GP/specialist outreach completed, referral intake protocol finalized', done: false },
+    { day: 45, label: 'Provider Credentialing Complete', desc: 'All providers approved by payers, EMR billing codes configured', done: false },
+    { day: 60, label: 'Soft Launch', desc: 'First EPC patients onboarded, chronic care management protocols live', done: false },
+    { day: 90, label: 'Full Program Launch', desc: 'All providers active, full referral pipeline operational, reporting live', done: false },
+  ];
+
+  const TIMELINE = project.type === 'epc' ? EPC_TIMELINE : [
     { day: 1, label: 'Kickoff', desc: 'Lease confirmed, contractor engaged, all job postings live', done: true },
     { day: 7, label: 'Systems Ordered', desc: 'Internet, phones, EMR clinic profile initiated', done: true },
     { day: 14, label: 'Staff Shortlist', desc: 'Interviews underway, contractor mobilized, equipment ordered', done: true },
@@ -333,7 +369,7 @@ function ProjectDetail({ project, onBack }: { project: LaunchProject; onBack: ()
 
         {activeTab === 'domains' && (
           <div className="space-y-3">
-            {DOMAINS.map((domain, idx) => {
+            {(project.type === 'epc' ? EPC_DOMAINS : DOMAINS).map((domain, idx) => {
               const pct = project.domainProgress[domain] ?? 0;
               return (
                 <div key={domain} className="flex items-center gap-4">
