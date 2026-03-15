@@ -25,6 +25,7 @@ import CashFlowView from '../aim-os/CashFlowView';
 import RevenueAnalyticsView from '../aim-os/RevenueAnalyticsView';
 import PricingPayerView from '../aim-os/PricingPayerView';
 import RevenueReportImport from '../operations/RevenueReportImport';
+import RetailProductsView from '../clinic/RetailProductsView';
 
 import GrowthOSDashboard from '../growth-os/GrowthOSDashboard';
 import IntakePipelineView from '../growth-os/IntakePipelineView';
@@ -52,6 +53,8 @@ import PeopleView from '../intranet/PeopleView';
 import ClinicsView from '../intranet/ClinicsView';
 import SOPHubView from '../intranet/SOPHubView';
 import FormsView from '../intranet/FormsView';
+import ServicePortfolioView from '../aim-os/ServicePortfolioView';
+import ClinicIntegrationView from '../aim-os/ClinicIntegrationView';
 
 import AIMOSDashboard from '../aim-os/AIMOSDashboard';
 
@@ -164,6 +167,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'fee-schedules':
         case 'pricing':
           return <PricingPayerView />;
+        case 'retail':
+        case 'inventory':
+          return <RetailProductsView />;
         case 'dashboard':
         case 'claims':
         case 'invoices':
@@ -251,12 +257,20 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
     case 'admin':
       switch (currentSubModule) {
         case 'users':
+        case 'roles':
           return <PeopleView />;
         case 'sops':
         case 'policies':
           return <SOPHubView />;
         case 'forms':
           return <FormsView />;
+        case 'services':
+        case 'fee-schedules':
+          return <ServicePortfolioView />;
+        case 'integrations':
+          return <ClinicIntegrationView />;
+        case 'settings':
+        case 'audit-log':
         default:
           return <AIMOSDashboard />;
       }
