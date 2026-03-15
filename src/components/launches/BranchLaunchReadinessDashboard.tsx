@@ -1,330 +1,267 @@
-import React, { useState, useEffect } from 'react';
-import { Rocket, CircleCheck as CheckCircle2, Circle, TriangleAlert as AlertTriangle, Calendar, MapPin, Users, Building2, Package, Wifi, FileText, TrendingUp, Phone, Shield } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { useState } from 'react';
+import { CircleCheck as CheckCircle, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Building2, Wifi, Stethoscope, Users, Megaphone, CreditCard, Package, ChevronDown, ChevronRight, Flag } from 'lucide-react';
 
-interface Clinic {
-  id: string;
-  name: string;
-  code: string;
-  address: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  phone: string;
-  email: string;
-  metadata: any;
-}
+const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  facilities: { label: 'Facilities', icon: <Building2 className="h-5 w-5" />, color: 'text-orange-600' },
+  it: { label: 'IT & Systems', icon: <Wifi className="h-5 w-5" />, color: 'text-blue-600' },
+  clinical_ops: { label: 'Clinical Ops', icon: <Stethoscope className="h-5 w-5" />, color: 'text-teal-600' },
+  staffing: { label: 'Staffing', icon: <Users className="h-5 w-5" />, color: 'text-green-600' },
+  marketing: { label: 'Marketing', icon: <Megaphone className="h-5 w-5" />, color: 'text-pink-600' },
+  billing: { label: 'Billing & Payers', icon: <CreditCard className="h-5 w-5" />, color: 'text-amber-600' },
+  equipment: { label: 'Equipment', icon: <Package className="h-5 w-5" />, color: 'text-gray-600' },
+};
 
-interface ReadinessItem {
-  id: string;
-  category: string;
-  item_name: string;
-  description: string;
-  is_required: boolean;
-  is_completed: boolean;
-  completed_at: string | null;
-  target_completion_date: string;
-  display_order: number;
-}
+interface ReadinessItem { label: string; done: boolean; critical: boolean }
+interface ReadinessCategory { score: number; items: ReadinessItem[] }
 
-interface Room {
-  id: string;
-  name: string;
-  room_type: string;
-  capacity: number;
-}
+const READINESS_DATA: Record<string, ReadinessCategory> = {
+  facilities: {
+    score: 92,
+    items: [
+      { label: 'Lease signed and possession confirmed', done: true, critical: true },
+      { label: 'Building permit approved', done: true, critical: true },
+      { label: 'Construction 95%+ complete', done: true, critical: true },
+      { label: 'Final municipal inspection passed', done: true, critical: true },
+      { label: 'Occupancy permit issued', done: false, critical: true },
+      { label: 'Signage installed', done: true, critical: false },
+      { label: 'Furniture and fixtures in place', done: true, critical: false },
+      { label: 'Parking arrangements confirmed', done: true, critical: false },
+      { label: 'Cleaning completed', done: false, critical: false },
+      { label: 'Fire and safety systems tested', done: true, critical: true },
+      { label: 'Accessibility compliance verified', done: true, critical: false },
+    ],
+  },
+  it: {
+    score: 88,
+    items: [
+      { label: 'Internet and phone lines active', done: true, critical: true },
+      { label: 'EMR clinic profile live (Jane App)', done: true, critical: true },
+      { label: 'POS and payment terminal tested', done: true, critical: true },
+      { label: 'Staff accounts and MFA configured', done: true, critical: true },
+      { label: 'AIM OS clinic integration activated', done: false, critical: true },
+      { label: 'Online booking enabled', done: true, critical: true },
+      { label: 'PIPA data handling reviewed', done: true, critical: true },
+      { label: 'Security cameras and alarm live', done: true, critical: false },
+      { label: 'Backup and disaster recovery tested', done: false, critical: false },
+      { label: 'Printer and scanner setup', done: true, critical: false },
+    ],
+  },
+  clinical_ops: {
+    score: 95,
+    items: [
+      { label: 'College registration submitted', done: true, critical: true },
+      { label: 'Service menu finalized', done: true, critical: true },
+      { label: 'SOPs localized and distributed', done: true, critical: true },
+      { label: 'Intake forms loaded into EMR', done: true, critical: true },
+      { label: 'Payer credentialing submitted (WCB, DVA)', done: true, critical: true },
+      { label: 'Treatment room assignments set', done: true, critical: false },
+      { label: 'Emergency protocol reviewed by all staff', done: false, critical: true },
+      { label: 'Supply inventory stocked', done: true, critical: false },
+      { label: 'Sterilization protocols confirmed', done: true, critical: true },
+      { label: 'Patient privacy notice displayed', done: true, critical: true },
+    ],
+  },
+  staffing: {
+    score: 78,
+    items: [
+      { label: 'Clinic Director / Lead PT hired', done: true, critical: true },
+      { label: 'All clinical roles filled', done: false, critical: true },
+      { label: 'Front desk admin hired', done: true, critical: true },
+      { label: 'All staff background checks complete', done: true, critical: true },
+      { label: 'Onboarding and orientation done', done: false, critical: true },
+      { label: 'Payroll setup for all staff', done: true, critical: true },
+      { label: 'Uniform and ID badges issued', done: false, critical: false },
+      { label: 'Staff schedule for opening week set', done: false, critical: true },
+      { label: 'Training certifications verified', done: true, critical: true },
+    ],
+  },
+  marketing: {
+    score: 84,
+    items: [
+      { label: 'Google Business Profile live', done: true, critical: true },
+      { label: 'Website location page published', done: true, critical: true },
+      { label: 'Digital ads running (Facebook/Google)', done: true, critical: false },
+      { label: 'GP and specialist outreach complete', done: false, critical: false },
+      { label: 'Trainer/gym referral partnerships initiated', done: true, critical: false },
+      { label: 'Grand opening event scheduled', done: false, critical: false },
+      { label: 'Patient review request workflow set up', done: true, critical: false },
+      { label: 'Promotional materials printed', done: true, critical: false },
+    ],
+  },
+  billing: {
+    score: 90,
+    items: [
+      { label: 'Business registration complete', done: true, critical: true },
+      { label: 'Bank account and merchant services active', done: true, critical: true },
+      { label: 'Fee schedule loaded into EMR', done: true, critical: true },
+      { label: 'WCB billing setup and test claim sent', done: true, critical: true },
+      { label: 'Group benefits / direct billing active', done: false, critical: true },
+      { label: 'Invoice and receipt templates confirmed', done: true, critical: false },
+      { label: 'Chart of accounts set up', done: true, critical: true },
+      { label: 'AR reporting activated in AIM OS', done: true, critical: false },
+    ],
+  },
+  equipment: {
+    score: 82,
+    items: [
+      { label: 'Treatment tables delivered and assembled', done: true, critical: true },
+      { label: 'Ultrasound units calibrated', done: true, critical: true },
+      { label: 'Shockwave unit tested', done: false, critical: false },
+      { label: 'Gym rehab equipment installed', done: true, critical: false },
+      { label: 'Electrotherapy units tested', done: true, critical: false },
+      { label: 'Laser therapy unit calibrated', done: false, critical: false },
+      { label: 'Traction table installed', done: true, critical: false },
+      { label: 'All equipment service records filed', done: true, critical: false },
+    ],
+  },
+};
 
-interface Service {
-  id: string;
-  name: string;
-  estimated_duration_minutes: number;
-  base_price: number;
-}
+const THRESHOLD = 85;
 
-interface Product {
-  product_name: string;
-  product_category: string;
-  retail_price: number;
+function scoreColor(s: number) { return s >= THRESHOLD ? 'text-green-700' : s >= 70 ? 'text-amber-700' : 'text-red-700'; }
+function barColor(s: number) { return s >= THRESHOLD ? 'bg-green-500' : s >= 70 ? 'bg-amber-500' : 'bg-red-500'; }
+function scoreStatus(s: number) {
+  if (s >= THRESHOLD) return { label: 'Ready', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-3.5 w-3.5 text-green-600" /> };
+  if (s >= 70) return { label: 'At Risk', color: 'bg-amber-100 text-amber-800', icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> };
+  return { label: 'Not Ready', color: 'bg-red-100 text-red-800', icon: <AlertCircle className="h-3.5 w-3.5 text-red-600" /> };
 }
 
 export default function BranchLaunchReadinessDashboard() {
-  const [clinic, setClinic] = useState<Clinic | null>(null);
-  const [readinessItems, setReadinessItems] = useState<ReadinessItem[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [inventory, setInventory] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+  const [selectedClinic, setSelectedClinic] = useState('AIM South Commons');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const toggle = (cat: string) => setExpandedCats(prev => ({ ...prev, [cat]: !prev[cat] }));
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-
-      const [clinicData, readinessData, roomsData, servicesData, inventoryData] = await Promise.all([
-        supabase.from('clinics').select('*').eq('code', 'AIM-SC-001').maybeSingle(),
-        supabase.from('clinic_launch_readiness').select('*').eq('clinic_id',
-          supabase.from('clinics').select('id').eq('code', 'AIM-SC-001').maybeSingle().then(r => r.data?.id)
-        ).order('display_order'),
-        supabase.from('rooms').select('*').eq('clinic_id',
-          supabase.from('clinics').select('id').eq('code', 'AIM-SC-001').maybeSingle().then(r => r.data?.id)
-        ),
-        supabase.from('services').select('*').eq('clinic_id',
-          supabase.from('clinics').select('id').eq('code', 'AIM-SC-001').maybeSingle().then(r => r.data?.id)
-        ),
-        supabase.from('product_inventory')
-          .select('*, product_catalog(*)')
-          .eq('clinic_id', supabase.from('clinics').select('id').eq('code', 'AIM-SC-001').maybeSingle().then(r => r.data?.id))
-      ]);
-
-      if (clinicData.data) setClinic(clinicData.data);
-      if (readinessData.data) setReadinessItems(readinessData.data);
-      if (roomsData.data) setRooms(roomsData.data);
-      if (servicesData.data) setServices(servicesData.data);
-      if (inventoryData.data) {
-        setInventory(inventoryData.data.map((inv: any) => inv.product_catalog));
-      }
-    } catch (error) {
-      console.error('Failed to load launch readiness data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleItemCompletion = async (itemId: string, currentStatus: boolean) => {
-    try {
-      await supabase
-        .from('clinic_launch_readiness')
-        .update({
-          is_completed: !currentStatus,
-          completed_at: !currentStatus ? new Date().toISOString() : null
-        })
-        .eq('id', itemId);
-
-      await loadData();
-    } catch (error) {
-      console.error('Failed to update item:', error);
-    }
-  };
-
-  const categorizeItems = () => {
-    const categories = readinessItems.reduce((acc, item) => {
-      if (!acc[item.category]) acc[item.category] = [];
-      acc[item.category].push(item);
-      return acc;
-    }, {} as Record<string, ReadinessItem[]>);
-    return categories;
-  };
-
-  const calculateProgress = () => {
-    const total = readinessItems.filter(i => i.is_required).length;
-    const completed = readinessItems.filter(i => i.is_required && i.is_completed).length;
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, any> = {
-      'Compliance': Shield,
-      'Staffing': Users,
-      'Rooms & Equipment': Building2,
-      'Systems': Wifi,
-      'Clinical Ops': FileText,
-      'Marketing': TrendingUp,
-      'Go-Live': Rocket
-    };
-    return icons[category] || Circle;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!clinic) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Clinic not found</p>
-      </div>
-    );
-  }
-
-  const categories = categorizeItems();
-  const overallProgress = calculateProgress();
-  const daysUntilTarget = clinic.metadata?.opening_target
-    ? Math.ceil((new Date(clinic.metadata.opening_target).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null;
+  const categories = Object.keys(READINESS_DATA);
+  const overallScore = Math.round(categories.reduce((s, c) => s + READINESS_DATA[c].score, 0) / categories.length);
+  const readyCount = categories.filter(c => READINESS_DATA[c].score >= THRESHOLD).length;
+  const notReadyCount = categories.filter(c => READINESS_DATA[c].score < THRESHOLD).length;
+  const goLiveReady = notReadyCount === 0;
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <Rocket className="w-8 h-8" />
-              <h1 className="text-3xl font-bold">{clinic.name}</h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-blue-100 mt-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>{clinic.address}, {clinic.city}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span>{clinic.phone}</span>
-              </div>
-              {clinic.metadata?.opening_target && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>Target: {new Date(clinic.metadata.opening_target).toLocaleDateString()}</span>
-                  {daysUntilTarget !== null && (
-                    <span className="ml-2 px-2 py-1 bg-white/20 rounded text-sm font-medium">
-                      {daysUntilTarget > 0 ? `${daysUntilTarget} days` : 'Overdue'}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Launch Readiness Assessment</h2>
+          <p className="text-gray-600 mt-1">All categories must score 85%+ to authorize go-live</p>
+        </div>
+        <select
+          value={selectedClinic}
+          onChange={e => setSelectedClinic(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+        >
+          <option>AIM South Commons</option>
+          <option>AIM Crowfoot</option>
+          <option>AIM Bridlewood</option>
+        </select>
+      </div>
+
+      <div className={`rounded-xl border-2 p-6 flex items-center justify-between ${goLiveReady ? 'bg-green-50 border-green-300' : 'bg-amber-50 border-amber-300'}`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center ${goLiveReady ? 'bg-green-100' : 'bg-amber-100'}`}>
+            {goLiveReady
+              ? <CheckCircle className="h-8 w-8 text-green-600" />
+              : <AlertTriangle className="h-8 w-8 text-amber-600" />}
           </div>
-          <div className="text-right">
-            <div className="text-5xl font-bold">{overallProgress}%</div>
-            <div className="text-blue-100 mt-1">Launch Ready</div>
+          <div>
+            <div className={`text-xl font-bold ${goLiveReady ? 'text-green-800' : 'text-amber-800'}`}>
+              {goLiveReady ? 'Go-Live Authorized' : `Go-Live Blocked — ${notReadyCount} categor${notReadyCount === 1 ? 'y' : 'ies'} below threshold`}
+            </div>
+            <div className="text-sm text-gray-600 mt-0.5">{selectedClinic} · Overall Score: {overallScore}% · Threshold: {THRESHOLD}%</div>
           </div>
         </div>
-        <div className="mt-6 bg-white/20 rounded-full h-3">
-          <div
-            className="bg-white rounded-full h-3 transition-all duration-500"
-            style={{ width: `${overallProgress}%` }}
-          />
+        <div className="text-right">
+          <div className={`text-4xl font-bold ${goLiveReady ? 'text-green-700' : 'text-amber-700'}`}>{overallScore}%</div>
+          <div className="text-sm text-gray-500">{readyCount}/{categories.length} ready</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <Building2 className="w-5 h-5 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">{rooms.length}</span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Overall Score', value: `${overallScore}%`, color: scoreColor(overallScore) },
+          { label: 'Categories Ready', value: `${readyCount}/${categories.length}`, color: 'text-green-700' },
+          { label: 'Threshold', value: `${THRESHOLD}%`, color: 'text-gray-700' },
+          { label: 'Target Open Date', value: 'Apr 15, 2026', color: 'text-blue-700' },
+        ].map(s => (
+          <div key={s.label} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+            <div className="text-sm text-gray-600">{s.label}</div>
           </div>
-          <div className="text-sm text-gray-600">Configured Rooms</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <FileText className="w-5 h-5 text-green-600" />
-            <span className="text-2xl font-bold text-gray-900">{services.length}</span>
-          </div>
-          <div className="text-sm text-gray-600">Services Activated</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <Package className="w-5 h-5 text-orange-600" />
-            <span className="text-2xl font-bold text-gray-900">{inventory.length}</span>
-          </div>
-          <div className="text-sm text-gray-600">Retail Products</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <CheckCircle2 className="w-5 h-5 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">
-              {readinessItems.filter(i => i.is_completed).length}/{readinessItems.length}
-            </span>
-          </div>
-          <div className="text-sm text-gray-600">Tasks Complete</div>
-        </div>
+        ))}
       </div>
 
-      <div className="space-y-4">
-        {Object.entries(categories).map(([category, items]) => {
-          const Icon = getCategoryIcon(category);
-          const categoryTotal = items.filter(i => i.is_required).length;
-          const categoryComplete = items.filter(i => i.is_required && i.is_completed).length;
-          const categoryProgress = categoryTotal > 0 ? Math.round((categoryComplete / categoryTotal) * 100) : 0;
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-semibold text-gray-900">Category Scorecard</h3>
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> ≥85% Ready</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500 inline-block" /> 70–84% At Risk</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> &lt;70% Blocked</span>
+          </div>
+        </div>
 
-          return (
-            <div key={category} className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Icon className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{category}</h3>
-                      <p className="text-sm text-gray-500">
-                        {categoryComplete} of {categoryTotal} required items complete
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{categoryProgress}%</div>
-                    <div className="w-32 bg-gray-200 rounded-full h-2 mt-1">
-                      <div
-                        className="bg-blue-600 rounded-full h-2 transition-all duration-300"
-                        style={{ width: `${categoryProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="space-y-3">
+          {categories.map(cat => {
+            const cfg = CATEGORY_CONFIG[cat];
+            const data = READINESS_DATA[cat];
+            const status = scoreStatus(data.score);
+            const isExpanded = expandedCats[cat];
+            const doneCount = data.items.filter(i => i.done).length;
+            const criticalPending = data.items.filter(i => !i.done && i.critical).length;
 
-              <div className="divide-y divide-gray-200">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => toggleItemCompletion(item.id, item.is_completed)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        {item.is_completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-gray-300" />
+            return (
+              <div key={cat} className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggle(cat)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={cfg.color}>{cfg.icon}</span>
+                    <span className="font-medium text-gray-900">{cfg.label}</span>
+                    <div className="flex items-center gap-1">
+                      {status.icon}
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${status.color}`}>{status.label}</span>
+                    </div>
+                    {criticalPending > 0 && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">
+                        <Flag className="h-3 w-3" />{criticalPending} critical pending
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className={`text-lg font-bold ${scoreColor(data.score)}`}>{data.score}%</div>
+                      <div className="text-xs text-gray-500">{doneCount}/{data.items.length} items</div>
+                    </div>
+                    <div className="w-28 bg-gray-200 rounded-full h-2">
+                      <div className={`h-2 rounded-full ${barColor(data.score)}`} style={{ width: `${data.score}%` }} />
+                    </div>
+                    {isExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t border-gray-200 bg-gray-50 divide-y divide-gray-100">
+                    {data.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 px-5 py-2.5">
+                        {item.done
+                          ? <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          : <div className={`h-4 w-4 rounded-full border-2 flex-shrink-0 ${item.critical ? 'border-red-400' : 'border-gray-300'}`} />}
+                        <span className={`text-sm flex-1 ${item.done ? 'line-through text-gray-400' : item.critical ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                          {item.label}
+                        </span>
+                        {!item.done && item.critical && (
+                          <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">Critical</span>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className={`font-medium ${item.is_completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                            {item.item_name}
-                          </h4>
-                          {item.is_required && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded">
-                              Required
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                        {item.target_completion_date && (
-                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
-                            <span>Target: {new Date(item.target_completion_date).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {overallProgress === 100 && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-          <h3 className="text-xl font-bold text-green-900 mb-2">Launch Ready!</h3>
-          <p className="text-green-700">
-            All required tasks are complete. AIM South Commons is ready for go-live.
-          </p>
+            );
+          })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

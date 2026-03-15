@@ -16,6 +16,9 @@ import CapacityView from '../operations/CapacityView';
 import LaunchManagementDashboard from '../launches/LaunchManagementDashboard';
 import LaunchDetailView from '../launches/LaunchDetailView';
 import BranchLaunchReadinessDashboard from '../launches/BranchLaunchReadinessDashboard';
+import LaunchPlaybookManager from '../launches/LaunchPlaybookManager';
+import NewClinicPerformanceDashboard from '../launches/NewClinicPerformanceDashboard';
+import AcquisitionIntegrationDashboard from '../launches/AcquisitionIntegrationDashboard';
 import PartnerClinicsView from '../partners/PartnerClinicsView';
 import PartnerDashboard from '../partners/PartnerDashboard';
 import AfterHoursView from '../after-hours/AfterHoursView';
@@ -214,6 +217,12 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <LaunchDetailView />;
         case 'launch-readiness':
           return <BranchLaunchReadinessDashboard />;
+        case 'launch-playbooks':
+          return <LaunchPlaybookManager />;
+        case 'launch-performance':
+          return <NewClinicPerformanceDashboard />;
+        case 'acquisition-integration':
+          return <AcquisitionIntegrationDashboard />;
         case 'partners':
           return <PartnerClinicsView />;
         case 'partner-dashboard':
