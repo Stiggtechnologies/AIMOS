@@ -229,13 +229,13 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'launch-detail':
           return <LaunchDetailView onBack={() => onNavigate('operations', 'launches')} />;
         case 'launch-readiness':
-          return <BranchLaunchReadinessDashboard />;
+          return <BranchLaunchReadinessDashboard onNavigate={onNavigate} />;
         case 'launch-playbooks':
-          return <LaunchPlaybookManager />;
+          return <LaunchPlaybookManager onNavigate={onNavigate} />;
         case 'launch-performance':
-          return <NewClinicPerformanceDashboard />;
+          return <NewClinicPerformanceDashboard onNavigate={onNavigate} />;
         case 'acquisition-integration':
-          return <AcquisitionIntegrationDashboard />;
+          return <AcquisitionIntegrationDashboard onNavigate={onNavigate} />;
         case 'partners':
           return <PartnerClinicsView />;
         case 'partner-dashboard':

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Rocket, Plus, TriangleAlert as AlertTriangle, Clock, TrendingUp, Users, Calendar, ChevronRight, Building2 } from 'lucide-react';
+import { Rocket, Plus, TriangleAlert as AlertTriangle, Clock, TrendingUp, Users, Calendar, ChevronRight, Building2, RefreshCw } from 'lucide-react';
 import { launchService, type ClinicLaunch } from '../../services/launchService';
 
 interface LaunchManagementDashboardProps {
@@ -40,14 +40,19 @@ function daysUntil(dateStr: string) {
 export default function LaunchManagementDashboard({ onNavigate }: LaunchManagementDashboardProps) {
   const [launches, setLaunches] = useState<ClinicLaunch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
 
-  useEffect(() => {
+  const loadLaunches = () => {
+    setLoading(true);
+    setError(null);
     launchService.getAllLaunches()
       .then(data => setLaunches(data))
-      .catch(console.error)
+      .catch(() => setError('Failed to load launches. Please try again.'))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadLaunches(); }, []);
 
   const filtered = launches.filter(l => !statusFilter || l.status === statusFilter);
   const activeCount = launches.filter(l => l.status === 'in_progress' || l.status === 'approved').length;
@@ -63,6 +68,18 @@ export default function LaunchManagementDashboard({ onNavigate }: LaunchManageme
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
+        <p className="text-gray-700 font-medium">{error}</p>
+        <button onClick={loadLaunches} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+          <RefreshCw className="h-4 w-4" /> Retry
+        </button>
       </div>
     );
   }

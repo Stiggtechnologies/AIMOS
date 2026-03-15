@@ -136,7 +136,11 @@ const TEMPLATES = [
 
 const EPC_DOMAINS_ORDER = ['Provider Credentialing', 'Payer Setup', 'Referral Pathways', 'Clinical Protocols', 'IT & EMR', 'EPC Staffing', 'EPC Marketing'];
 
-export default function LaunchPlaybookManager() {
+interface LaunchPlaybookManagerProps {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function LaunchPlaybookManager({ onNavigate }: LaunchPlaybookManagerProps) {
   const [activeTemplate, setActiveTemplate] = useState('new_clinic');
   const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({
     Facilities: true, IT: true, 'Clinical Ops': true, 'Staff Hiring': true,

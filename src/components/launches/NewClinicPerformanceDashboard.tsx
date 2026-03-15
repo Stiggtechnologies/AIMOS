@@ -78,7 +78,11 @@ const STABILIZATION_ALERTS = [
   { type: 'warning', message: 'Staff efficiency at 88% — approaching 90% target' },
 ];
 
-export default function NewClinicPerformanceDashboard() {
+interface NewClinicPerformanceDashboardProps {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function NewClinicPerformanceDashboard({ onNavigate }: NewClinicPerformanceDashboardProps) {
   const [selectedClinic, setSelectedClinic] = useState(CLINICS[0]);
   const [activeChart, setActiveChart] = useState<'ramp' | 'weekly'>('ramp');
 

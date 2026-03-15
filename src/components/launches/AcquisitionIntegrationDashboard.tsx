@@ -88,7 +88,11 @@ const STATUS_CONFIG = {
 
 const ACQUISITIONS = ['Acquired Clinic — Calgary NE (Demo)', 'New Acquisition Site'];
 
-export default function AcquisitionIntegrationDashboard() {
+interface AcquisitionIntegrationDashboardProps {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function AcquisitionIntegrationDashboard({ onNavigate }: AcquisitionIntegrationDashboardProps) {
   const [selectedAcq, setSelectedAcq] = useState(ACQUISITIONS[0]);
   const [activePhase, setActivePhase] = useState<'day1' | 'day30' | 'day90'>('day1');
   const [expandedDomains, setExpandedDomains] = useState<Record<string, boolean>>({ 'Branding & Signage': true, 'IT & Systems': true });

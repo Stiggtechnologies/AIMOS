@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CircleCheck as CheckCircle, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Building2, Wifi, Stethoscope, Users, Megaphone, CreditCard, Package, ChevronDown, ChevronRight, Flag } from 'lucide-react';
+import { launchService, type ClinicLaunch } from '../../services/launchService';
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   facilities: { label: 'Facilities', icon: <Building2 className="h-5 w-5" />, color: 'text-orange-600' },
@@ -126,9 +127,27 @@ function scoreStatus(s: number) {
   return { label: 'Not Ready', color: 'bg-red-100 text-red-800', icon: <AlertCircle className="h-3.5 w-3.5 text-red-600" /> };
 }
 
-export default function BranchLaunchReadinessDashboard() {
+interface BranchLaunchReadinessDashboardProps {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function BranchLaunchReadinessDashboard({ onNavigate }: BranchLaunchReadinessDashboardProps) {
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
-  const [selectedClinic, setSelectedClinic] = useState('AIM South Commons');
+  const [launches, setLaunches] = useState<ClinicLaunch[]>([]);
+  const [selectedLaunchId, setSelectedLaunchId] = useState<string>('');
+  const [loadingLaunches, setLoadingLaunches] = useState(true);
+
+  useEffect(() => {
+    launchService.getAllLaunches()
+      .then(data => {
+        setLaunches(data);
+        if (data.length > 0) setSelectedLaunchId(data[0].id);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingLaunches(false));
+  }, []);
+
+  const selectedLaunch = launches.find(l => l.id === selectedLaunchId);
 
   const toggle = (cat: string) => setExpandedCats(prev => ({ ...prev, [cat]: !prev[cat] }));
 
@@ -145,15 +164,30 @@ export default function BranchLaunchReadinessDashboard() {
           <h2 className="text-2xl font-bold text-gray-900">Launch Readiness Assessment</h2>
           <p className="text-gray-600 mt-1">All categories must score 85%+ to authorize go-live</p>
         </div>
+        <div className="flex items-center gap-3">
+          {selectedLaunch && onNavigate && (
+            <button
+              onClick={() => onNavigate('operations', `launch-detail:${selectedLaunch.id}`)}
+              className="px-3 py-2 text-sm text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              View Launch Detail
+            </button>
+          )}
         <select
-          value={selectedClinic}
-          onChange={e => setSelectedClinic(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          value={selectedLaunchId}
+          onChange={e => setSelectedLaunchId(e.target.value)}
+          disabled={loadingLaunches}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          <option>AIM South Commons</option>
-          <option>AIM Crowfoot</option>
-          <option>AIM Bridlewood</option>
+          {loadingLaunches ? (
+            <option>Loading...</option>
+          ) : launches.length === 0 ? (
+            <option value="">No launches found</option>
+          ) : launches.map(l => (
+            <option key={l.id} value={l.id}>{l.launch_name}</option>
+          ))}
         </select>
+        </div>
       </div>
 
       <div className={`rounded-xl border-2 p-6 flex items-center justify-between ${goLiveReady ? 'bg-green-50 border-green-300' : 'bg-amber-50 border-amber-300'}`}>
@@ -167,7 +201,7 @@ export default function BranchLaunchReadinessDashboard() {
             <div className={`text-xl font-bold ${goLiveReady ? 'text-green-800' : 'text-amber-800'}`}>
               {goLiveReady ? 'Go-Live Authorized' : `Go-Live Blocked — ${notReadyCount} categor${notReadyCount === 1 ? 'y' : 'ies'} below threshold`}
             </div>
-            <div className="text-sm text-gray-600 mt-0.5">{selectedClinic} · Overall Score: {overallScore}% · Threshold: {THRESHOLD}%</div>
+            <div className="text-sm text-gray-600 mt-0.5">{selectedLaunch?.launch_name ?? 'Select a launch'} · Overall Score: {overallScore}% · Threshold: {THRESHOLD}%</div>
           </div>
         </div>
         <div className="text-right">
@@ -181,7 +215,7 @@ export default function BranchLaunchReadinessDashboard() {
           { label: 'Overall Score', value: `${overallScore}%`, color: scoreColor(overallScore) },
           { label: 'Categories Ready', value: `${readyCount}/${categories.length}`, color: 'text-green-700' },
           { label: 'Threshold', value: `${THRESHOLD}%`, color: 'text-gray-700' },
-          { label: 'Target Open Date', value: 'Apr 15, 2026', color: 'text-blue-700' },
+          { label: 'Target Open Date', value: selectedLaunch ? new Date(selectedLaunch.target_open_date).toLocaleDateString() : '—', color: 'text-blue-700' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
