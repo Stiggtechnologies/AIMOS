@@ -200,7 +200,11 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       }
 
     // ─── OPERATIONS ─────────────────────────────────────────────────────────────
-    case 'operations':
+    case 'operations': {
+      if (currentSubModule.startsWith('launch-detail:')) {
+        const launchId = currentSubModule.split(':')[1];
+        return <LaunchDetailView launchId={launchId} onBack={() => onNavigate('operations', 'launches')} />;
+      }
       switch (currentSubModule) {
         case 'schedule':
           return <SchedulerView />;
@@ -221,9 +225,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'clinics':
           return <ClinicsView />;
         case 'launches':
-          return <LaunchManagementDashboard />;
+          return <LaunchManagementDashboard onNavigate={onNavigate} />;
         case 'launch-detail':
-          return <LaunchDetailView />;
+          return <LaunchDetailView onBack={() => onNavigate('operations', 'launches')} />;
         case 'launch-readiness':
           return <BranchLaunchReadinessDashboard />;
         case 'launch-playbooks':
@@ -245,6 +249,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         default:
           return <OperationsEngineView />;
       }
+    }
 
     // ─── CLINICAL ────────────────────────────────────────────────────────────────
     case 'clinical':
