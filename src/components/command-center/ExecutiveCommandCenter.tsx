@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink } from 'lucide-react';
+import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink, RefreshCw } from 'lucide-react';
 import { enterpriseService } from '../../services/enterpriseService';
+import { getActiveInitiatives, type Initiative } from '../../services/strategyOKRService';
+import { launchService, type ClinicLaunch } from '../../services/launchService';
+import { getFinancialAlerts } from '../../services/financialService';
 import type { NetworkStats, RegionalPerformance, ClinicPerformance } from '../../types/enterprise';
 
 interface ExecutiveCommandCenterProps {
@@ -18,48 +21,15 @@ interface ExecutiveAlert {
   timestamp: string;
 }
 
-interface StrategicInitiative {
-  id: string;
-  name: string;
-  owner: string;
-  progress: number;
-  status: 'on_track' | 'at_risk' | 'behind';
-  dueDate: string;
-}
-
-interface ExpansionSite {
-  id: string;
-  name: string;
-  stage: 'due_diligence' | 'negotiation' | 'buildout' | 'pre_launch';
-  targetOpen: string;
-  capexBudget: number;
-  capexSpent: number;
-}
 
 export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterProps) {
   const [networkStats, setNetworkStats] = useState<NetworkStats | null>(null);
   const [regionalPerformance, setRegionalPerformance] = useState<RegionalPerformance[]>([]);
   const [clinicPerformance, setClinicPerformance] = useState<ClinicPerformance[]>([]);
+  const [initiatives, setInitiatives] = useState<Initiative[]>([]);
+  const [launches, setLaunches] = useState<ClinicLaunch[]>([]);
+  const [alerts, setAlerts] = useState<ExecutiveAlert[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [alerts] = useState<ExecutiveAlert[]>([
-    { id: '1', severity: 'critical', title: 'EBITDA variance exceeds threshold', description: 'AIM Central is 15% below margin target', clinic: 'AIM Central', metric: 'EBITDA', action: 'Review P&L', timestamp: '2h ago' },
-    { id: '2', severity: 'warning', title: 'Launch milestone at risk', description: 'South Commons equipment delivery delayed', clinic: 'South Commons', action: 'View Launch', timestamp: '4h ago' },
-    { id: '3', severity: 'warning', title: 'AR days trending up', description: 'Network AR days increased to 42 (target: 35)', metric: 'AR Days', action: 'Revenue Review', timestamp: '1d ago' },
-  ]);
-
-  const [initiatives] = useState<StrategicInitiative[]>([
-    { id: '1', name: 'Shockwave Therapy Expansion', owner: 'Dr. Smith', progress: 75, status: 'on_track', dueDate: '2026-Q2' },
-    { id: '2', name: 'EHR Integration Phase 2', owner: 'IT Team', progress: 45, status: 'at_risk', dueDate: '2026-Q2' },
-    { id: '3', name: 'Employer Program Growth', owner: 'Growth Team', progress: 90, status: 'on_track', dueDate: '2026-Q1' },
-    { id: '4', name: 'Clinician Retention Program', owner: 'HR', progress: 30, status: 'behind', dueDate: '2026-Q2' },
-  ]);
-
-  const [expansionPipeline] = useState<ExpansionSite[]>([
-    { id: '1', name: 'AIM Southgate', stage: 'buildout', targetOpen: '2026-05-15', capexBudget: 450000, capexSpent: 280000 },
-    { id: '2', name: 'AIM Sherwood Park', stage: 'negotiation', targetOpen: '2026-08-01', capexBudget: 520000, capexSpent: 45000 },
-    { id: '3', name: 'AIM Red Deer', stage: 'due_diligence', targetOpen: '2026-10-15', capexBudget: 480000, capexSpent: 12000 },
-  ]);
 
   useEffect(() => {
     loadData();
@@ -68,14 +38,28 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
   const loadData = async () => {
     setLoading(true);
     try {
-      const [stats, regions, clinics] = await Promise.all([
+      const [stats, regions, clinics, activeInitiatives, allLaunches, financialAlerts] = await Promise.all([
         enterpriseService.getNetworkStats(),
         enterpriseService.getRegionalPerformance(),
-        enterpriseService.getClinicPerformance()
+        enterpriseService.getClinicPerformance(),
+        getActiveInitiatives(),
+        launchService.getAllLaunches(),
+        getFinancialAlerts(undefined, 'open')
       ]);
       setNetworkStats(stats);
       setRegionalPerformance(regions);
       setClinicPerformance(clinics);
+      setInitiatives(activeInitiatives.slice(0, 4));
+      setLaunches(allLaunches.filter(l => ['planning', 'approved', 'in_progress', 'at_risk', 'delayed'].includes(l.status)).slice(0, 3));
+      setAlerts(financialAlerts.slice(0, 5).map((a: any) => ({
+        id: a.id,
+        severity: a.severity === 'critical' ? 'critical' : a.severity === 'high' ? 'critical' : a.severity === 'medium' ? 'warning' : 'info',
+        title: a.alert_type?.replace(/_/g, ' ') || 'Financial Alert',
+        description: a.description || a.recommended_action || '',
+        metric: a.metric_name,
+        action: 'Review',
+        timestamp: new Date(a.alert_date).toLocaleDateString()
+      })));
     } catch (error) {
       console.error('Error loading executive data:', error);
     } finally {
@@ -87,26 +71,6 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
     return `$${value.toFixed(0)}`;
-  };
-
-  const getStageLabel = (stage: ExpansionSite['stage']) => {
-    const labels = {
-      due_diligence: 'Due Diligence',
-      negotiation: 'Negotiation',
-      buildout: 'Buildout',
-      pre_launch: 'Pre-Launch'
-    };
-    return labels[stage];
-  };
-
-  const getStageColor = (stage: ExpansionSite['stage']) => {
-    const colors = {
-      due_diligence: 'bg-gray-100 text-gray-700',
-      negotiation: 'bg-blue-100 text-blue-700',
-      buildout: 'bg-amber-100 text-amber-700',
-      pre_launch: 'bg-emerald-100 text-emerald-700'
-    };
-    return colors[stage];
   };
 
   const redClinics = clinicPerformance.filter(c => c.performance_status === 'behind');
@@ -133,6 +97,13 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             <option>MTD</option>
             <option>Last 30 Days</option>
           </select>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
 
@@ -271,30 +242,35 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             </button>
           </div>
           <div className="divide-y divide-gray-50">
-            {initiatives.map(initiative => (
+            {initiatives.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Target className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No active initiatives</p>
+              </div>
+            ) : initiatives.map(initiative => (
               <div key={initiative.id} className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-sm text-gray-900">{initiative.name}</p>
+                  <p className="font-medium text-sm text-gray-900">{initiative.title}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    initiative.status === 'on_track' ? 'bg-emerald-100 text-emerald-700' :
-                    initiative.status === 'at_risk' ? 'bg-amber-100 text-amber-700' :
+                    initiative.status === 'in_progress' ? 'bg-emerald-100 text-emerald-700' :
+                    initiative.status === 'planning' ? 'bg-amber-100 text-amber-700' :
                     'bg-red-100 text-red-700'
                   }`}>
                     {initiative.status.replace('_', ' ')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                  <span>{initiative.owner}</span>
-                  <span>Due: {initiative.dueDate}</span>
+                  <span className="capitalize">{initiative.priority} priority</span>
+                  {initiative.due_date && <span>Due: {new Date(initiative.due_date).toLocaleDateString()}</span>}
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${
-                      initiative.status === 'on_track' ? 'bg-emerald-500' :
-                      initiative.status === 'at_risk' ? 'bg-amber-500' :
+                      initiative.status === 'in_progress' ? 'bg-emerald-500' :
+                      initiative.status === 'planning' ? 'bg-amber-500' :
                       'bg-red-500'
                     }`}
-                    style={{ width: `${initiative.progress}%` }}
+                    style={{ width: `${initiative.percent_complete}%` }}
                   />
                 </div>
               </div>
@@ -302,7 +278,7 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
           </div>
         </div>
 
-        {/* Expansion Pipeline */}
+        {/* Expansion / Launch Pipeline */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -310,29 +286,40 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
               <h2 className="font-semibold text-gray-900">Expansion Pipeline</h2>
             </div>
             <button
-              onClick={() => onNavigate('strategy', 'expansion')}
+              onClick={() => onNavigate('operations', 'launches')}
               className="text-sm text-blue-600 hover:text-blue-700"
             >
               View All
             </button>
           </div>
           <div className="divide-y divide-gray-50">
-            {expansionPipeline.map(site => (
-              <div key={site.id} className="p-4">
+            {launches.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <MapPin className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No active launches</p>
+              </div>
+            ) : launches.map(launch => (
+              <div key={launch.id} className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-sm text-gray-900">{site.name}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${getStageColor(site.stage)}`}>
-                    {getStageLabel(site.stage)}
+                  <p className="font-medium text-sm text-gray-900">{launch.launch_name}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    launch.status === 'in_progress' ? 'bg-emerald-100 text-emerald-700' :
+                    launch.status === 'at_risk' || launch.status === 'delayed' ? 'bg-amber-100 text-amber-700' :
+                    'bg-blue-100 text-blue-700'
+                  }`}>
+                    {launch.status.replace('_', ' ')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                  <span>Target: {new Date(site.targetOpen).toLocaleDateString()}</span>
-                  <span>CapEx: {formatCurrency(site.capexSpent)} / {formatCurrency(site.capexBudget)}</span>
+                  <span>Target: {new Date(launch.target_open_date).toLocaleDateString()}</span>
+                  {launch.approved_budget && (
+                    <span>Budget: {formatCurrency(launch.actual_cost)} / {formatCurrency(launch.approved_budget)}</span>
+                  )}
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${(site.capexSpent / site.capexBudget) * 100}%` }}
+                    style={{ width: `${launch.overall_completion_pct}%` }}
                   />
                 </div>
               </div>

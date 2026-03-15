@@ -56,6 +56,7 @@ export const moduleConfig: NavModule[] = [
       { key: 'staff', label: 'Staff', icon: 'Users' },
       { key: 'equipment', label: 'Equipment', icon: 'Wrench' },
       { key: 'tasks', label: 'Tasks', icon: 'ListTodo' },
+      { key: 'clinics', label: 'Clinics', icon: 'Building2', roles: ['executive', 'admin', 'clinic_manager'] },
       { key: 'launches', label: 'Clinic Launches', icon: 'Rocket', roles: ['executive', 'admin', 'clinic_manager'] },
       { key: 'partners', label: 'Partner Clinics', icon: 'Handshake', roles: ['executive', 'admin'] },
       { key: 'after-hours', label: 'After Hours', icon: 'Phone', roles: ['executive', 'admin', 'clinic_manager'] },
@@ -79,7 +80,8 @@ export const moduleConfig: NavModule[] = [
       { key: 'rtw-rts', label: 'RTW / RTS', icon: 'Target' },
       { key: 'documents', label: 'Documents', icon: 'FileStack' },
       { key: 'outcomes', label: 'Outcomes', icon: 'TrendingUp' },
-      { key: 'intelligence', label: 'Clinical Intelligence', icon: 'Brain', roles: ['executive', 'admin', 'clinician'] }
+      { key: 'intelligence', label: 'Clinical Intelligence', icon: 'Brain', roles: ['executive', 'admin', 'clinician'] },
+      { key: 'mobile', label: 'Mobile Dashboard', icon: 'Smartphone', roles: ['clinician'] }
     ]
   },
   {
@@ -95,6 +97,7 @@ export const moduleConfig: NavModule[] = [
       { key: 'invoices', label: 'Invoices', icon: 'Receipt' },
       { key: 'payments', label: 'Payments', icon: 'CreditCard' },
       { key: 'ar', label: 'Accounts Receivable', icon: 'Banknote' },
+      { key: 'cash-flow', label: 'Cash Flow', icon: 'TrendingUp', roles: ['executive', 'admin', 'finance'] },
       { key: 'retail', label: 'Retail Sales', icon: 'ShoppingCart' },
       { key: 'inventory', label: 'Inventory', icon: 'Package' },
       { key: 'fee-schedules', label: 'Fee Schedules', icon: 'List' },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Package, DollarSign, TrendingUp, CircleAlert as AlertCircle, Search, ShoppingCart } from 'lucide-react';
+import { Package, DollarSign, CircleAlert as AlertCircle, Search, ShoppingCart } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Product {
   id: string;
@@ -17,6 +18,7 @@ interface Product {
 }
 
 export default function RetailProductsView() {
+  const { profile } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,19 +26,26 @@ export default function RetailProductsView() {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [profile]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
 
-      const clinicResult = await supabase
-        .from('clinics')
-        .select('id')
-        .eq('code', 'AIM-SC-001')
-        .maybeSingle();
+      let clinicId: string | null = profile?.primary_clinic_id || null;
 
-      if (!clinicResult.data) return;
+      if (!clinicId) {
+        const clinicResult = await supabase
+          .from('clinics')
+          .select('id')
+          .eq('is_active', true)
+          .order('name')
+          .limit(1)
+          .maybeSingle();
+        clinicId = clinicResult.data?.id || null;
+      }
+
+      if (!clinicId) return;
 
       const { data, error } = await supabase
         .from('product_catalog')
@@ -44,7 +53,7 @@ export default function RetailProductsView() {
           *,
           product_inventory!inner(quantity_on_hand, reorder_point)
         `)
-        .eq('product_inventory.clinic_id', clinicResult.data.id)
+        .eq('product_inventory.clinic_id', clinicId)
         .eq('is_active', true);
 
       if (error) throw error;
