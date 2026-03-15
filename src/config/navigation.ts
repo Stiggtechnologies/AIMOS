@@ -252,6 +252,17 @@ export const moduleConfig: NavModule[] = [
       { key: 'settings', label: 'Settings', icon: 'Settings' },
       { key: 'audit-log', label: 'Audit Log', icon: 'ScrollText', roles: ['executive', 'admin'] }
     ]
+  },
+  {
+    key: 'patient_experience',
+    label: 'Patient Portal',
+    description: 'Patient-facing app for appointments, exercises, progress, messages, and billing',
+    icon: 'HeartPulse',
+    color: 'blue',
+    gradient: 'from-blue-500 to-cyan-500',
+    subItems: [
+      { key: 'portal', label: 'My Portal', icon: 'Home' }
+    ]
   }
 ];
 

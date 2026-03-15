@@ -124,6 +124,9 @@ import { MeetingCadenceEngine } from '../enterprise-os/MeetingCadenceEngine';
 import { KPIGovernanceView } from '../enterprise-os/KPIGovernanceView';
 import { FHIREventBusView } from '../enterprise-os/FHIREventBusView';
 
+// Patient Experience
+import PatientExperienceDashboard from '../patient-experience/PatientExperienceDashboard';
+
 // Admin
 import SOPHubView from '../intranet/SOPHubView';
 import FormsView from '../intranet/FormsView';
@@ -512,6 +515,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         default:
           return <AIMOSDashboard />;
       }
+
+    // ─── PATIENT EXPERIENCE ──────────────────────────────────────────────────────
+    case 'patient_experience':
+      return <PatientExperienceDashboard />;
 
     default:
       return <CommandCenter onNavigate={handleNavigate} />;
