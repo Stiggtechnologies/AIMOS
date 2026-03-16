@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Clock, AlertTriangle, AlertCircle, CheckCircle, TrendingUp,
-  User, Calendar, Filter, Bell, RefreshCw, ChevronRight, FileText,
-  ArrowUpCircle, XCircle
-} from 'lucide-react';
+import { Clock, TriangleAlert as AlertTriangle, CircleAlert as AlertCircle, CircleCheck as CheckCircle, TrendingUp, User, Calendar, Filter, Bell, RefreshCw, ChevronRight, FileText, CircleArrowUp as ArrowUpCircle, Circle as XCircle } from 'lucide-react';
 import { caseAgingService, CaseAgingStatus, CaseAgingSummary } from '../../services/caseAgingService';
 
 export default function CaseAgingView() {
@@ -70,8 +66,12 @@ export default function CaseAgingView() {
       const result = await caseAgingService.batchCheckCaseAging();
       alert(`Aging check complete:\n${result.cases_checked} cases checked\n${result.alerts_triggered} alerts triggered\n${result.escalations_created} escalations created`);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running aging check:', error);
+      const msg = error?.message ?? 'Unknown error';
+      alert(`Aging check failed: ${msg}\n\nThis function requires the batch_check_case_aging database procedure.`);
+    } finally {
+      setLoading(false);
     }
   };
 

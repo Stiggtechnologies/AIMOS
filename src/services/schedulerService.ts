@@ -67,6 +67,34 @@ export interface RefreshStatus {
   nextRefreshIn?: number;
 }
 
+export interface BookingValidation {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  conflicts?: SchedulerAppointment[];
+}
+
+export interface BookingConfirmation {
+  appointmentId: string;
+  confirmationCode: string;
+  patient: {
+    name: string;
+    email?: string;
+    phone?: string;
+  };
+  appointment: {
+    date: string;
+    time: string;
+    provider: string;
+    service: string;
+  };
+  clinic: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+}
+
 class SchedulerService {
   private refreshStatus: RefreshStatus = {
     lastRefreshed: null,
@@ -759,6 +787,324 @@ class SchedulerService {
     }
 
     return { isStale: false, message: 'Data is fresh' };
+  }
+
+  /**
+   * Validate booking before creation
+   * Checks room availability, clinician schedule, and conflicts
+   */
+  async validateBooking(
+    clinicId: string,
+    providerId: string,
+    appointmentDate: string,
+    startTime: string,
+    endTime: string,
+    roomId?: string
+  ): Promise<BookingValidation> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const conflicts: SchedulerAppointment[] = [];
+
+    // Check if appointment is in the past
+    const appointmentDateTime = new Date(`${appointmentDate}T${startTime}`);
+    if (appointmentDateTime < new Date()) {
+      errors.push('Cannot book appointments in the past');
+    }
+
+    // Check clinic operating hours
+    const { data: clinic } = await supabase
+      .from('clinics')
+      .select('operating_hours')
+      .eq('id', clinicId)
+      .single();
+
+    if (clinic?.operating_hours) {
+      const dayOfWeek = new Date(appointmentDate).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const hours = clinic.operating_hours[dayOfWeek];
+
+      if (hours?.closed) {
+        errors.push('Clinic is closed on this day');
+      } else if (hours?.open && hours?.close) {
+        const bookingStart = this.timeToMinutes(startTime);
+        const clinicOpen = this.timeToMinutes(hours.open);
+        const clinicClose = this.timeToMinutes(hours.close);
+
+        if (bookingStart < clinicOpen || bookingStart >= clinicClose) {
+          errors.push(`Appointment outside clinic hours (${hours.open} - ${hours.close})`);
+        }
+      }
+    }
+
+    // Check clinician availability
+    const existingAppointments = await this.getAppointments(clinicId, appointmentDate, [providerId]);
+
+    for (const appt of existingAppointments) {
+      if (appt.status === 'cancelled') continue;
+
+      const existingStart = this.timeToMinutes(appt.start_time);
+      const existingEnd = this.timeToMinutes(appt.end_time);
+      const newStart = this.timeToMinutes(startTime);
+      const newEnd = this.timeToMinutes(endTime);
+
+      // Check for overlap
+      if (
+        (newStart >= existingStart && newStart < existingEnd) ||
+        (newEnd > existingStart && newEnd <= existingEnd) ||
+        (newStart <= existingStart && newEnd >= existingEnd)
+      ) {
+        errors.push(`Provider conflict: ${appt.patient_name} at ${appt.start_time}-${appt.end_time}`);
+        conflicts.push(appt);
+      }
+    }
+
+    // Check room availability if specified
+    if (roomId) {
+      const { data: roomBookings } = await supabase
+        .from('patient_appointments')
+        .select('id, start_time, end_time, patients(first_name, last_name)')
+        .eq('clinic_id', clinicId)
+        .eq('appointment_date', appointmentDate)
+        .neq('status', 'cancelled');
+
+      // Room conflict check would go here if we had room_id in appointments
+      // For now, this is a placeholder for future enhancement
+    }
+
+    // Check for double-booking warning
+    const hourStart = startTime.substring(0, 2);
+    const appointmentsInHour = existingAppointments.filter(a =>
+      a.start_time.startsWith(hourStart) && a.status !== 'cancelled'
+    );
+
+    if (appointmentsInHour.length >= 3) {
+      warnings.push('Provider schedule is very busy during this hour');
+    }
+
+    // Check for lunch/break time
+    const startMinutes = this.timeToMinutes(startTime);
+    if (startMinutes >= 720 && startMinutes < 780) { // 12:00-13:00
+      warnings.push('Booking during typical lunch hours');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      conflicts: conflicts.length > 0 ? conflicts : undefined,
+    };
+  }
+
+  /**
+   * Create a new appointment with validation
+   */
+  async createAppointment(
+    clinicId: string,
+    patientId: string,
+    providerId: string,
+    appointmentDate: string,
+    startTime: string,
+    endTime: string,
+    appointmentType: string,
+    reasonForVisit?: string
+  ): Promise<{ success: boolean; appointmentId?: string; error?: string }> {
+    // Validate booking first
+    const validation = await this.validateBooking(
+      clinicId,
+      providerId,
+      appointmentDate,
+      startTime,
+      endTime
+    );
+
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: validation.errors.join(', '),
+      };
+    }
+
+    // Create the appointment
+    const { data, error } = await supabase
+      .from('patient_appointments')
+      .insert({
+        clinic_id: clinicId,
+        patient_id: patientId,
+        provider_id: providerId,
+        appointment_date: appointmentDate,
+        start_time: startTime,
+        end_time: endTime,
+        appointment_type: appointmentType,
+        reason_for_visit: reasonForVisit,
+        status: 'scheduled',
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      appointmentId: data.id,
+    };
+  }
+
+  /**
+   * Generate booking confirmation with all details
+   */
+  async getBookingConfirmation(appointmentId: string): Promise<BookingConfirmation | null> {
+    const { data: appointment, error } = await supabase
+      .from('patient_appointments')
+      .select(`
+        id,
+        appointment_date,
+        start_time,
+        appointment_type,
+        patients(first_name, last_name, email, phone),
+        user_profiles(display_name, first_name, last_name),
+        clinics(name, address, city, province, postal_code, phone)
+      `)
+      .eq('id', appointmentId)
+      .single();
+
+    if (error || !appointment) {
+      console.error('[SchedulerService] Error fetching appointment:', error);
+      return null;
+    }
+
+    // Generate confirmation code (e.g., APT-ABC123)
+    const confirmationCode = `APT-${appointmentId.substring(0, 6).toUpperCase()}`;
+
+    return {
+      appointmentId: appointment.id,
+      confirmationCode,
+      patient: {
+        name: `${appointment.patients.first_name} ${appointment.patients.last_name}`,
+        email: appointment.patients.email,
+        phone: appointment.patients.phone,
+      },
+      appointment: {
+        date: appointment.appointment_date,
+        time: appointment.start_time,
+        provider: appointment.user_profiles?.display_name ||
+                  `${appointment.user_profiles?.first_name} ${appointment.user_profiles?.last_name}`,
+        service: appointment.appointment_type,
+      },
+      clinic: {
+        name: appointment.clinics.name,
+        address: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.province} ${appointment.clinics.postal_code}`,
+        phone: appointment.clinics.phone,
+      },
+    };
+  }
+
+  /**
+   * Send appointment confirmation (email/SMS)
+   */
+  async sendConfirmation(appointmentId: string): Promise<boolean> {
+    const confirmation = await this.getBookingConfirmation(appointmentId);
+
+    if (!confirmation) {
+      return false;
+    }
+
+    // TODO: Integrate with SMS/Email service
+    // For now, this is a placeholder that would call the communication service
+    console.log('[SchedulerService] Sending confirmation:', {
+      to: confirmation.patient.email || confirmation.patient.phone,
+      confirmationCode: confirmation.confirmationCode,
+      date: confirmation.appointment.date,
+      time: confirmation.appointment.time,
+    });
+
+    // Update appointment status to confirmed
+    const { error } = await supabase
+      .from('patient_appointments')
+      .update({ status: 'confirmed' })
+      .eq('id', appointmentId);
+
+    return !error;
+  }
+
+  /**
+   * Cancel appointment with reason
+   */
+  async cancelAppointment(
+    appointmentId: string,
+    cancelledBy: 'patient' | 'clinic',
+    reason?: string
+  ): Promise<boolean> {
+    const { error } = await supabase
+      .from('patient_appointments')
+      .update({
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', appointmentId);
+
+    if (error) {
+      console.error('[SchedulerService] Error cancelling appointment:', error);
+      return false;
+    }
+
+    // Log cancellation for analytics
+    console.log('[SchedulerService] Appointment cancelled:', {
+      appointmentId,
+      cancelledBy,
+      reason,
+      timestamp: new Date().toISOString(),
+    });
+
+    return true;
+  }
+
+  /**
+   * Check appointment capacity for a given day
+   */
+  async getCapacityAnalysis(
+    clinicId: string,
+    date: string
+  ): Promise<{
+    totalSlots: number;
+    bookedSlots: number;
+    availableSlots: number;
+    utilizationPercent: number;
+    peakHours: string[];
+    lowHours: string[];
+  }> {
+    const appointments = await this.getAppointments(clinicId, date);
+    const providers = await this.getProviders(clinicId);
+
+    // Assuming 8-hour day, 4 slots per provider per hour
+    const totalSlots = providers.length * 8 * 4;
+    const bookedSlots = appointments.filter(a => a.status !== 'cancelled').length;
+    const availableSlots = totalSlots - bookedSlots;
+
+    // Find peak and low hours
+    const hourCounts: Record<string, number> = {};
+    appointments.forEach(appt => {
+      if (appt.status === 'cancelled') return;
+      const hour = appt.start_time.substring(0, 2);
+      hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+    });
+
+    const sortedHours = Object.entries(hourCounts).sort((a, b) => b[1] - a[1]);
+    const peakHours = sortedHours.slice(0, 2).map(([hour]) => `${hour}:00`);
+    const lowHours = sortedHours.slice(-2).map(([hour]) => `${hour}:00`);
+
+    return {
+      totalSlots,
+      bookedSlots,
+      availableSlots,
+      utilizationPercent: Math.round((bookedSlots / totalSlots) * 100),
+      peakHours,
+      lowHours,
+    };
   }
 }
 

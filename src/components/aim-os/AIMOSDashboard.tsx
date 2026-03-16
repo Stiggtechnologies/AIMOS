@@ -1,5 +1,10 @@
-import { Activity, Building2, TrendingUp, DollarSign, AlertCircle, FileText, Heart, AlertTriangle, Database, GitMerge, Lightbulb, Layers, Receipt, Package, Smile, Shield, Coins, Target, ShieldAlert, Award, BarChart3, Wallet, LineChart, Calendar } from 'lucide-react';
+import { Activity, Building2, TrendingUp, DollarSign, CircleAlert as AlertCircle, FileText, Heart, TriangleAlert as AlertTriangle, Database, GitMerge, Lightbulb, Layers, Receipt, Package, Smile, Shield, Coins, Target, ShieldAlert, Award, ChartBar as BarChart3, Wallet, ChartLine as LineChart, Calendar, ClipboardList, Zap, BookOpen, LayoutGrid } from 'lucide-react';
 import { useState } from 'react';
+import { ScorecardEngine } from '../enterprise-os/ScorecardEngine';
+import { GoalCascadeEngine } from '../enterprise-os/GoalCascadeEngine';
+import { MeetingCadenceEngine } from '../enterprise-os/MeetingCadenceEngine';
+import { KPIGovernanceView } from '../enterprise-os/KPIGovernanceView';
+import { FHIREventBusView } from '../enterprise-os/FHIREventBusView';
 import ClinicalQualityView from './ClinicalQualityView';
 import ReferralIntelligenceView from './ReferralIntelligenceView';
 import ExecutiveIntelligenceView from './ExecutiveIntelligenceView';
@@ -25,7 +30,7 @@ import CashFlowView from './CashFlowView';
 import SchedulerView from './SchedulerView';
 import { AdminSeedContentPage } from '../admin/AdminSeedContentPage';
 
-type ModuleView = 'dashboard' | 'scheduler' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness' | 'admin_seed';
+type ModuleView = 'dashboard' | 'scheduler' | 'executive_intelligence' | 'executive_analytics' | 'clinical_quality' | 'referrals' | 'utilization' | 'financial' | 'revenue_analytics' | 'cash_flow' | 'incidents' | 'governance' | 'workforce' | 'emergency' | 'data_gov' | 'integrations' | 'meta_systems' | 'pricing_payer' | 'service_portfolio' | 'experience_reputation' | 'vendor_risk' | 'capital_allocation' | 'strategy_okr' | 'internal_controls' | 'valuation_readiness' | 'admin_seed' | 'scorecard_engine' | 'goal_cascade' | 'meeting_cadence' | 'kpi_governance' | 'fhir_event_bus';
 
 export default function AIMOSDashboard() {
   const [activeView, setActiveView] = useState<ModuleView>('dashboard');
@@ -230,7 +235,47 @@ export default function AIMOSDashboard() {
       icon: Database,
       color: 'cyan',
       stats: { label: 'Tasks', value: '5' }
-    }
+    },
+    {
+      id: 'scorecard_engine' as ModuleView,
+      name: 'Scorecard Engine',
+      description: 'Network / region / clinic × weekly / monthly / quarterly / annual',
+      icon: ClipboardList,
+      color: 'teal',
+      stats: { label: 'Scorecards', value: '5 levels' }
+    },
+    {
+      id: 'goal_cascade' as ModuleView,
+      name: 'Goal Cascade',
+      description: 'BHAG → 3HAG → Annual → Quarterly → Clinic → Owner',
+      icon: LayoutGrid,
+      color: 'blue',
+      stats: { label: 'On Track', value: '5 / 8' }
+    },
+    {
+      id: 'meeting_cadence' as ModuleView,
+      name: 'Meeting Cadence',
+      description: 'Daily huddle through annual strategic — auto-agendas from data',
+      icon: Calendar,
+      color: 'amber',
+      stats: { label: 'Cadences', value: '5 rhythms' }
+    },
+    {
+      id: 'kpi_governance' as ModuleView,
+      name: 'KPI Governance',
+      description: 'Canonical metric dictionary — single source of truth for all KPIs',
+      icon: BookOpen,
+      color: 'emerald',
+      stats: { label: 'KPIs Defined', value: '10' }
+    },
+    {
+      id: 'fhir_event_bus' as ModuleView,
+      name: 'FHIR Event Bus',
+      description: 'Subscription-driven event routing — operational events → actions',
+      icon: Zap,
+      color: 'teal',
+      stats: { label: 'Active Subs', value: '4' }
+    },
   ];
 
   const colorClasses = {
@@ -510,6 +555,61 @@ export default function AIMOSDashboard() {
           ← Back to AIM OS
         </button>
         <AdminSeedContentPage />
+      </div>
+    );
+  }
+
+  if (activeView === 'scorecard_engine') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <ScorecardEngine />
+      </div>
+    );
+  }
+
+  if (activeView === 'goal_cascade') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <GoalCascadeEngine />
+      </div>
+    );
+  }
+
+  if (activeView === 'meeting_cadence') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <MeetingCadenceEngine />
+      </div>
+    );
+  }
+
+  if (activeView === 'kpi_governance') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <KPIGovernanceView />
+      </div>
+    );
+  }
+
+  if (activeView === 'fhir_event_bus') {
+    return (
+      <div>
+        <button onClick={() => setActiveView('dashboard')} className="mb-4 text-blue-600 hover:text-blue-800">
+          ← Back to AIM OS
+        </button>
+        <FHIREventBusView />
       </div>
     );
   }
