@@ -18,6 +18,15 @@ interface DemoUser {
 
 const demoUsers: DemoUser[] = [
   {
+    email: 'patient.demo@aimrehab.ca',
+    password: 'Demo2026!Patient',
+    firstName: 'Alex',
+    lastName: 'Johnson',
+    role: 'patient',
+    phone: '403-555-9001',
+    clinicCode: 'AIM-SC-001'
+  },
+  {
     email: 'sarah.executive@aimrehab.ca',
     password: 'Demo2026!Executive',
     firstName: 'Sarah',
@@ -178,6 +187,36 @@ Deno.serve(async (req: Request) => {
               clinic_id: clinicId,
               role: user.role === 'clinic_manager' ? 'manager' : user.role,
               granted_at: new Date().toISOString()
+            });
+        }
+
+        if (user.role === 'patient' && clinicId) {
+          await supabase
+            .from('patients')
+            .insert({
+              user_id: authData.user.id,
+              clinic_id: clinicId,
+              medical_record_number: `MRN-DEMO-${Date.now()}`,
+              first_name: user.firstName,
+              last_name: user.lastName,
+              email: user.email,
+              phone: user.phone,
+              date_of_birth: '1985-06-15',
+              gender: 'other',
+              address_line1: '123 Demo Street',
+              city: 'Calgary',
+              state: 'AB',
+              postal_code: 'T2P 1J9',
+              emergency_contact_name: 'Emergency Contact',
+              emergency_contact_phone: '403-555-0000',
+              emergency_contact_relationship: 'Spouse',
+              preferred_language: 'en',
+              status: 'active',
+              insurance_info: {
+                provider: 'Alberta Health',
+                policy_number: 'AH-DEMO-12345',
+                group_number: 'GRP-001'
+              }
             });
         }
 
