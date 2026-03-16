@@ -1,6 +1,7 @@
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
 import { EnterpriseShell, ModuleRouter } from './components/layout';
+import PatientExperienceDashboard from './components/patient-experience/PatientExperienceDashboard';
 
 function App() {
   const { user, profile, loading } = useAuth();
@@ -18,6 +19,10 @@ function App() {
 
   if (!user || !profile) {
     return <LoginPage />;
+  }
+
+  if (profile.role === 'patient') {
+    return <PatientExperienceDashboard />;
   }
 
   return (
