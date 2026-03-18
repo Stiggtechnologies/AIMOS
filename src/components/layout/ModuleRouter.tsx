@@ -140,6 +140,8 @@ import DashboardsView from '../intranet/DashboardsView';
 import { AdminSeedContentPage } from '../admin/AdminSeedContentPage';
 import MetaSystemsView from '../aim-os/MetaSystemsView';
 import ApprovalHistoryView from '../aim-os/ApprovalHistoryView';
+import AuditLogViewer from '../admin/AuditLogViewer';
+import EnhancedAgentsDashboard from '../agents/EnhancedAgentsDashboard';
 
 interface ModuleRouterProps {
   currentModule: ModuleKey;
@@ -222,7 +224,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         case 'case-aging':
           return <CaseAgingView />;
         case 'ai-agents':
-          return <OperationalAIAgentsView />;
+          return <EnhancedAgentsDashboard />;
         case 'excellence':
           return <ExcellenceDemoView />;
         case 'clinics':
@@ -510,8 +512,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           return <ApprovalHistoryView />;
         case 'seed':
           return <AdminSeedContentPage />;
-        case 'settings':
         case 'audit-log':
+          return <AuditLogViewer />;
+        case 'settings':
         default:
           return <AIMOSDashboard />;
       }
