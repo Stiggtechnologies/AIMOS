@@ -1,7 +1,23 @@
-import { useState } from 'react';
-import { Building2, Plus, Search, Users, TrendingUp, Briefcase, Phone, Mail, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Building2, Plus, Search, Users, TrendingUp, Briefcase, Phone, Mail, ChevronRight, RefreshCw } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const EMPLOYERS = [
+interface Employer {
+  id: string;
+  name: string;
+  industry: string;
+  employees: number;
+  enrolled: number;
+  referrals: number;
+  contract: string;
+  status: string;
+  contact: string;
+  phone: string;
+  email: string;
+  value: number;
+}
+
+const DEMO_EMPLOYERS: Employer[] = [
   { id: '1', name: 'City of Calgary', industry: 'Government', employees: 18000, enrolled: 245, referrals: 34, contract: 'Corporate', status: 'active', contact: 'Helen Park', phone: '403-555-1001', email: 'hpark@calgary.ca', value: 48000 },
   { id: '2', name: 'Alberta Trucks Inc.', industry: 'Transportation', employees: 420, enrolled: 38, referrals: 12, contract: 'WCB Partner', status: 'active', contact: 'Dave Morrison', phone: '403-555-1002', email: 'dmorrison@abtrucks.ca', value: 18500 },
   { id: '3', name: 'Pembina Pipeline', industry: 'Energy', employees: 2100, enrolled: 89, referrals: 22, contract: 'Corporate', status: 'active', contact: 'Aisha Rahman', phone: '403-555-1003', email: 'arahman@pembina.com', value: 35000 },
@@ -22,17 +38,54 @@ const CONTRACT_COLORS: Record<string, string> = {
 };
 
 export default function EmployerProgramsView() {
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const filtered = EMPLOYERS.filter(e => {
+  useEffect(() => { loadEmployers(); }, []);
+
+  async function loadEmployers() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('employer_programs')
+        .select('id, company_name, industry, total_employees, enrolled_employees, referrals_mtd, contract_type, status, primary_contact_name, primary_contact_phone, primary_contact_email, annual_contract_value')
+        .order('annual_contract_value', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        setEmployers(DEMO_EMPLOYERS);
+      } else {
+        setEmployers(data.map((r: Record<string, unknown>) => ({
+          id: r.id as string,
+          name: (r.company_name as string) || '—',
+          industry: (r.industry as string) || '—',
+          employees: Number(r.total_employees) || 0,
+          enrolled: Number(r.enrolled_employees) || 0,
+          referrals: Number(r.referrals_mtd) || 0,
+          contract: (r.contract_type as string) || 'Corporate',
+          status: (r.status as string) || 'active',
+          contact: (r.primary_contact_name as string) || '—',
+          phone: (r.primary_contact_phone as string) || '',
+          email: (r.primary_contact_email as string) || '',
+          value: Number(r.annual_contract_value) || 0,
+        })));
+      }
+    } catch {
+      setEmployers(DEMO_EMPLOYERS);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = employers.filter(e => {
     const matchSearch = !search || e.name.toLowerCase().includes(search.toLowerCase()) || e.industry.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || e.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const totalEnrolled = EMPLOYERS.filter(e => e.status === 'active').reduce((s, e) => s + e.enrolled, 0);
-  const totalValue = EMPLOYERS.filter(e => e.status === 'active').reduce((s, e) => s + e.value, 0);
+  const totalEnrolled = employers.filter(e => e.status === 'active').reduce((s, e) => s + e.enrolled, 0);
+  const totalValue = employers.filter(e => e.status === 'active').reduce((s, e) => s + e.value, 0);
 
   return (
     <div className="space-y-6">
@@ -41,15 +94,20 @@ export default function EmployerProgramsView() {
           <h2 className="text-2xl font-bold text-gray-900">Employer Programs</h2>
           <p className="text-gray-600 mt-1">Corporate partnerships, WCB, and group benefit programs</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Employer
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={loadEmployers} disabled={loading} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Employer
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-blue-600">{EMPLOYERS.filter(e => e.status === 'active').length}</div>
+          <div className="text-2xl font-bold text-blue-600">{employers.filter(e => e.status === 'active').length}</div>
           <div className="text-sm text-gray-600">Active Partners</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -64,7 +122,7 @@ export default function EmployerProgramsView() {
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <div className="text-2xl font-bold text-amber-600">
-            {EMPLOYERS.reduce((s, e) => s + e.referrals, 0)}
+            {employers.reduce((s, e) => s + e.referrals, 0)}
           </div>
           <div className="text-sm text-gray-600">Referrals This Month</div>
         </div>

@@ -1,7 +1,22 @@
-import { useState } from 'react';
-import { Target, Plus, Search, ArrowUpRight, Briefcase, Activity, Calendar, CircleCheck as CheckCircle, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Target, Plus, Search, ArrowUpRight, Briefcase, Activity, Calendar, RefreshCw } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const RTW_CASES = [
+interface RTWCase {
+  id: string;
+  patient: string;
+  program: string;
+  employer?: string;
+  sport?: string;
+  caseType: string;
+  startDate: string;
+  targetDate: string;
+  status: string;
+  phase: string;
+  progress: number;
+}
+
+const DEMO_RTW_CASES: RTWCase[] = [
   { id: '1', patient: 'Tom Brown', program: 'Return to Work', employer: 'City Construction Ltd.', caseType: 'WCB', startDate: '2026-02-01', targetDate: '2026-04-01', status: 'in_progress', phase: 'Modified Duties', progress: 55 },
   { id: '2', patient: 'Linda Evans', program: 'Return to Sport', sport: 'Soccer', caseType: 'Private', startDate: '2026-01-15', targetDate: '2026-03-30', status: 'in_progress', phase: 'Sport-Specific Training', progress: 78 },
   { id: '3', patient: 'Carlos Reyes', program: 'Return to Work', employer: 'Alberta Trucks Inc.', caseType: 'MVA', startDate: '2025-12-10', targetDate: '2026-03-10', status: 'completed', phase: 'Full Duties', progress: 100 },
@@ -22,10 +37,54 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function RTWRTSView() {
+  const [cases, setCases] = useState<RTWCase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [programFilter, setProgramFilter] = useState('');
 
-  const filtered = RTW_CASES.filter(c => {
+  useEffect(() => { loadCases(); }, []);
+
+  async function loadCases() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('rtw_rts_cases')
+        .select(`
+          id, program_type, case_type, start_date, target_date, status, current_phase, progress_percent,
+          employer_name, sport_type,
+          patients:patient_id ( first_name, last_name )
+        `)
+        .order('start_date', { ascending: false })
+        .limit(50);
+
+      if (error || !data || data.length === 0) {
+        setCases(DEMO_RTW_CASES);
+      } else {
+        setCases(data.map((r: Record<string, unknown>) => {
+          const pt = r.patients as Record<string, string> | null;
+          return {
+            id: r.id as string,
+            patient: pt ? `${pt.first_name} ${pt.last_name}` : 'Unknown',
+            program: (r.program_type as string) || 'Return to Work',
+            employer: r.employer_name as string | undefined,
+            sport: r.sport_type as string | undefined,
+            caseType: (r.case_type as string) || 'Private',
+            startDate: (r.start_date as string) || '',
+            targetDate: (r.target_date as string) || '',
+            status: (r.status as string) || 'in_progress',
+            phase: (r.current_phase as string) || 'Assessment',
+            progress: Number(r.progress_percent) || 0,
+          };
+        }));
+      }
+    } catch {
+      setCases(DEMO_RTW_CASES);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = cases.filter(c => {
     const matchSearch = !search || c.patient.toLowerCase().includes(search.toLowerCase());
     const matchProgram = !programFilter || c.program === programFilter;
     return matchSearch && matchProgram;
@@ -38,27 +97,32 @@ export default function RTWRTSView() {
           <h2 className="text-2xl font-bold text-gray-900">RTW / RTS Programs</h2>
           <p className="text-gray-600 mt-1">Return to Work and Return to Sport case management</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          New Program
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={loadCases} disabled={loading} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Program
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-blue-600">{RTW_CASES.length}</div>
+          <div className="text-2xl font-bold text-blue-600">{cases.length}</div>
           <div className="text-sm text-gray-600">Total Programs</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-green-600">{RTW_CASES.filter(c => c.status === 'completed').length}</div>
+          <div className="text-2xl font-bold text-green-600">{cases.filter(c => c.status === 'completed').length}</div>
           <div className="text-sm text-gray-600">Completed</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-blue-600">{RTW_CASES.filter(c => c.program === 'Return to Work').length}</div>
+          <div className="text-2xl font-bold text-blue-600">{cases.filter(c => c.program === 'Return to Work').length}</div>
           <div className="text-sm text-gray-600">RTW Cases</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-teal-600">{RTW_CASES.filter(c => c.program === 'Return to Sport').length}</div>
+          <div className="text-2xl font-bold text-teal-600">{cases.filter(c => c.program === 'Return to Sport').length}</div>
           <div className="text-sm text-gray-600">RTS Cases</div>
         </div>
       </div>
@@ -86,8 +150,21 @@ export default function RTWRTSView() {
           </select>
         </div>
 
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-gray-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            <p className="text-sm">Loading RTW/RTS programs...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-10 text-gray-400">
+            <Target className="h-10 w-10 mx-auto mb-2 text-gray-200" />
+            <p className="font-medium text-gray-500">No programs found</p>
+            <p className="text-xs mt-1">Adjust filters or create a new program</p>
+          </div>
+        ) : null}
+
         <div className="space-y-3">
-          {filtered.map(c => (
+          {!loading && filtered.map(c => (
             <div key={c.id} className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div>

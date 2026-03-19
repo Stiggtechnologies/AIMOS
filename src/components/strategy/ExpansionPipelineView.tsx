@@ -1,7 +1,22 @@
-import { useState } from 'react';
-import { Map, Plus, Search, MapPin, DollarSign, Calendar, TrendingUp, Building2, ChevronRight, FileSearch, SquareCheck as CheckSquare, CircleCheck as CheckCircle, Hammer, Eye, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Map, Plus, Search, MapPin, DollarSign, Calendar, TrendingUp, Building2, ChevronRight, FileSearch, SquareCheck as CheckSquare, CircleCheck as CheckCircle, Hammer, Eye, Star, RefreshCw } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const LOCATIONS = [
+interface ExpansionSite {
+  id: string;
+  name: string;
+  city: string;
+  address: string;
+  stage: string;
+  openDate: string;
+  capex: number;
+  projectedRevenue: number;
+  population: number;
+  competition: string;
+  type: string;
+}
+
+const DEMO_LOCATIONS: ExpansionSite[] = [
   { id: '1', name: 'AIM South Commons', city: 'Calgary, AB', address: '4500 South Trail Blvd', stage: 'open', openDate: '2026-04-15', capex: 580000, projectedRevenue: 1200000, population: 85000, competition: 'low', type: 'new_clinic' },
   { id: '2', name: 'AIM Crowfoot', city: 'Calgary, AB (NW)', address: 'Crowfoot Village Market', stage: 'under_construction', openDate: '2026-07-01', capex: 520000, projectedRevenue: 980000, population: 72000, competition: 'medium', type: 'new_clinic' },
   { id: '3', name: 'AIM Bridlewood', city: 'Calgary, AB (SW)', address: 'Bridlewood Town Centre', stage: 'launch_planning', openDate: '2026-10-01', capex: 495000, projectedRevenue: 920000, population: 68000, competition: 'low', type: 'new_clinic' },
@@ -44,19 +59,55 @@ const COMPETITION_COLORS: Record<string, string> = {
 const PIPELINE_STEPS = ['target_identified', 'due_diligence', 'approved', 'launch_planning', 'under_construction', 'opening_soon', 'open'];
 
 export default function ExpansionPipelineView() {
+  const [locations, setLocations] = useState<ExpansionSite[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
 
-  const filtered = LOCATIONS.filter(l => {
+  useEffect(() => { loadLocations(); }, []);
+
+  async function loadLocations() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('expansion_pipeline')
+        .select('id, name, city, address, stage, target_open_date, capex_budget, projected_annual_revenue, catchment_population, competition_level, site_type')
+        .order('target_open_date', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        setLocations(DEMO_LOCATIONS);
+      } else {
+        setLocations(data.map((r: Record<string, unknown>) => ({
+          id: r.id as string,
+          name: (r.name as string) || '—',
+          city: (r.city as string) || '—',
+          address: (r.address as string) || 'TBD',
+          stage: (r.stage as string) || 'target_identified',
+          openDate: (r.target_open_date as string) || '',
+          capex: Number(r.capex_budget) || 0,
+          projectedRevenue: Number(r.projected_annual_revenue) || 0,
+          population: Number(r.catchment_population) || 0,
+          competition: (r.competition_level as string) || 'medium',
+          type: (r.site_type as string) || 'new_clinic',
+        })));
+      }
+    } catch {
+      setLocations(DEMO_LOCATIONS);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = locations.filter(l => {
     const matchSearch = !search || l.name.toLowerCase().includes(search.toLowerCase()) || l.city.toLowerCase().includes(search.toLowerCase());
     const matchStage = !stageFilter || l.stage === stageFilter;
     const matchType = !typeFilter || l.type === typeFilter;
     return matchSearch && matchStage && matchType;
   });
 
-  const totalCapex = LOCATIONS.reduce((s, l) => s + l.capex, 0);
-  const totalRevenue = LOCATIONS.reduce((s, l) => s + l.projectedRevenue, 0);
+  const totalCapex = locations.reduce((s, l) => s + l.capex, 0);
+  const totalRevenue = locations.reduce((s, l) => s + l.projectedRevenue, 0);
 
   return (
     <div className="space-y-6">
@@ -65,19 +116,24 @@ export default function ExpansionPipelineView() {
           <h2 className="text-2xl font-bold text-gray-900">Expansion Pipeline</h2>
           <p className="text-gray-600 mt-1">New clinic site development, acquisitions, and launch pipeline</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Site
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={loadLocations} disabled={loading} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Site
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-blue-600">{LOCATIONS.length}</div>
+          <div className="text-2xl font-bold text-blue-600">{locations.length}</div>
           <div className="text-sm text-gray-600">Sites in Pipeline</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-green-600">{LOCATIONS.filter(l => l.stage === 'open').length}</div>
+          <div className="text-2xl font-bold text-green-600">{locations.filter(l => l.stage === 'open').length}</div>
           <div className="text-sm text-gray-600">Launched</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -95,7 +151,7 @@ export default function ExpansionPipelineView() {
         <div className="flex items-center gap-1 overflow-x-auto pb-2">
           {PIPELINE_STEPS.map((step, idx) => {
             const cfg = STAGE_CONFIG[step];
-            const count = LOCATIONS.filter(l => l.stage === step).length;
+            const count = locations.filter(l => l.stage === step).length;
             return (
               <div key={step} className="flex items-center gap-1 flex-shrink-0">
                 <div className={`px-3 py-2 rounded-lg text-center min-w-28 border ${count > 0 ? `${cfg.color} border-transparent` : 'bg-gray-50 text-gray-400 border-gray-100'}`}>

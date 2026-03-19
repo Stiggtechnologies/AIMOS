@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle, Users, Package, Filter } from 'lucide-react';
+import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle, Users, Package, Filter, Building2, Calendar, Wrench, ListTodo, Clock, Bot, Award, Handshake, Phone, MessageCircle, FolderOpen, ClipboardList, FileText, Dumbbell, Activity, Target, FileStack, BookOpen, Brain, Cpu, FlaskConical, Smartphone, Receipt, CreditCard, Banknote, ShoppingCart, List, Tag, Upload, UserPlus, Megaphone, Share2, Heart, Star, Rocket, Calculator, ShieldAlert, Shield, GitBranch, Zap, BadgeCheck, GraduationCap, Briefcase, ChartBar as BarChart2, HeartPulse, House, ListChecks, MessageSquare, MapPin, Plug, ScrollText, Database, ChartPie as PieChart, Globe, Map, Crown, TriangleAlert as AlertTriangle, SquareCheck as CheckSquare, DoorOpen, CircleCheck as CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { moduleConfig, filterSubItemsByRole, type NavModule } from '../../config/navigation';
 import { GlobalSearch } from '../GlobalSearch';
@@ -11,17 +11,16 @@ import { notificationService } from '../../services/notificationService';
 import type { ModuleKey } from '../../types/enterprise';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  LayoutDashboard,
-  Settings,
-  Stethoscope,
-  DollarSign,
-  TrendingUp,
-  BarChart3,
-  Compass,
-  Cog,
-  Users,
-  Package,
-  Filter
+  LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, BarChart3,
+  Compass, Cog, Users, Package, Filter, Building2, Calendar, Wrench, ListTodo,
+  Clock, Bot, Award, Handshake, Phone, MessageCircle, FolderOpen, ClipboardList,
+  FileText, Dumbbell, Activity, Target, FileStack, BookOpen, Brain, Cpu,
+  FlaskConical, Smartphone, Receipt, CreditCard, Banknote, ShoppingCart, List,
+  Tag, Upload, UserPlus, Megaphone, Share2, Heart, Star, Rocket, Calculator,
+  ShieldAlert, Shield, GitBranch, Zap, BadgeCheck, GraduationCap, Briefcase,
+  BarChart2, HeartPulse, ListChecks, MessageSquare, MapPin, Plug, ScrollText,
+  Database, PieChart, Globe, Map, Crown, AlertTriangle, CheckSquare, DoorOpen,
+  CheckCircle, Home: House
 };
 
 interface EnterpriseShellProps {
