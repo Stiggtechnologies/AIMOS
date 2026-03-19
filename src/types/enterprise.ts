@@ -1,7 +1,7 @@
 export type RoleLevel = 'corporate' | 'regional' | 'clinic' | 'clinical' | 'support' | 'external';
 export type RoleCategory = 'executive' | 'operations' | 'clinical' | 'growth' | 'finance' | 'technology' | 'support' | 'partner';
 
-export type ModuleKey = 'command_center' | 'operations' | 'clinical' | 'revenue' | 'growth' | 'intelligence' | 'strategy' | 'workforce' | 'supply_chain' | 'admin' | 'patient_experience';
+export type ModuleKey = 'command_center' | 'operations' | 'clinical' | 'revenue' | 'growth' | 'intelligence' | 'strategy' | 'workforce' | 'supply_chain' | 'admin' | 'patient_experience' | 'aim_automation';
 
 export interface EnterpriseRole {
   id: string;

@@ -263,6 +263,27 @@ export const moduleConfig: NavModule[] = [
     subItems: [
       { key: 'portal', label: 'My Portal', icon: 'Home' }
     ]
+  },
+  {
+    key: 'aim_automation',
+    label: 'Automation',
+    description: 'Marketing automation, social media, content approvals, and review management',
+    icon: 'Zap',
+    color: 'blue',
+    gradient: 'from-blue-600 to-blue-700',
+    subItems: [
+      { key: 'overview', label: 'Overview', icon: 'LayoutDashboard' },
+      { key: 'content-queue', label: 'Content Queue', icon: 'ListChecks' },
+      { key: 'approval-center', label: 'Approval Center', icon: 'CheckSquare' },
+      { key: 'review-triage', label: 'Review Triage', icon: 'MessageSquare' },
+      { key: 'exception-center', label: 'Exception Center', icon: 'AlertTriangle' },
+      { key: 'campaign-health', label: 'Campaign Health', icon: 'BarChart3' },
+      { key: 'locations', label: 'Locations', icon: 'MapPin', roles: ['admin', 'executive'] },
+      { key: 'integrations', label: 'Integrations', icon: 'Plug', roles: ['admin', 'executive'] },
+      { key: 'policy-rules', label: 'Policy Rules', icon: 'Shield', roles: ['admin', 'executive'] },
+      { key: 'audit-log', label: 'Audit Log', icon: 'ScrollText', roles: ['admin', 'executive'] },
+      { key: 'settings', label: 'Settings', icon: 'Settings', roles: ['admin', 'executive'] }
+    ]
   }
 ];
 
@@ -272,9 +293,9 @@ export const getModuleByKey = (key: ModuleKey): NavModule | undefined => {
 
 export const getAccessibleModules = (roleLevel: string): ModuleKey[] => {
   const modulesByLevel: Record<string, ModuleKey[]> = {
-    corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin'],
-    regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce'],
-    clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain'],
+    corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
+    regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce', 'aim_automation'],
+    clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation'],
     clinical: ['command_center', 'clinical', 'operations'],
     support: ['command_center', 'operations', 'revenue'],
     external: ['growth']

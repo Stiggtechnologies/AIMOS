@@ -127,6 +127,9 @@ import { FHIREventBusView } from '../enterprise-os/FHIREventBusView';
 // Patient Experience
 import PatientExperienceDashboard from '../patient-experience/PatientExperienceDashboard';
 
+// AIM Automation
+import AimAutomationDashboard from '../automation/AimAutomationDashboard';
+
 // Admin
 import SOPHubView from '../intranet/SOPHubView';
 import FormsView from '../intranet/FormsView';
@@ -522,6 +525,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
     // ─── PATIENT EXPERIENCE ──────────────────────────────────────────────────────
     case 'patient_experience':
       return <PatientExperienceDashboard />;
+
+    // ─── AIM AUTOMATION CONTROL SYSTEM ───────────────────────────────────────────
+    case 'aim_automation':
+      return <AimAutomationDashboard />;
 
     default:
       return <CommandCenter onNavigate={handleNavigate} />;
