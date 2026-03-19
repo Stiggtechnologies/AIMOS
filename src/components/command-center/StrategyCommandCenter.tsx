@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Compass, TrendingUp, TrendingDown, Minus, Target, Rocket, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, DollarSign, ChartBar as BarChart3, Map, GitBranch, Calendar, BookOpen, Zap, ArrowRight, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import type { ModuleKey } from '../../types/enterprise';
+import { supabase } from '../../lib/supabase';
 
 interface StrategyCommandCenterProps {
   onNavigate: (module: ModuleKey, subModule: string) => void;
@@ -76,10 +77,71 @@ export function StrategyCommandCenter({ onNavigate }: StrategyCommandCenterProps
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [expandedRisk, setExpandedRisk] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [okrRocks, setOkrRocks] = useState(OKR_ROCKS);
+  const [expansionPipeline, setExpansionPipeline] = useState(EXPANSION_PIPELINE);
+  const [capitalAllocation, setCapitalAllocation] = useState(CAPITAL_ALLOCATION);
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [okrsRes, expansionRes, capitalRes] = await Promise.all([
+        supabase.from('strategic_objectives').select('id, title, progress_percent, status, owner_name, due_date, category').order('created_at').limit(8),
+        supabase.from('expansion_pipeline').select('name, city, stage, capex_budget, capex_spent, target_open_date').limit(6),
+        supabase.from('budget_line_items').select('category, allocated_amount, ytd_spent, full_year_forecast').eq('fiscal_year', 2026).order('allocated_amount', { ascending: false }).limit(6),
+      ]);
+
+      let hasLive = false;
+
+      if (okrsRes.data && okrsRes.data.length > 0) {
+        setOkrRocks(okrsRes.data.map((o: { id: string; title: string; progress_percent: number; status: string; owner_name: string; due_date: string; category: string }) => ({
+          id: o.id,
+          title: o.title,
+          progress: o.progress_percent ?? 0,
+          status: (['on_track', 'at_risk', 'behind'] as const).includes(o.status as 'on_track') ? (o.status as typeof OKR_ROCKS[0]['status']) : 'on_track',
+          owner: o.owner_name ?? 'Unassigned',
+          due: o.due_date ? new Date(o.due_date).toLocaleDateString('en-CA', { month: 'short', year: 'numeric' }) : '—',
+          category: o.category ?? 'general',
+        })));
+        hasLive = true;
+      }
+
+      if (expansionRes.data && expansionRes.data.length > 0) {
+        setExpansionPipeline(expansionRes.data.map((e: { name: string; city: string; stage: string; capex_budget: number; capex_spent: number; target_open_date: string }) => ({
+          name: e.city ? `${e.name}, ${e.city}` : e.name,
+          stage: (e.stage ?? 'target_identified').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+          readiness: e.stage === 'open' ? 100 : e.stage === 'launch_planning' ? 65 : e.stage === 'approved' ? 40 : e.stage === 'due_diligence' ? 25 : 10,
+          budget: e.capex_budget ?? 0,
+          spent: e.capex_spent ?? 0,
+          target: e.target_open_date ? new Date(e.target_open_date).toLocaleDateString('en-CA', { month: 'short', year: 'numeric' }) : '—',
+          risk: 'low',
+        })));
+        hasLive = true;
+      }
+
+      if (capitalRes.data && capitalRes.data.length > 0) {
+        setCapitalAllocation(capitalRes.data.map((b: { category: string; allocated_amount: number; ytd_spent: number; full_year_forecast: number }) => ({
+          category: b.category,
+          budgeted: b.allocated_amount ?? 0,
+          deployed: b.ytd_spent ?? 0,
+          remaining: (b.allocated_amount ?? 0) - (b.ytd_spent ?? 0),
+        })));
+        hasLive = true;
+      }
+
+      if (hasLive) setIsLive(true);
+    } catch {
+      // keep demo data
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const criticalCount = STRATEGIC_RISKS.filter(r => r.severity === 'critical').length;
-  const behindOKRs = OKR_ROCKS.filter(o => o.status === 'behind').length;
-  const atRiskOKRs = OKR_ROCKS.filter(o => o.status === 'at_risk').length;
+  const behindOKRs = okrRocks.filter(o => o.status === 'behind').length;
+  const atRiskOKRs = okrRocks.filter(o => o.status === 'at_risk').length;
 
   const handleRefresh = () => {
     setLoading(true);
@@ -101,6 +163,10 @@ export function StrategyCommandCenter({ onNavigate }: StrategyCommandCenterProps
         <div className="flex items-center gap-2">
           <Compass className="h-4 w-4 text-sky-400" />
           <span className="font-semibold text-white">Strategy Command</span>
+          {isLive
+            ? <span className="text-xs text-emerald-400 flex items-center gap-1 ml-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />Live</span>
+            : <span className="text-xs text-gray-500 ml-1">Demo</span>
+          }
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-gray-400">OKRs On-Track:</span>
@@ -224,7 +290,7 @@ export function StrategyCommandCenter({ onNavigate }: StrategyCommandCenterProps
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {OKR_ROCKS.map(okr => {
+                  {okrRocks.map(okr => {
                     const cfg = STATUS_CONFIG[okr.status as keyof typeof STATUS_CONFIG];
                     return (
                       <div key={okr.id}>
@@ -349,7 +415,7 @@ export function StrategyCommandCenter({ onNavigate }: StrategyCommandCenterProps
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {EXPANSION_PIPELINE.map((site, i) => {
+              {expansionPipeline.map((site, i) => {
                 const riskColors: Record<string, string> = {
                   low: 'text-emerald-700 bg-emerald-50 border-emerald-200',
                   medium: 'text-amber-700 bg-amber-50 border-amber-200',
@@ -418,7 +484,7 @@ export function StrategyCommandCenter({ onNavigate }: StrategyCommandCenterProps
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {CAPITAL_ALLOCATION.map((item, i) => {
+              {capitalAllocation.map((item, i) => {
                 const pct = Math.round((item.deployed / item.budgeted) * 100);
                 return (
                   <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">

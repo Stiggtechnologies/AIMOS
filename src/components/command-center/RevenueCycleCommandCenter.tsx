@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DollarSign, FileText, Clock, TriangleAlert as AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, CircleCheck as CheckCircle, Circle as XCircle, RefreshCw, CreditCard, Building2 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface RevenueCycleCommandCenterProps {
   onNavigate: (module: string, subModule: string) => void;
@@ -30,50 +31,80 @@ interface PayerPerformance {
   netCollectionRate: number;
 }
 
+const DEMO_KPIS = { claimsToSubmit: 42, claimsPending: 156, deniedClaims: 18, arDays: 38, arDaysTarget: 35, netCollectionRate: 94.2, cleanClaimRate: 87.5, paymentsPosted: 12450, unappliedPayments: 3, writeOffs: 1250 };
+const DEMO_AR = { current: 125000, days30: 45000, days60: 22000, days90: 8500, days120plus: 4500 };
+const DEMO_CLAIMS: ClaimQueueItem[] = [
+  { id: '1', patientName: 'Sarah Johnson', payer: 'Alberta Blue Cross', amount: 285, status: 'ready', slaHours: 2 },
+  { id: '2', patientName: 'Michael Chen', payer: 'WSIB', amount: 420, status: 'missing_data', slaHours: 4, missingFields: ['Diagnosis code', 'Auth number'] },
+  { id: '3', patientName: 'Emma Wilson', payer: 'Manulife', amount: 195, status: 'ready', slaHours: 6 },
+  { id: '4', patientName: 'James Anderson', payer: 'Sun Life', amount: 350, status: 'denied', slaHours: 0, missingFields: ['Prior auth required'] },
+  { id: '5', patientName: 'Lisa Thompson', payer: 'Green Shield', amount: 225, status: 'ready', slaHours: 8 },
+];
+const DEMO_DENIALS: DenialInsight[] = [
+  { reason: 'Missing prior authorization', count: 7, amount: 2450, trend: 'up' },
+  { reason: 'Invalid diagnosis code', count: 5, amount: 1650, trend: 'stable' },
+  { reason: 'Patient not covered', count: 4, amount: 980, trend: 'down' },
+  { reason: 'Duplicate claim', count: 2, amount: 420, trend: 'stable' },
+];
+const DEMO_PAYERS: PayerPerformance[] = [
+  { payer: 'Alberta Blue Cross', claimsCount: 245, avgDaysToPayment: 18, denialRate: 4.2, netCollectionRate: 96.5 },
+  { payer: 'Manulife', claimsCount: 189, avgDaysToPayment: 22, denialRate: 6.1, netCollectionRate: 93.8 },
+  { payer: 'Sun Life', claimsCount: 156, avgDaysToPayment: 25, denialRate: 8.3, netCollectionRate: 91.2 },
+  { payer: 'Green Shield', claimsCount: 142, avgDaysToPayment: 20, denialRate: 5.5, netCollectionRate: 94.1 },
+  { payer: 'WSIB', claimsCount: 98, avgDaysToPayment: 35, denialRate: 12.4, netCollectionRate: 88.5 },
+];
+
 export function RevenueCycleCommandCenter({ onNavigate }: RevenueCycleCommandCenterProps) {
-  const [kpis] = useState({
-    claimsToSubmit: 42,
-    claimsPending: 156,
-    deniedClaims: 18,
-    arDays: 38,
-    arDaysTarget: 35,
-    netCollectionRate: 94.2,
-    cleanClaimRate: 87.5,
-    paymentsPosted: 12450,
-    unappliedPayments: 3,
-    writeOffs: 1250
-  });
+  const [kpis, setKpis] = useState(DEMO_KPIS);
+  const [arAging, setArAging] = useState(DEMO_AR);
+  const [claimQueue, setClaimQueue] = useState<ClaimQueueItem[]>(DEMO_CLAIMS);
+  const [denialInsights, setDenialInsights] = useState<DenialInsight[]>(DEMO_DENIALS);
+  const [payerPerformance, setPayerPerformance] = useState<PayerPerformance[]>(DEMO_PAYERS);
+  const [isLive, setIsLive] = useState(false);
 
-  const [arAging] = useState({
-    current: 125000,
-    days30: 45000,
-    days60: 22000,
-    days90: 8500,
-    days120plus: 4500
-  });
+  useEffect(() => { loadData(); }, []);
 
-  const [claimQueue] = useState<ClaimQueueItem[]>([
-    { id: '1', patientName: 'Sarah Johnson', payer: 'Alberta Blue Cross', amount: 285, status: 'ready', slaHours: 2 },
-    { id: '2', patientName: 'Michael Chen', payer: 'WSIB', amount: 420, status: 'missing_data', slaHours: 4, missingFields: ['Diagnosis code', 'Auth number'] },
-    { id: '3', patientName: 'Emma Wilson', payer: 'Manulife', amount: 195, status: 'ready', slaHours: 6 },
-    { id: '4', patientName: 'James Anderson', payer: 'Sun Life', amount: 350, status: 'denied', slaHours: 0, missingFields: ['Prior auth required'] },
-    { id: '5', patientName: 'Lisa Thompson', payer: 'Green Shield', amount: 225, status: 'ready', slaHours: 8 },
-  ]);
+  async function loadData() {
+    try {
+      const [claimsRes, arRes] = await Promise.all([
+        supabase.from('claims').select('id, amount, status, payer_name, created_at').order('created_at', { ascending: false }).limit(10),
+        supabase.from('ar_aging_snapshots').select('bucket_current, bucket_30, bucket_60, bucket_90, bucket_120_plus').order('snapshot_date', { ascending: false }).limit(1).maybeSingle(),
+      ]);
 
-  const [denialInsights] = useState<DenialInsight[]>([
-    { reason: 'Missing prior authorization', count: 7, amount: 2450, trend: 'up' },
-    { reason: 'Invalid diagnosis code', count: 5, amount: 1650, trend: 'stable' },
-    { reason: 'Patient not covered', count: 4, amount: 980, trend: 'down' },
-    { reason: 'Duplicate claim', count: 2, amount: 420, trend: 'stable' },
-  ]);
+      let hasLive = false;
 
-  const [payerPerformance] = useState<PayerPerformance[]>([
-    { payer: 'Alberta Blue Cross', claimsCount: 245, avgDaysToPayment: 18, denialRate: 4.2, netCollectionRate: 96.5 },
-    { payer: 'Manulife', claimsCount: 189, avgDaysToPayment: 22, denialRate: 6.1, netCollectionRate: 93.8 },
-    { payer: 'Sun Life', claimsCount: 156, avgDaysToPayment: 25, denialRate: 8.3, netCollectionRate: 91.2 },
-    { payer: 'Green Shield', claimsCount: 142, avgDaysToPayment: 20, denialRate: 5.5, netCollectionRate: 94.1 },
-    { payer: 'WSIB', claimsCount: 98, avgDaysToPayment: 35, denialRate: 12.4, netCollectionRate: 88.5 },
-  ]);
+      if (claimsRes.data && claimsRes.data.length > 0) {
+        const claims = claimsRes.data;
+        setClaimQueue(claims.slice(0, 5).map((c: { id: string; amount: number; status: string; payer_name: string }) => ({
+          id: c.id,
+          patientName: 'Patient',
+          payer: c.payer_name ?? 'Unknown',
+          amount: c.amount ?? 0,
+          status: (['ready', 'missing_data', 'denied', 'pending'] as const).includes(c.status as 'ready' | 'missing_data' | 'denied' | 'pending') ? (c.status as ClaimQueueItem['status']) : 'pending',
+          slaHours: 4,
+        })));
+        const denied = claims.filter((c: { status: string }) => c.status === 'denied').length;
+        const pending = claims.filter((c: { status: string }) => c.status === 'pending').length;
+        setKpis(prev => ({ ...prev, deniedClaims: denied, claimsPending: pending }));
+        hasLive = true;
+      }
+
+      if (arRes.data) {
+        setArAging({
+          current: arRes.data.bucket_current ?? DEMO_AR.current,
+          days30: arRes.data.bucket_30 ?? DEMO_AR.days30,
+          days60: arRes.data.bucket_60 ?? DEMO_AR.days60,
+          days90: arRes.data.bucket_90 ?? DEMO_AR.days90,
+          days120plus: arRes.data.bucket_120_plus ?? DEMO_AR.days120plus,
+        });
+        hasLive = true;
+      }
+
+      if (hasLive) setIsLive(true);
+    } catch {
+      // keep demo data
+    }
+  }
 
   const formatCurrency = (value: number) => {
     if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
@@ -97,7 +128,13 @@ export function RevenueCycleCommandCenter({ onNavigate }: RevenueCycleCommandCen
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Revenue Cycle Command Center</h1>
-          <p className="text-sm text-gray-500 mt-1">Claims, collections, and revenue performance</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500">Claims, collections, and revenue performance</p>
+            {isLive
+              ? <span className="text-xs text-emerald-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />Live</span>
+              : <span className="text-xs text-gray-400">Demo data</span>
+            }
+          </div>
         </div>
         <div className="flex items-center space-x-3">
           <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">

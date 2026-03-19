@@ -1,4 +1,4 @@
-export type UserRole = 'executive' | 'clinic_manager' | 'clinician' | 'admin' | 'contractor';
+export type UserRole = 'executive' | 'clinic_manager' | 'clinician' | 'admin' | 'contractor' | 'regional_director';
 export type EmploymentType = 'full_time' | 'part_time' | 'contractor' | 'casual';
 export type ContentType = 'document' | 'video' | 'course' | 'quiz' | 'link';
 export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';

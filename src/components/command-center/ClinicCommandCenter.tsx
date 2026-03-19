@@ -9,16 +9,19 @@ import {
   Target, Award, UserPlus, ClipboardList, ChartBar as BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 type Tab = 'overview' | 'schedule' | 'staffing' | 'revenue' | 'growth' | 'patients';
 
-const CLINICS = [
+const DEMO_CLINICS = [
   { key: 'south_commons', label: 'AIM South Commons' },
   { key: 'mahogany', label: 'AIM Mahogany' },
   { key: 'bridgeland', label: 'AIM Bridgeland' },
   { key: 'marda_loop', label: 'AIM Marda Loop' },
   { key: 'signal_hill', label: 'AIM Signal Hill' },
 ];
+
+const CLINICS = DEMO_CLINICS;
 
 function fmt(v: number) {
   if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
@@ -132,19 +135,59 @@ export function ClinicCommandCenter({ onNavigate }: Props) {
   const [expandedAlert, setExpandedAlert] = useState<Set<string>>(new Set());
   const [expandedPatient, setExpandedPatient] = useState<Set<string>>(new Set());
   const [filterProvider, setFilterProvider] = useState('all');
+  const [liveAlerts, setLiveAlerts] = useState<typeof ALERTS | null>(null);
+  const [liveClinics, setLiveClinics] = useState<typeof CLINICS | null>(null);
+  const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(t);
   }, []);
 
-  const clinic = CLINICS.find(c => c.key === clinicKey) ?? CLINICS[0];
+  useEffect(() => {
+    loadLiveData();
+  }, []);
+
+  async function loadLiveData() {
+    try {
+      const [clinicsRes, notifsRes] = await Promise.all([
+        supabase.from('clinics').select('id, name, code').eq('is_active', true).order('name'),
+        supabase.from('notifications').select('id, title, body, priority, created_at').order('created_at', { ascending: false }).limit(5),
+      ]);
+
+      const hasClinics = clinicsRes.data && clinicsRes.data.length > 0;
+      const hasNotifs = notifsRes.data && notifsRes.data.length > 0;
+
+      if (hasClinics) {
+        setLiveClinics(clinicsRes.data.map((c: { id: string; name: string; code: string }) => ({ key: c.code?.toLowerCase() ?? c.id, label: c.name })));
+      }
+      if (hasNotifs) {
+        setLiveAlerts(notifsRes.data.map((n: { id: string; title: string; body: string; priority: string }) => ({
+          id: n.id,
+          severity: n.priority === 'urgent' ? 'critical' : n.priority === 'high' ? 'warning' : 'info',
+          title: n.title,
+          action: n.body ?? '',
+          module: 'operations',
+          sub: 'schedule',
+          icon: <AlertCircle className="h-4 w-4" />,
+        })));
+      }
+      if (hasClinics || hasNotifs) setIsLive(true);
+    } catch {
+      // silent — use demo data
+    }
+  }
+
+  const effectiveClinics = liveClinics ?? CLINICS;
+  const effectiveAlerts = liveAlerts ?? ALERTS;
+
+  const clinic = effectiveClinics.find(c => c.key === clinicKey) ?? effectiveClinics[0];
 
   const completedAppts = APPOINTMENTS.filter(a => a.status === 'completed').length;
   const noShowAppts = APPOINTMENTS.filter(a => a.status === 'no_show').length;
   const totalAppts = APPOINTMENTS.filter(a => a.patient !== 'OPEN SLOT').length;
   const openSlots = APPOINTMENTS.filter(a => a.patient === 'OPEN SLOT').length;
-  const critAlerts = ALERTS.filter(a => a.severity === 'critical').length;
+  const critAlerts = effectiveAlerts.filter(a => a.severity === 'critical').length;
   const revenueToday = completedAppts * 180 + 1200;
 
   const filteredAppts = filterProvider === 'all'
@@ -175,7 +218,7 @@ export function ClinicCommandCenter({ onNavigate }: Props) {
             onChange={e => setClinicKey(e.target.value)}
             className="bg-gray-800 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none"
           >
-            {CLINICS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+            {effectiveClinics.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
           <div className="w-px h-4 bg-gray-700 hidden sm:block" />
           <span className="flex items-center gap-1.5 text-xs"><span className="text-gray-400">Scheduled</span><span className="font-bold text-white">{totalAppts}</span></span>
@@ -330,7 +373,7 @@ export function ClinicCommandCenter({ onNavigate }: Props) {
                   {critAlerts > 0 && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">{critAlerts} critical</span>}
                 </div>
                 <div className="divide-y divide-gray-50">
-                  {ALERTS.map(al => (
+                  {effectiveAlerts.map(al => (
                     <div key={al.id} className={`border-l-4 ${al.severity === 'critical' ? 'border-red-500' : al.severity === 'warning' ? 'border-amber-400' : 'border-blue-400'}`}>
                       <button onClick={() => toggleAlert(al.id)} className="w-full px-4 py-3 text-left flex items-start justify-between gap-2 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -464,12 +507,15 @@ export function ClinicCommandCenter({ onNavigate }: Props) {
               </div>
             </div>
 
-            {/* AI Clinic Insights */}
+            {/* Pattern Insights */}
             <div className="bg-gray-900 rounded-xl p-5 text-white">
               <div className="flex items-center gap-2 mb-4">
                 <Brain className="h-5 w-5 text-blue-400" />
-                <h2 className="font-semibold">AI Clinic Insights</h2>
-                <span className="ml-auto text-xs text-gray-500">Updated just now</span>
+                <h2 className="font-semibold">Pattern Insights</h2>
+                {isLive
+                  ? <span className="ml-auto text-xs text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />Live data</span>
+                  : <span className="ml-auto text-xs text-gray-500">Demo — connect scheduler for live insights</span>
+                }
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {AI_INSIGHTS.map((ins, i) => (

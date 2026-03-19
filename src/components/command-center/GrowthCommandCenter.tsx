@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, Users, UserPlus, Star, Phone, Mail, Dumbbell, Building2, ArrowUpRight, ArrowDownRight, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface GrowthCommandCenterProps {
   onNavigate: (module: string, subModule: string) => void;
@@ -33,50 +34,81 @@ interface ReviewRequest {
   rating?: number;
 }
 
+const DEMO_KPIS = { newLeadsToday: 12, leadsTrend: 8.5, conversionRate: 68, conversionTrend: 2.1, newPatientsWtd: 45, patientsTrend: 12, referralVolume: 28, referralTrend: 15, avgDaysToFirstAppt: 2.4, aptTrend: -0.3, reviewsThisMonth: 42, avgRating: 4.8 };
+const DEMO_FUNNEL = { leads: 156, contacted: 124, booked: 89, arrived: 78, converted: 72 };
+const DEMO_LEADS: LeadItem[] = [
+  { id: '1', name: 'Jennifer Smith', source: 'Google Ads', phone: '(780) 555-0123', createdAt: '15 min ago', status: 'new', slaMinutesRemaining: 45 },
+  { id: '2', name: 'David Lee', source: 'Trainer Referral', phone: '(780) 555-0124', createdAt: '32 min ago', status: 'new', slaMinutesRemaining: 28 },
+  { id: '3', name: 'Amanda Brown', source: 'Website Form', phone: '(780) 555-0125', createdAt: '1 hour ago', status: 'contacted', slaMinutesRemaining: 0 },
+  { id: '4', name: 'Chris Wilson', source: 'Walk-in', phone: '(780) 555-0126', createdAt: '2 hours ago', status: 'scheduled', slaMinutesRemaining: 0 },
+];
+const DEMO_PARTNERS: ReferralPartner[] = [
+  { id: '1', name: 'Evolve Fitness', type: 'trainer', referralsThisMonth: 12, conversionRate: 85, avgResponseTime: '18 min', trend: 'up' },
+  { id: '2', name: 'GoodLife Fitness', type: 'trainer', referralsThisMonth: 8, conversionRate: 78, avgResponseTime: '25 min', trend: 'stable' },
+  { id: '3', name: 'Dr. Johnson', type: 'physician', referralsThisMonth: 6, conversionRate: 92, avgResponseTime: '2 hrs', trend: 'up' },
+  { id: '4', name: 'ABC Corp HR', type: 'employer', referralsThisMonth: 5, conversionRate: 100, avgResponseTime: '45 min', trend: 'stable' },
+];
+const DEMO_REVIEWS: ReviewRequest[] = [
+  { id: '1', patientName: 'Sarah Johnson', sentAt: 'Today 9:15 AM', status: 'completed', rating: 5 },
+  { id: '2', patientName: 'Michael Chen', sentAt: 'Today 10:30 AM', status: 'opened' },
+  { id: '3', patientName: 'Emma Wilson', sentAt: 'Yesterday', status: 'completed', rating: 5 },
+  { id: '4', patientName: 'James Anderson', sentAt: 'Yesterday', status: 'sent' },
+];
+
 export function GrowthCommandCenter({ onNavigate }: GrowthCommandCenterProps) {
-  const [kpis] = useState({
-    newLeadsToday: 12,
-    leadsTrend: 8.5,
-    conversionRate: 68,
-    conversionTrend: 2.1,
-    newPatientsWtd: 45,
-    patientsTrend: 12,
-    referralVolume: 28,
-    referralTrend: 15,
-    avgDaysToFirstAppt: 2.4,
-    aptTrend: -0.3,
-    reviewsThisMonth: 42,
-    avgRating: 4.8
-  });
+  const [kpis, setKpis] = useState(DEMO_KPIS);
+  const [funnelData, setFunnelData] = useState(DEMO_FUNNEL);
+  const [leads, setLeads] = useState<LeadItem[]>(DEMO_LEADS);
+  const [topPartners, setTopPartners] = useState<ReferralPartner[]>(DEMO_PARTNERS);
+  const [reviewRequests] = useState<ReviewRequest[]>(DEMO_REVIEWS);
+  const [isLive, setIsLive] = useState(false);
 
-  const [funnelData] = useState({
-    leads: 156,
-    contacted: 124,
-    booked: 89,
-    arrived: 78,
-    converted: 72
-  });
+  useEffect(() => { loadData(); }, []);
 
-  const [leads] = useState<LeadItem[]>([
-    { id: '1', name: 'Jennifer Smith', source: 'Google Ads', phone: '(780) 555-0123', createdAt: '15 min ago', status: 'new', slaMinutesRemaining: 45 },
-    { id: '2', name: 'David Lee', source: 'Trainer Referral', phone: '(780) 555-0124', createdAt: '32 min ago', status: 'new', slaMinutesRemaining: 28 },
-    { id: '3', name: 'Amanda Brown', source: 'Website Form', phone: '(780) 555-0125', createdAt: '1 hour ago', status: 'contacted', slaMinutesRemaining: 0 },
-    { id: '4', name: 'Chris Wilson', source: 'Walk-in', phone: '(780) 555-0126', createdAt: '2 hours ago', status: 'scheduled', slaMinutesRemaining: 0 },
-  ]);
+  async function loadData() {
+    try {
+      const [leadsRes, referralsRes] = await Promise.all([
+        supabase.from('crm_leads').select('id, first_name, last_name, lead_source, phone, status, created_at').order('created_at', { ascending: false }).limit(5),
+        supabase.from('referral_partners').select('id, name, partner_type, referrals_mtd, conversion_rate').order('referrals_mtd', { ascending: false }).limit(5),
+      ]);
 
-  const [topPartners] = useState<ReferralPartner[]>([
-    { id: '1', name: 'Evolve Fitness', type: 'trainer', referralsThisMonth: 12, conversionRate: 85, avgResponseTime: '18 min', trend: 'up' },
-    { id: '2', name: 'GoodLife Fitness', type: 'trainer', referralsThisMonth: 8, conversionRate: 78, avgResponseTime: '25 min', trend: 'stable' },
-    { id: '3', name: 'Dr. Johnson', type: 'physician', referralsThisMonth: 6, conversionRate: 92, avgResponseTime: '2 hrs', trend: 'up' },
-    { id: '4', name: 'ABC Corp HR', type: 'employer', referralsThisMonth: 5, conversionRate: 100, avgResponseTime: '45 min', trend: 'stable' },
-  ]);
+      let hasLive = false;
 
-  const [reviewRequests] = useState<ReviewRequest[]>([
-    { id: '1', patientName: 'Sarah Johnson', sentAt: 'Today 9:15 AM', status: 'completed', rating: 5 },
-    { id: '2', patientName: 'Michael Chen', sentAt: 'Today 10:30 AM', status: 'opened' },
-    { id: '3', patientName: 'Emma Wilson', sentAt: 'Yesterday', status: 'completed', rating: 5 },
-    { id: '4', patientName: 'James Anderson', sentAt: 'Yesterday', status: 'sent' },
-  ]);
+      if (leadsRes.data && leadsRes.data.length > 0) {
+        setLeads(leadsRes.data.map((l: { id: string; first_name: string; last_name: string; lead_source: string; phone: string; status: string; created_at: string }) => ({
+          id: l.id,
+          name: `${l.first_name ?? ''} ${l.last_name ?? ''}`.trim() || 'Unknown',
+          source: l.lead_source ?? 'Unknown',
+          phone: l.phone ?? '',
+          createdAt: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          status: (['new', 'contacted', 'scheduled', 'converted', 'lost'] as const).includes(l.status as 'new') ? (l.status as LeadItem['status']) : 'new',
+          slaMinutesRemaining: 60,
+        })));
+        const newLeads = leadsRes.data.filter((l: { status: string }) => l.status === 'new').length;
+        setKpis(prev => ({ ...prev, newLeadsToday: newLeads }));
+        hasLive = true;
+      }
+
+      if (referralsRes.data && referralsRes.data.length > 0) {
+        setTopPartners(referralsRes.data.map((r: { id: string; name: string; partner_type: string; referrals_mtd: number; conversion_rate: number }) => ({
+          id: r.id,
+          name: r.name,
+          type: (['trainer', 'physician', 'employer'] as const).includes(r.partner_type as 'trainer') ? (r.partner_type as ReferralPartner['type']) : 'trainer',
+          referralsThisMonth: r.referrals_mtd ?? 0,
+          conversionRate: r.conversion_rate ?? 0,
+          avgResponseTime: '—',
+          trend: 'stable' as const,
+        })));
+        const total = referralsRes.data.reduce((s: number, r: { referrals_mtd: number }) => s + (r.referrals_mtd ?? 0), 0);
+        setKpis(prev => ({ ...prev, referralVolume: total }));
+        hasLive = true;
+      }
+
+      if (hasLive) setIsLive(true);
+    } catch {
+      // keep demo data
+    }
+  }
 
   const getStatusColor = (status: LeadItem['status']) => {
     const colors = {
@@ -108,7 +140,13 @@ export function GrowthCommandCenter({ onNavigate }: GrowthCommandCenterProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Growth Command Center</h1>
-          <p className="text-sm text-gray-500 mt-1">Patient acquisition, referrals, and reputation management</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-gray-500">Patient acquisition, referrals, and reputation management</p>
+            {isLive
+              ? <span className="text-xs text-emerald-600 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />Live</span>
+              : <span className="text-xs text-gray-400">Demo data</span>
+            }
+          </div>
         </div>
         <div className="flex items-center space-x-3">
           <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { ModuleKey } from '../../types/enterprise';
 import { useAuth } from '../../contexts/AuthContext';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 // ─── COMMAND CENTER ─────────────────────────────────────────────────────────
 const CommandCenter = lazy(() => import('../command-center/CommandCenter').then(m => ({ default: m.CommandCenter })));
@@ -424,8 +425,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
   };
 
   return (
-    <Suspense fallback={<ModuleLoading />}>
-      {renderModule()}
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<ModuleLoading />}>
+        {renderModule()}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
