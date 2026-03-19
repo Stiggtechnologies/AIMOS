@@ -184,10 +184,10 @@ export const moduleConfig: NavModule[] = [
       { key: 'valuation', label: 'Valuation Readiness', icon: 'TrendingUp', roles: ['executive'] },
       { key: 'governance', label: 'Digital Governance', icon: 'Shield', roles: ['executive'] },
       { key: 'ai-governance', label: 'AI Governance', icon: 'Bot', roles: ['executive', 'admin'] },
-      { key: 'scorecard', label: 'Scorecard Engine', icon: 'BarChart3', roles: ['executive', 'admin'] },
-      { key: 'goal-cascade', label: 'Goal Cascade', icon: 'GitBranch', roles: ['executive', 'admin'] },
-      { key: 'meeting-cadence', label: 'Meeting Cadence', icon: 'Calendar', roles: ['executive', 'admin'] },
-      { key: 'kpi-governance', label: 'KPI Governance', icon: 'BookOpen', roles: ['executive', 'admin'] },
+      { key: 'scorecard', label: 'Scorecard Engine', icon: 'BarChart3', roles: ['executive', 'admin', 'clinic_manager', 'regional_director'] },
+      { key: 'goal-cascade', label: 'Goal Cascade', icon: 'GitBranch', roles: ['executive', 'admin', 'regional_director'] },
+      { key: 'meeting-cadence', label: 'Meeting Cadence', icon: 'Calendar', roles: ['executive', 'admin', 'clinic_manager', 'regional_director'] },
+      { key: 'kpi-governance', label: 'KPI Governance', icon: 'BookOpen', roles: ['executive', 'admin', 'regional_director'] },
       { key: 'fhir-event-bus', label: 'FHIR Event Bus', icon: 'Zap', roles: ['executive', 'admin'] }
     ]
   },

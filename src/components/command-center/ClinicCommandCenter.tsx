@@ -6,7 +6,7 @@ import {
   ChevronDown, ChevronUp, Star, Phone, MessageSquare, RefreshCw,
   Activity, TrendingUp, TrendingDown, UserX, BadgeCheck, Heart,
   Minus, ArrowUpRight, ArrowDownRight, FileText, Plus, Zap,
-  Target, Award, UserPlus, ClipboardList
+  Target, Award, UserPlus, ClipboardList, ChartBar as BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -401,6 +401,65 @@ export function ClinicCommandCenter({ onNavigate }: Props) {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Clinic Scorecard Snapshot */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-teal-600" aria-hidden="true" />
+                  <h2 className="font-semibold text-gray-900">Clinic Scorecard — February 2026</h2>
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium" role="status" aria-label="Overall scorecard status: At Risk">At Risk</span>
+                </div>
+                <button
+                  onClick={() => onNavigate('strategy', 'scorecard')}
+                  className="text-sm text-blue-600 hover:underline flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                  aria-label="Open full Scorecard Engine"
+                >
+                  Full Scorecard <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="p-5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4" role="list" aria-label="Scorecard metric summary">
+                  {[
+                    { label: 'Provider Utilization', value: '84.2%', target: '87%', rag: 'yellow' as const, unit: '%' },
+                    { label: 'Net Days in AR', value: '44.1 days', target: '35 days', rag: 'red' as const, unit: 'days' },
+                    { label: 'Plan Completion', value: '81.3%', target: '84%', rag: 'yellow' as const, unit: '%' },
+                    { label: 'No-Show Rate', value: '5.8%', target: '6%', rag: 'green' as const, unit: '%' },
+                  ].map(metric => {
+                    const ragStyles = {
+                      green: { dot: 'bg-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100', text: 'text-emerald-700', label: 'On Track' },
+                      yellow: { dot: 'bg-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', text: 'text-amber-700', label: 'At Risk' },
+                      red: { dot: 'bg-red-500', bg: 'bg-red-50', border: 'border-red-100', text: 'text-red-700', label: 'Off Track' },
+                    }[metric.rag];
+                    return (
+                      <div
+                        key={metric.label}
+                        role="listitem"
+                        className={`rounded-lg p-3 border ${ragStyles.bg} ${ragStyles.border}`}
+                        aria-label={`${metric.label}: ${metric.value}, target ${metric.target}, ${ragStyles.label}`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className={`w-2 h-2 rounded-full ${ragStyles.dot} flex-shrink-0`} aria-hidden="true" />
+                          <span className={`text-xs font-medium ${ragStyles.text}`}>{ragStyles.label}</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">{metric.value}</div>
+                        <div className="text-xs text-gray-600 mt-0.5">{metric.label}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">Target: {metric.target}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  <span>5 green · 2 at risk · 1 off track</span>
+                  <button
+                    onClick={() => onNavigate('strategy', 'scorecard')}
+                    className="text-blue-600 font-medium hover:underline flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                  >
+                    View all 8 metrics <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                  </button>
                 </div>
               </div>
             </div>
