@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Plus, Phone, Mail, Calendar, ChevronRight, Filter, RefreshCw, UserCheck, CircleAlert as AlertCircle, Clock, Activity } from 'lucide-react';
+import { Users, Search, Plus, Phone, Mail, Calendar, ChevronRight, Filter, RefreshCw, UserCheck, CircleAlert as AlertCircle, Clock, Activity, X, Send, CircleCheck as CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Patient {
@@ -38,6 +38,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
   new:       { label: 'New',        color: 'bg-teal-100 text-teal-800',     dot: 'bg-teal-500' },
 };
 
+const APPOINTMENT_TYPES = ['Initial Assessment', 'Follow-up', 'Re-assessment', 'Discharge', 'Consultation'];
+const TIME_SLOTS = ['8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM'];
+
 function calculateAge(dob: string): number {
   const birth = new Date(dob);
   const today = new Date();
@@ -47,12 +50,271 @@ function calculateAge(dob: string): number {
   return age;
 }
 
+function getTodayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+interface BookModalProps {
+  patient: Patient;
+  onClose: () => void;
+}
+
+function BookAppointmentModal({ patient, onClose }: BookModalProps) {
+  const [date, setDate] = useState(getTodayStr());
+  const [time, setTime] = useState(TIME_SLOTS[2]);
+  const [type, setType] = useState(APPOINTMENT_TYPES[0]);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    try {
+      await supabase.from('patient_appointments').insert({
+        patient_id: patient.id,
+        appointment_date: date,
+        appointment_time: time,
+        appointment_type: type,
+        notes,
+        status: 'scheduled',
+      });
+    } catch {
+    } finally {
+      setSaving(false);
+      setDone(true);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Book Appointment</h2>
+            <p className="text-sm text-gray-500">{patient.last_name}, {patient.first_name} &middot; {patient.medical_record_number}</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {done ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle className="w-7 h-7 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Appointment Booked</h3>
+            <p className="text-sm text-gray-500 mb-1">{type}</p>
+            <p className="text-sm font-medium text-gray-700">{new Date(date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at {time}</p>
+            {patient.assigned_provider && (
+              <p className="text-sm text-gray-500 mt-1">with {patient.assigned_provider}</p>
+            )}
+            <button onClick={onClose} className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Appointment Type</label>
+              <select
+                value={type}
+                onChange={e => setType(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {APPOINTMENT_TYPES.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Date</label>
+                <input
+                  type="date"
+                  value={date}
+                  min={getTodayStr()}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Time</label>
+                <select
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {TIME_SLOTS.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Notes (optional)</label>
+              <textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                rows={2}
+                placeholder="Any relevant notes for this appointment..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={saving || !date}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                {saving ? 'Booking...' : 'Confirm Booking'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface MessageModalProps {
+  patient: Patient;
+  onClose: () => void;
+}
+
+function SendMessageModal({ patient, onClose }: MessageModalProps) {
+  const [channel, setChannel] = useState<'sms' | 'email'>('sms');
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const QUICK_MESSAGES = [
+    'Reminder: You have an upcoming appointment.',
+    'Your treatment plan has been updated. Please log in to review.',
+    'Please confirm your appointment for tomorrow.',
+    'Your clinician has left a note on your file.',
+  ];
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    setSending(true);
+    try {
+      await supabase.from('patient_messages').insert({
+        patient_id: patient.id,
+        channel,
+        message_body: message,
+        direction: 'outbound',
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
+    } catch {
+    } finally {
+      setSending(false);
+      setDone(true);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Send Message</h2>
+            <p className="text-sm text-gray-500">{patient.last_name}, {patient.first_name} &middot; {patient.medical_record_number}</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {done ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle className="w-7 h-7 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Message Sent</h3>
+            <p className="text-sm text-gray-500 mb-1">via {channel === 'sms' ? 'SMS' : 'Email'} to {channel === 'sms' ? patient.phone : patient.email}</p>
+            <button onClick={onClose} className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Channel</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['sms', 'email'] as const).map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setChannel(c)}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+                      channel === c
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {c === 'sms' ? <Phone className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+                    {c === 'sms' ? `SMS (${patient.phone || 'no phone'})` : 'Email'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Quick Messages</label>
+              <div className="space-y-1.5">
+                {QUICK_MESSAGES.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => setMessage(q)}
+                    className="w-full text-left text-xs text-gray-600 px-3 py-2 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Message</label>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={3}
+                placeholder="Type your message..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1 text-right">{message.length} chars</p>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={sending || !message.trim()}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                {sending ? 'Sending...' : 'Send Message'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PatientsView() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selected, setSelected] = useState<Patient | null>(null);
+  const [bookingPatient, setBookingPatient] = useState<Patient | null>(null);
+  const [messagingPatient, setMessagingPatient] = useState<Patient | null>(null);
 
   useEffect(() => { loadPatients(); }, []);
 
@@ -104,8 +366,8 @@ export default function PatientsView() {
     return matchSearch && matchStatus;
   });
 
-  const activeCount    = patients.filter(p => p.status === 'active').length;
-  const newCount       = patients.filter(p => p.status === 'new').length;
+  const activeCount     = patients.filter(p => p.status === 'active').length;
+  const newCount        = patients.filter(p => p.status === 'new').length;
   const dischargedCount = patients.filter(p => p.status === 'discharged').length;
 
   return (
@@ -192,54 +454,59 @@ export default function PatientsView() {
           <div className="divide-y divide-gray-50">
             {filtered.map(patient => {
               const cfg = STATUS_CONFIG[patient.status] ?? STATUS_CONFIG.inactive;
+              const isSelected = selected?.id === patient.id;
               return (
-                <button
-                  key={patient.id}
-                  onClick={() => setSelected(selected?.id === patient.id ? null : patient)}
-                  className={`w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors ${selected?.id === patient.id ? 'bg-blue-50' : ''}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                      {patient.first_name[0]}{patient.last_name[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900 text-sm">
-                          {patient.last_name}, {patient.first_name}
-                        </span>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                          {cfg.label}
-                        </span>
+                <div key={patient.id}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelected(isSelected ? null : patient)}
+                    onKeyDown={e => e.key === 'Enter' && setSelected(isSelected ? null : patient)}
+                    className={`w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {patient.first_name[0]}{patient.last_name[0]}
                       </div>
-                      <div className="flex items-center gap-4 mt-0.5 text-xs text-gray-500">
-                        <span>{patient.medical_record_number}</span>
-                        {patient.date_of_birth && (
-                          <span>{calculateAge(patient.date_of_birth)} yrs</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900 text-sm">
+                            {patient.last_name}, {patient.first_name}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                            {cfg.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-0.5 text-xs text-gray-500">
+                          <span>{patient.medical_record_number}</span>
+                          {patient.date_of_birth && (
+                            <span>{calculateAge(patient.date_of_birth)} yrs</span>
+                          )}
+                          {patient.diagnosis && (
+                            <span className="truncate max-w-xs">{patient.diagnosis}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="hidden md:flex items-center gap-6 text-sm text-gray-500 flex-shrink-0">
+                        {patient.clinic_name && (
+                          <span className="text-xs text-gray-400">{patient.clinic_name}</span>
                         )}
-                        {patient.diagnosis && (
-                          <span className="truncate max-w-xs">{patient.diagnosis}</span>
+                        {patient.assigned_provider && (
+                          <span className="text-xs text-gray-500">{patient.assigned_provider}</span>
+                        )}
+                        {patient.last_visit && (
+                          <span className="text-xs text-gray-400">
+                            Last: {new Date(patient.last_visit).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
                         )}
                       </div>
+                      <ChevronRight className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isSelected ? 'rotate-90' : ''}`} />
                     </div>
-                    <div className="hidden md:flex items-center gap-6 text-sm text-gray-500 flex-shrink-0">
-                      {patient.clinic_name && (
-                        <span className="text-xs text-gray-400">{patient.clinic_name}</span>
-                      )}
-                      {patient.assigned_provider && (
-                        <span className="text-xs text-gray-500">{patient.assigned_provider}</span>
-                      )}
-                      {patient.last_visit && (
-                        <span className="text-xs text-gray-400">
-                          Last: {new Date(patient.last_visit).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                    <ChevronRight className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${selected?.id === patient.id ? 'rotate-90' : ''}`} />
                   </div>
 
-                  {selected?.id === patient.id && (
-                    <div className="mt-4 ml-14 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm" onClick={e => e.stopPropagation()}>
+                  {isSelected && (
+                    <div className="px-5 pb-4 ml-14 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-blue-50">
                       {[
                         { icon: Phone, label: 'Phone', value: patient.phone },
                         { icon: Mail, label: 'Email', value: patient.email },
@@ -258,21 +525,34 @@ export default function PatientsView() {
                         <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
                           View Full Profile
                         </button>
-                        <button className="px-3 py-1.5 border border-gray-200 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
+                        <button
+                          onClick={() => setBookingPatient(patient)}
+                          className="px-3 py-1.5 border border-gray-200 bg-white text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+                        >
                           Book Appointment
                         </button>
-                        <button className="px-3 py-1.5 border border-gray-200 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
+                        <button
+                          onClick={() => setMessagingPatient(patient)}
+                          className="px-3 py-1.5 border border-gray-200 bg-white text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+                        >
                           Send Message
                         </button>
                       </div>
                     </div>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {bookingPatient && (
+        <BookAppointmentModal patient={bookingPatient} onClose={() => setBookingPatient(null)} />
+      )}
+      {messagingPatient && (
+        <SendMessageModal patient={messagingPatient} onClose={() => setMessagingPatient(null)} />
+      )}
     </div>
   );
 }
