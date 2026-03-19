@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, DollarSign, Users, Building2, Activity, Brain, Bell, ArrowUpRight, ArrowDownRight, MoveHorizontal as MoreHorizontal, RefreshCw, Target, Calendar, FileText, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { enterpriseService } from '../../services/enterpriseService';
+import { notificationService } from '../../services/notificationService';
 import type { NetworkStats, RegionalPerformance, ClinicPerformance } from '../../types/enterprise';
 
 interface CommandCenterProps {
@@ -33,27 +34,29 @@ interface AIInsight {
   confidence: number;
 }
 
+const DEMO_ALERTS: Alert[] = [
+  { id: 'd1', type: 'critical', title: 'Capacity Alert', message: 'AIM Signal Hill is at 95% capacity for next week', time: 'just now', action: 'View Schedule' },
+  { id: 'd2', type: 'warning', title: 'Claims Pending', message: '12 WCB claims approaching SLA deadline', time: '1h ago', action: 'Review Claims' },
+  { id: 'd3', type: 'warning', title: 'Credential Expiring', message: '3 clinician certifications expire in 30 days', time: '2h ago', action: 'View Credentials' },
+  { id: 'd4', type: 'info', title: 'New Referral Source', message: 'Dr. Singh referred 5 patients this week', time: '3h ago', action: 'View Details' }
+];
+
+const DEMO_TASKS: Task[] = [
+  { id: 't1', title: 'Review Q1 financial report', due: 'Today', priority: 'high', status: 'pending' },
+  { id: 't2', title: 'Approve South Commons equipment order', due: 'Tomorrow', priority: 'medium', status: 'pending' },
+  { id: 't3', title: 'Complete regional director 1:1 prep', due: 'Mar 21', priority: 'medium', status: 'in_progress' },
+  { id: 't4', title: 'Sign off on new PT hire', due: 'Mar 22', priority: 'low', status: 'pending' }
+];
+
 export function CommandCenter({ onNavigate }: CommandCenterProps) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [networkStats, setNetworkStats] = useState<NetworkStats | null>(null);
   const [regionalPerformance, setRegionalPerformance] = useState<RegionalPerformance[]>([]);
   const [clinicPerformance, setClinicPerformance] = useState<ClinicPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
-
-  const [alerts] = useState<Alert[]>([
-    { id: '1', type: 'critical', title: 'Capacity Alert', message: 'AIM North is at 95% capacity for next week', time: '5m ago', action: 'View Schedule' },
-    { id: '2', type: 'warning', title: 'Claims Pending', message: '12 WSIB claims approaching SLA deadline', time: '1h ago', action: 'Review Claims' },
-    { id: '3', type: 'warning', title: 'Credential Expiring', message: '3 clinician certifications expire in 30 days', time: '2h ago', action: 'View Credentials' },
-    { id: '4', type: 'info', title: 'New Referral Source', message: 'Dr. Smith referred 5 patients this week', time: '3h ago', action: 'View Details' }
-  ]);
-
-  const [tasks] = useState<Task[]>([
-    { id: '1', title: 'Review Q1 financial report', due: 'Today', priority: 'high', status: 'pending' },
-    { id: '2', title: 'Approve South Commons equipment order', due: 'Tomorrow', priority: 'medium', status: 'pending' },
-    { id: '3', title: 'Complete regional director 1:1 prep', due: 'Mar 15', priority: 'medium', status: 'in_progress' },
-    { id: '4', title: 'Sign off on new PT hire', due: 'Mar 16', priority: 'low', status: 'pending' }
-  ]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const [insights] = useState<AIInsight[]>([
     { id: '1', type: 'opportunity', title: 'Shockwave therapy upsell potential', impact: '+$45K monthly revenue', confidence: 87 },
@@ -77,8 +80,29 @@ export function CommandCenter({ onNavigate }: CommandCenterProps) {
       setRegionalPerformance(regions);
       setClinicPerformance(clinics);
       setLastRefresh(new Date());
+
+      if (user) {
+        try {
+          const notifs = await notificationService.getNotifications(user.id);
+          const mapped: Alert[] = (notifs || []).slice(0, 5).map((n: Record<string, unknown>) => ({
+            id: n.id as string,
+            type: n.priority === 'critical' ? 'critical' : n.priority === 'high' ? 'warning' : 'info',
+            title: (n.title as string) || 'Alert',
+            message: (n.message as string) || '',
+            time: 'recently',
+            action: 'View'
+          }));
+          setAlerts(mapped.length > 0 ? mapped : DEMO_ALERTS);
+        } catch {
+          setAlerts(DEMO_ALERTS);
+        }
+      } else {
+        setAlerts(DEMO_ALERTS);
+      }
+      setTasks(DEMO_TASKS);
     } catch (error) {
       console.error('Error loading command center data:', error);
+      setAlerts(DEMO_ALERTS);
     } finally {
       setLoading(false);
     }

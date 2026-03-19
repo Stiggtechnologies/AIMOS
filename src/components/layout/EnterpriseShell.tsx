@@ -40,20 +40,17 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
   const { toasts, removeToast } = useToast();
 
   const accessibleModules = useMemo(() => {
-    const roleLevel = profile?.role === 'executive' ? 'corporate' :
-                      profile?.role === 'clinic_manager' ? 'clinic' :
-                      profile?.role === 'clinician' ? 'clinical' :
-                      profile?.role === 'admin' ? 'corporate' : 'support';
-
-    const modulesByLevel: Record<string, ModuleKey[]> = {
-      corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin'],
-      regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce'],
-      clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain'],
-      clinical: ['command_center', 'clinical', 'operations'],
-      support: ['command_center', 'operations', 'revenue']
+    const role = profile?.role;
+    const modulesByRole: Record<string, ModuleKey[]> = {
+      executive:         ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
+      admin:             ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
+      regional_director: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce', 'aim_automation'],
+      clinic_manager:    ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation'],
+      clinician:         ['command_center', 'clinical', 'operations'],
+      contractor:        ['command_center', 'clinical', 'operations'],
     };
 
-    return modulesByLevel[roleLevel] || ['command_center'];
+    return modulesByRole[role ?? ''] || ['command_center'];
   }, [profile?.role]);
 
   const filteredModules = useMemo(() => {

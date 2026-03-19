@@ -304,9 +304,19 @@ export const getAccessibleModules = (roleLevel: string): ModuleKey[] => {
   return modulesByLevel[roleLevel] || ['command_center'];
 };
 
+const ROLE_HIERARCHY: Record<string, string[]> = {
+  executive: ['executive', 'admin', 'regional_director', 'clinic_manager', 'finance', 'marketing', 'clinician', 'contractor'],
+  admin: ['executive', 'admin', 'regional_director', 'clinic_manager', 'finance', 'marketing', 'clinician', 'contractor'],
+  regional_director: ['regional_director', 'clinic_manager'],
+  clinic_manager: ['clinic_manager'],
+  clinician: ['clinician'],
+  contractor: ['contractor'],
+};
+
 export const filterSubItemsByRole = (subItems: NavSubItem[], userRole: string): NavSubItem[] => {
+  const effectiveRoles = ROLE_HIERARCHY[userRole] || [userRole];
   return subItems.filter(item => {
     if (!item.roles) return true;
-    return item.roles.includes(userRole);
+    return item.roles.some(r => effectiveRoles.includes(r));
   });
 };

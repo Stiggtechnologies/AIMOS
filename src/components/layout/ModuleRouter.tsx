@@ -187,7 +187,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       case 'clinic_manager':
         return <ClinicCommandCenter onNavigate={handleNavigate} />;
       case 'clinician':
+      case 'contractor':
         return <ClinicianCommandCenter onNavigate={handleNavigate} />;
+      case 'regional_director':
+        return <RegionalOpsCommandCenter onNavigate={handleNavigate} />;
       default:
         return <CommandCenter onNavigate={handleNavigate} />;
     }
@@ -322,7 +325,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'acquisition': return <AcquisitionView />;
           case 'forecasting': return <ForecastingView />;
           case 'benchmarking': return <BenchmarkingView />;
-          case 'reports': return <ReportsView />;
+          case 'reports': return <ReportsView onNavigate={onNavigate} />;
           case 'agent-execution': return <AgentExecutionDashboard />;
           case 'agents': return <AgentsView />;
           case 'analytics': return <AnalyticsView />;

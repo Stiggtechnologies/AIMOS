@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink, RefreshCw, Info } from 'lucide-react';
 import { enterpriseService } from '../../services/enterpriseService';
 import { getActiveInitiatives, type Initiative } from '../../services/strategyOKRService';
 import { launchService, type ClinicLaunch } from '../../services/launchService';
 import { getFinancialAlerts } from '../../services/financialService';
+import { supabase } from '../../lib/supabase';
 import type { NetworkStats, RegionalPerformance, ClinicPerformance } from '../../types/enterprise';
 
 interface ExecutiveCommandCenterProps {
@@ -30,10 +31,25 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
   const [launches, setLaunches] = useState<ClinicLaunch[]>([]);
   const [alerts, setAlerts] = useState<ExecutiveAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [selectedPeriod, setSelectedPeriod] = useState('ytd');
+  const [regions, setRegions] = useState<Array<{ id: string; name: string; code: string }>>([]);
+
+  useEffect(() => {
+    loadRegions();
+    loadData();
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedRegion, selectedPeriod]);
+
+  const loadRegions = async () => {
+    try {
+      const { data } = await supabase.from('regions').select('id, name, code').eq('is_active', true).order('name');
+      if (data && data.length > 0) setRegions(data);
+    } catch {}
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -74,6 +90,11 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
   };
 
   const redClinics = clinicPerformance.filter(c => c.performance_status === 'behind');
+  const filteredClinics = selectedRegion === 'all'
+    ? clinicPerformance
+    : clinicPerformance.filter(c => c.region_name === regions.find(r => r.id === selectedRegion)?.name);
+
+  const periodLabel = selectedPeriod === 'ytd' ? 'YTD' : selectedPeriod === 'q1' ? 'Q1' : selectedPeriod === 'mtd' ? 'MTD' : 'Last 30d';
 
   return (
     <div className="space-y-6">
@@ -83,19 +104,30 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
           <p className="text-sm text-gray-500 mt-1">Network-wide portfolio performance and strategic oversight</p>
         </div>
         <div className="flex items-center space-x-3">
-          <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            <option>All Regions</option>
-            <option>GTA</option>
-            <option>SWO</option>
-            <option>EO</option>
-            <option>NO</option>
-            <option>AB</option>
+          <select
+            value={selectedRegion}
+            onChange={e => setSelectedRegion(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+          >
+            <option value="all">All Regions</option>
+            {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {regions.length === 0 && (
+              <>
+                <option value="ab_south">AB South</option>
+                <option value="ab_west">AB West</option>
+                <option value="ab_east">AB East</option>
+              </>
+            )}
           </select>
-          <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-            <option>YTD 2026</option>
-            <option>Q1 2026</option>
-            <option>MTD</option>
-            <option>Last 30 Days</option>
+          <select
+            value={selectedPeriod}
+            onChange={e => setSelectedPeriod(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
+          >
+            <option value="ytd">YTD 2026</option>
+            <option value="q1">Q1 2026</option>
+            <option value="mtd">Month to Date</option>
+            <option value="30d">Last 30 Days</option>
           </select>
           <button
             onClick={loadData}
@@ -139,7 +171,10 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             </span>
           </div>
           <div className="text-2xl font-bold">7.2%</div>
-          <div className="text-xs text-sky-100 mt-0.5">Same-Clinic Growth</div>
+          <div className="text-xs text-sky-100 mt-0.5 flex items-center gap-1">
+            Same-Clinic Growth
+            <span title="YTD benchmark — connect revenue import for live figure" className="opacity-70 cursor-help"><Info className="h-2.5 w-2.5" /></span>
+          </div>
         </div>
 
         <div className="bg-gradient-to-br from-amber-600 to-amber-700 rounded-xl p-4 text-white">
@@ -148,7 +183,7 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             <span className="text-xs text-amber-100">Target: 85%</span>
           </div>
           <div className="text-2xl font-bold">{networkStats?.avgUtilization?.toFixed(1) || 0}%</div>
-          <div className="text-xs text-amber-100 mt-0.5">Utilization</div>
+          <div className="text-xs text-amber-100 mt-0.5">{periodLabel} Utilization</div>
         </div>
 
         <div className="bg-gradient-to-br from-rose-600 to-rose-700 rounded-xl p-4 text-white">
@@ -159,7 +194,10 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             </span>
           </div>
           <div className="text-2xl font-bold">38</div>
-          <div className="text-xs text-rose-100 mt-0.5">AR Days</div>
+          <div className="text-xs text-rose-100 mt-0.5 flex items-center gap-1">
+            AR Days
+            <span title="Benchmark figure — connect billing AR report for live data" className="opacity-70 cursor-help"><Info className="h-2.5 w-2.5" /></span>
+          </div>
         </div>
 
         <div className="bg-gradient-to-br from-teal-600 to-teal-700 rounded-xl p-4 text-white">
@@ -168,7 +206,10 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
             <span className="text-xs text-teal-100">+12 this month</span>
           </div>
           <div className="text-2xl font-bold">72</div>
-          <div className="text-xs text-teal-100 mt-0.5">NPS Score</div>
+          <div className="text-xs text-teal-100 mt-0.5 flex items-center gap-1">
+            NPS Score
+            <span title="Survey benchmark — connect patient experience module for live data" className="opacity-70 cursor-help"><Info className="h-2.5 w-2.5" /></span>
+          </div>
         </div>
       </div>
 
@@ -361,7 +402,7 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {clinicPerformance.slice(0, 10).map(clinic => (
+              {filteredClinics.slice(0, 10).map(clinic => (
                 <tr key={clinic.clinic_id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{clinic.clinic_name}</p>
@@ -391,44 +432,93 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
         </div>
       </div>
 
-      {/* AI Insights Panel */}
+      {/* Pattern Insights Panel — derived from clinic performance data */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
-        <div className="flex items-center space-x-3 mb-4">
-          <Brain className="h-6 w-6 text-blue-400" />
-          <h2 className="font-semibold text-lg">AI Executive Insights</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <Brain className="h-6 w-6 text-blue-400" />
+            <h2 className="font-semibold text-lg">Pattern Insights</h2>
+          </div>
+          <button
+            onClick={() => onNavigate('intelligence', 'ai-agents')}
+            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+          >
+            Full AI Analysis <ExternalLink className="h-3 w-3" />
+          </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white/10 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-400">Opportunity</span>
+          {/* Opportunity: derived from underperforming clinics with low utilization */}
+          {filteredClinics.filter(c => c.utilization_rate < 70 && c.performance_status === 'behind').length > 0 ? (
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <span className="text-sm font-medium text-emerald-400">Capacity Opportunity</span>
+              </div>
+              <p className="text-sm mb-2">
+                {filteredClinics.filter(c => c.utilization_rate < 70).length} clinic{filteredClinics.filter(c => c.utilization_rate < 70).length !== 1 ? 's' : ''} operating below 70% utilization — marketing activation or care pathway expansion may improve throughput.
+              </p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Derived from clinic data</span>
+                <button onClick={() => onNavigate('intelligence', 'utilization')} className="text-blue-400 hover:text-blue-300">View →</button>
+              </div>
             </div>
-            <p className="text-sm mb-2">Shockwave therapy demand in GTA region is 40% above capacity. Consider expansion.</p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Impact: +$180K/year</span>
-              <span className="text-blue-400">87% confidence</span>
+          ) : (
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <span className="text-sm font-medium text-emerald-400">Network Opportunity</span>
+              </div>
+              <p className="text-sm mb-2">Employer program expansion and shockwave therapy activation are the top-rated growth levers for the current quarter.</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Based on growth playbooks</span>
+                <button onClick={() => onNavigate('growth', 'playbooks')} className="text-blue-400 hover:text-blue-300">View →</button>
+              </div>
             </div>
-          </div>
-          <div className="bg-white/10 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-              <span className="text-sm font-medium text-amber-400">Risk</span>
+          )}
+
+          {/* Risk: derived from clinics behind target */}
+          {redClinics.length > 0 ? (
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">Revenue Risk</span>
+              </div>
+              <p className="text-sm mb-2">
+                {redClinics.length} clinic{redClinics.length !== 1 ? 's' : ''} ({redClinics.map(c => c.clinic_name).join(', ')}) behind monthly revenue target. Early intervention recommended.
+              </p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Derived from clinic data</span>
+                <button onClick={() => onNavigate('intelligence', 'clinic-performance')} className="text-blue-400 hover:text-blue-300">Drill in →</button>
+              </div>
             </div>
-            <p className="text-sm mb-2">3 clinics showing revenue decline pattern consistent with staff turnover risk.</p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Potential loss: -$95K</span>
-              <span className="text-blue-400">79% confidence</span>
+          ) : (
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">Watch</span>
+              </div>
+              <p className="text-sm mb-2">Credential renewal deadlines for clinical staff should be reviewed. Access the credentials module to see what expires within 60 days.</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Based on workforce data</span>
+                <button onClick={() => onNavigate('workforce', 'credentials')} className="text-blue-400 hover:text-blue-300">View →</button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Recommendation: always data-linked */}
           <div className="bg-white/10 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <Zap className="h-4 w-4 text-blue-400" />
-              <span className="text-sm font-medium text-blue-400">Recommendation</span>
+              <span className="text-sm font-medium text-blue-400">Strategic Recommendation</span>
             </div>
-            <p className="text-sm mb-2">Reallocate marketing spend from low-performing channels to employer partnerships.</p>
+            <p className="text-sm mb-2">
+              {initiatives.length > 0
+                ? `${initiatives.filter(i => i.status === 'in_progress').length} of ${initiatives.length} strategic initiatives are actively in progress. Review OKR alignment before quarter close.`
+                : 'No active strategic initiatives found. Consider setting Q2 OKRs in the Strategy module to align the team.'}
+            </p>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">ROI improvement: +22%</span>
-              <span className="text-blue-400">91% confidence</span>
+              <span className="text-gray-400">Based on OKR data</span>
+              <button onClick={() => onNavigate('strategy', 'okrs')} className="text-blue-400 hover:text-blue-300">View OKRs →</button>
             </div>
           </div>
         </div>
