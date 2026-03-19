@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle, Users, Package } from 'lucide-react';
+import { LayoutDashboard, Settings, Stethoscope, DollarSign, TrendingUp, ChartBar as BarChart3, Compass, Cog, Menu, X, Bell, Search, LogOut, ChevronRight, ChevronDown, CircleUser as UserCircle, Users, Package, Filter } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { moduleConfig, filterSubItemsByRole, type NavModule } from '../../config/navigation';
 import { GlobalSearch } from '../GlobalSearch';
@@ -20,7 +20,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Compass,
   Cog,
   Users,
-  Package
+  Package,
+  Filter
 };
 
 interface EnterpriseShellProps {

@@ -1,7 +1,25 @@
-import { useState } from 'react';
-import { Rocket, Plus, Search, Target, Calendar, User, TrendingUp, CircleCheck as CheckCircle, Clock, CircleAlert as AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Rocket, Plus, Search, Target, Calendar, User, TrendingUp, CircleCheck as CheckCircle, Clock, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const INITIATIVES = [
+interface Initiative {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  owner: string;
+  status: string;
+  priority: string;
+  progress: number;
+  startDate: string;
+  targetDate: string;
+  budget: number;
+  spent: number;
+  linked_okr?: string;
+  impact_area?: string;
+}
+
+const DEMO_INITIATIVES: Initiative[] = [
   { id: '1', title: 'AIM South Commons Launch', category: 'Expansion', owner: 'Sarah Chen', status: 'in_progress', priority: 'high', progress: 68, startDate: '2026-01-01', targetDate: '2026-04-30', budget: 450000, spent: 312000, linked_okr: 'Expand to 6 locations by Q4 2026' },
   { id: '2', title: 'Digital Intake Automation', category: 'Technology', owner: 'Mark Patel', status: 'in_progress', priority: 'high', progress: 45, startDate: '2026-02-01', targetDate: '2026-06-30', budget: 85000, spent: 38000, linked_okr: 'Reduce intake time by 40%' },
   { id: '3', title: 'Corporate Wellness Program Rollout', category: 'Growth', owner: 'Lisa Wong', status: 'planning', priority: 'medium', progress: 15, startDate: '2026-03-01', targetDate: '2026-08-31', budget: 120000, spent: 18000, linked_okr: 'Add 200 employer-covered patients' },
@@ -23,20 +41,58 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export default function InitiativesView() {
+  const [initiatives, setInitiatives] = useState<Initiative[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
-  const filtered = INITIATIVES.filter(i => {
+  useEffect(() => { loadInitiatives(); }, []);
+
+  async function loadInitiatives() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('strategic_initiatives')
+        .select('id, title, description, category, owner_name, status, priority, progress_percent, budget_allocated, budget_spent, start_date, target_date, impact_area')
+        .order('priority', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        setInitiatives(DEMO_INITIATIVES);
+      } else {
+        setInitiatives(data.map(r => ({
+          id: r.id,
+          title: r.title,
+          description: r.description,
+          category: r.category || 'General',
+          owner: r.owner_name || '—',
+          status: r.status || 'planning',
+          priority: r.priority || 'medium',
+          progress: Number(r.progress_percent) || 0,
+          startDate: r.start_date || '',
+          targetDate: r.target_date || '',
+          budget: Number(r.budget_allocated) || 0,
+          spent: Number(r.budget_spent) || 0,
+          impact_area: r.impact_area,
+        })));
+      }
+    } catch {
+      setInitiatives(DEMO_INITIATIVES);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = initiatives.filter(i => {
     const matchSearch = !search || i.title.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || i.status === statusFilter;
     const matchCat = !categoryFilter || i.category === categoryFilter;
     return matchSearch && matchStatus && matchCat;
   });
 
-  const categories = [...new Set(INITIATIVES.map(i => i.category))];
-  const totalBudget = INITIATIVES.reduce((s, i) => s + i.budget, 0);
-  const totalSpent = INITIATIVES.reduce((s, i) => s + i.spent, 0);
+  const categories = [...new Set(initiatives.map(i => i.category))];
+  const totalBudget = initiatives.reduce((s, i) => s + i.budget, 0);
+  const totalSpent = initiatives.reduce((s, i) => s + i.spent, 0);
 
   return (
     <div className="space-y-6">
@@ -45,19 +101,28 @@ export default function InitiativesView() {
           <h2 className="text-2xl font-bold text-gray-900">Strategic Initiatives</h2>
           <p className="text-gray-600 mt-1">Track and manage enterprise-wide strategic programs</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          New Initiative
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadInitiatives}
+            disabled={loading}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Initiative
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-blue-600">{INITIATIVES.length}</div>
+          <div className="text-2xl font-bold text-blue-600">{initiatives.length}</div>
           <div className="text-sm text-gray-600">Total Initiatives</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-green-600">{INITIATIVES.filter(i => i.status === 'in_progress').length}</div>
+          <div className="text-2xl font-bold text-green-600">{initiatives.filter(i => i.status === 'in_progress').length}</div>
           <div className="text-sm text-gray-600">In Progress</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -65,7 +130,7 @@ export default function InitiativesView() {
           <div className="text-sm text-gray-600">Total Budget</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="text-2xl font-bold text-amber-600">{Math.round(totalSpent / totalBudget * 100)}%</div>
+          <div className="text-2xl font-bold text-amber-600">{totalBudget > 0 ? Math.round(totalSpent / totalBudget * 100) : 0}%</div>
           <div className="text-sm text-gray-600">Budget Utilized</div>
         </div>
       </div>
@@ -103,10 +168,23 @@ export default function InitiativesView() {
           </select>
         </div>
 
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 py-12 text-gray-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            <p className="text-sm">Loading initiatives...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <Rocket className="h-12 w-12 mx-auto mb-2 text-gray-200" />
+            <p className="font-medium text-gray-500">No initiatives found</p>
+            <p className="text-xs mt-1">Adjust your filters or create a new initiative</p>
+          </div>
+        ) : null}
+
         <div className="space-y-3">
-          {filtered.map(initiative => {
+          {!loading && filtered.map(initiative => {
             const statusCfg = STATUS_CONFIG[initiative.status];
-            const budgetPct = Math.round((initiative.spent / initiative.budget) * 100);
+            const budgetPct = initiative.budget > 0 ? Math.round((initiative.spent / initiative.budget) * 100) : 0;
             return (
               <div key={initiative.id} className="p-5 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors">
                 <div className="flex items-start justify-between mb-3">
@@ -123,9 +201,9 @@ export default function InitiativesView() {
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 ml-7">
-                      <span className="flex items-center gap-1"><User className="h-3 w-3" />{initiative.owner}</span>
+                      <span className="flex items-center gap-1"><User className="h-3 w-3" />{initiative.owner || '—'}</span>
                       <span className="flex items-center gap-1"><Target className="h-3 w-3" />{initiative.category}</span>
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Target: {new Date(initiative.targetDate).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Target: {initiative.targetDate ? new Date(initiative.targetDate).toLocaleDateString() : '—'}</span>
                     </div>
                     {initiative.linked_okr && (
                       <div className="ml-7 mt-1 text-xs text-blue-600 flex items-center gap-1">

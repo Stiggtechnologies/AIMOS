@@ -1,7 +1,22 @@
-import { useState } from 'react';
-import { FileText, Plus, Search, ChevronRight, Target, Calendar, Activity, CircleCheck as CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Plus, Search, ChevronRight, Target, Calendar, Activity, RefreshCw } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const PLANS = [
+interface TreatmentPlan {
+  id: string;
+  patient: string;
+  condition: string;
+  goals: number;
+  completed: number;
+  startDate: string;
+  endDate: string;
+  sessions: number;
+  attended: number;
+  status: string;
+  clinician: string;
+}
+
+const DEMO_PLANS: TreatmentPlan[] = [
   { id: '1', patient: 'Jane Smith', condition: 'Lower Back Pain', goals: 3, completed: 1, startDate: '2026-02-15', endDate: '2026-04-15', sessions: 12, attended: 5, status: 'active', clinician: 'Dr. Chen' },
   { id: '2', patient: 'Mark Johnson', condition: 'Rotator Cuff Injury', goals: 4, completed: 4, startDate: '2025-12-01', endDate: '2026-03-01', sessions: 20, attended: 20, status: 'completed', clinician: 'Dr. Patel' },
   { id: '3', patient: 'Sara Lee', condition: 'ACL Rehabilitation', goals: 5, completed: 2, startDate: '2026-01-10', endDate: '2026-07-10', sessions: 30, attended: 10, status: 'active', clinician: 'Dr. Williams' },
@@ -16,10 +31,56 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function TreatmentPlansView() {
+  const [plans, setPlans] = useState<TreatmentPlan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const filtered = PLANS.filter(p => {
+  useEffect(() => { loadPlans(); }, []);
+
+  async function loadPlans() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('patient_treatment_plans')
+        .select(`
+          id, diagnosis, start_date, end_date, status, plan_details,
+          patients:patient_id ( first_name, last_name ),
+          user_profiles:provider_id ( first_name, last_name )
+        `)
+        .order('start_date', { ascending: false })
+        .limit(50);
+
+      if (error || !data || data.length === 0) {
+        setPlans(DEMO_PLANS);
+      } else {
+        setPlans(data.map((r: Record<string, unknown>) => {
+          const details = (r.plan_details as Record<string, unknown>) || {};
+          const pt = r.patients as Record<string, string> | null;
+          const prov = r.user_profiles as Record<string, string> | null;
+          return {
+            id: r.id as string,
+            patient: pt ? `${pt.first_name} ${pt.last_name}` : 'Unknown',
+            condition: (r.diagnosis as string) || '—',
+            goals: Number(details.goals_total) || 3,
+            completed: Number(details.goals_completed) || 0,
+            startDate: (r.start_date as string) || '',
+            endDate: (r.end_date as string) || '',
+            sessions: Number(details.sessions_total) || 12,
+            attended: Number(details.sessions_attended) || 0,
+            status: (r.status as string) || 'active',
+            clinician: prov ? `Dr. ${prov.last_name}` : '—',
+          };
+        }));
+      }
+    } catch {
+      setPlans(DEMO_PLANS);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = plans.filter(p => {
     const matchSearch = !search || p.patient.toLowerCase().includes(search.toLowerCase()) || p.condition.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || p.status === statusFilter;
     return matchSearch && matchStatus;
@@ -32,18 +93,27 @@ export default function TreatmentPlansView() {
           <h2 className="text-2xl font-bold text-gray-900">Treatment Plans</h2>
           <p className="text-gray-600 mt-1">Manage and track patient treatment plans</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          New Plan
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadPlans}
+            disabled={loading}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Plan
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Plans', value: PLANS.length, color: 'text-blue-600' },
-          { label: 'Active', value: PLANS.filter(p => p.status === 'active').length, color: 'text-green-600' },
-          { label: 'Completed', value: PLANS.filter(p => p.status === 'completed').length, color: 'text-gray-600' },
-          { label: 'Avg Adherence', value: `${Math.round(PLANS.reduce((sum, p) => sum + (p.attended / p.sessions * 100), 0) / PLANS.length)}%`, color: 'text-teal-600' },
+          { label: 'Total Plans', value: plans.length, color: 'text-blue-600' },
+          { label: 'Active', value: plans.filter(p => p.status === 'active').length, color: 'text-green-600' },
+          { label: 'Completed', value: plans.filter(p => p.status === 'completed').length, color: 'text-gray-600' },
+          { label: 'Avg Adherence', value: plans.length > 0 ? `${Math.round(plans.reduce((sum, p) => sum + (p.sessions > 0 ? p.attended / p.sessions * 100 : 0), 0) / plans.length)}%` : '—', color: 'text-teal-600' },
         ].map(stat => (
           <div key={stat.label} className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -76,8 +146,21 @@ export default function TreatmentPlansView() {
           </select>
         </div>
 
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 py-12 text-gray-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            <p className="text-sm">Loading treatment plans...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <FileText className="h-12 w-12 mx-auto mb-2 text-gray-200" />
+            <p className="font-medium text-gray-500">No treatment plans found</p>
+            <p className="text-xs mt-1">Adjust filters or create a new plan</p>
+          </div>
+        ) : null}
+
         <div className="space-y-3">
-          {filtered.map(plan => {
+          {!loading && filtered.map(plan => {
             const adherencePct = Math.round((plan.attended / plan.sessions) * 100);
             const goalPct = Math.round((plan.completed / plan.goals) * 100);
             return (

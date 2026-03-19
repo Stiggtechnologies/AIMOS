@@ -127,7 +127,7 @@ export const moduleConfig: NavModule[] = [
     subItems: [
       { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
       { key: 'leads', label: 'Leads', icon: 'UserPlus' },
-      { key: 'intake-conversion', label: 'Intake Conversion', icon: 'Funnel' },
+      { key: 'intake-conversion', label: 'Intake Conversion', icon: 'Filter' },
       { key: 'trainers', label: 'Trainer Referrals', icon: 'Dumbbell' },
       { key: 'employers', label: 'Employer Programs', icon: 'Building2' },
       { key: 'campaigns', label: 'Campaigns', icon: 'Megaphone' },
