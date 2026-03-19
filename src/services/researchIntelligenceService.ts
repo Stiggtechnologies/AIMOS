@@ -264,50 +264,53 @@ class ResearchIntelligenceService {
       .eq('is_active', true);
 
     if (filters?.readingLevel) {
-      query = query.eq('reading_level', filters.readingLevel);
+      query = query.lte('reading_level', filters.readingLevel);
     }
 
-    if (filters?.topicTags && filters.topicTags.length > 0) {
-      query = query.contains('topic_tags', filters.topicTags);
-    }
+    const { data: allData, error: allError } = await query;
 
-    // Filter by domain - check if domain name is in topic_tags or title
-    if (filters?.domain) {
-      // For now, we'll filter client-side since education assets use topic tags
-      // In future, could add a domain column to patient_education_assets table
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching education assets:', error);
-        return [];
-      }
-
-      // Match by domain-specific keywords in title or tags
-      const domainKeywords: Record<string, string[]> = {
-        'chronic_pain': ['pain', 'chronic', 'pacing', 'flare', 'stress', 'sleep'],
-        'acl': ['acl', 'strength', 'landing', 'sport', 'hop', 'knee'],
-        'neuro': ['neuro', 'repetition', 'balance', 'fatigue', 'gait', 'walking', 'stroke', 'falls']
-      };
-
-      const keywords = domainKeywords[filters.domain] || [];
-      return (data || []).filter(asset => {
-        const titleLower = asset.title.toLowerCase();
-        const tags = asset.topic_tags || [];
-        return keywords.some(keyword =>
-          titleLower.includes(keyword) ||
-          tags.some((tag: string) => tag.toLowerCase().includes(keyword))
-        );
-      });
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching education assets:', error);
+    if (allError) {
+      console.error('Error fetching education assets:', allError);
       return [];
     }
 
-    return data || [];
+    let results = allData || [];
+
+    if (filters?.topicTags && filters.topicTags.length > 0) {
+      const tagFiltered = results.filter(asset =>
+        filters.topicTags!.some(tag =>
+          (asset.topic_tags || []).includes(tag)
+        )
+      );
+      if (tagFiltered.length > 0) {
+        results = tagFiltered;
+      }
+    }
+
+    if (filters?.domain) {
+      const domainKeywords: Record<string, string[]> = {
+        'chronic_pain': ['pain', 'chronic', 'pacing', 'flare', 'stress', 'sleep'],
+        'acl': ['acl', 'strength', 'landing', 'sport', 'hop', 'knee'],
+        'neuro': ['neuro', 'repetition', 'balance', 'fatigue', 'gait', 'walking', 'stroke', 'falls'],
+      };
+
+      const keywords = domainKeywords[filters.domain] || [];
+      if (keywords.length > 0) {
+        const domainFiltered = results.filter(asset => {
+          const titleLower = asset.title.toLowerCase();
+          const tags = asset.topic_tags || [];
+          return keywords.some(keyword =>
+            titleLower.includes(keyword) ||
+            tags.some((tag: string) => tag.toLowerCase().includes(keyword))
+          );
+        });
+        if (domainFiltered.length > 0) {
+          results = domainFiltered;
+        }
+      }
+    }
+
+    return results;
   }
 
   /**
