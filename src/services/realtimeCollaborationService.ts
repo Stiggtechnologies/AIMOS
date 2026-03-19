@@ -105,7 +105,7 @@ class RealtimeCollaborationService {
         }
       }
     };
-  },
+  }
 
   unsubscribeFromWorkspace(workspaceId: string): void {
     const channelName = `workspace:${workspaceId}`;
@@ -116,7 +116,7 @@ class RealtimeCollaborationService {
       this.channels.delete(channelName);
       this.listeners.delete(channelName);
     }
-  },
+  }
 
   broadcastActivity(activity: CollaborationActivity): void {
     this.activityLog.push(activity);
@@ -127,11 +127,11 @@ class RealtimeCollaborationService {
     this.listeners.forEach((listeners) => {
       listeners.forEach((listener) => listener(activity));
     });
-  },
+  }
 
   private handleUserActivity(activity: CollaborationActivity): void {
     this.broadcastActivity(activity);
-  },
+  }
 
   sendUserActivity(workspaceId: string, activity: Omit<CollaborationActivity, 'timestamp'>): void {
     const channelName = `workspace:${workspaceId}`;
@@ -147,7 +147,7 @@ class RealtimeCollaborationService {
         }
       });
     }
-  },
+  }
 
   updateUserPresence(workspaceId: string, user: CollaborationUser): void {
     this.activeUsers.set(user.userId, user);
@@ -155,15 +155,15 @@ class RealtimeCollaborationService {
     setTimeout(() => {
       this.activeUsers.delete(user.userId);
     }, 30000);
-  },
+  }
 
   getActiveUsers(): CollaborationUser[] {
     return Array.from(this.activeUsers.values());
-  },
+  }
 
   getRecentActivity(limit: number = 20): CollaborationActivity[] {
     return this.activityLog.slice(-limit);
-  },
+  }
 
   subscribeToSynthesis(synthesisId: string, onChange: (synthesis: any) => void): () => void {
     const channelName = `synthesis:${synthesisId}`;
@@ -186,7 +186,7 @@ class RealtimeCollaborationService {
       channel.unsubscribe();
       this.channels.delete(channelName);
     };
-  },
+  }
 
   subscribeToTranslation(translationId: string, onChange: (translation: any) => void): () => void {
     const channelName = `translation:${translationId}`;
@@ -209,7 +209,7 @@ class RealtimeCollaborationService {
       channel.unsubscribe();
       this.channels.delete(channelName);
     };
-  },
+  }
 
   unsubscribeAll(): void {
     this.channels.forEach((channel) => {

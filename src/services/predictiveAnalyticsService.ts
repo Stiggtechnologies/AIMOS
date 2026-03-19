@@ -172,7 +172,7 @@ class PredictiveAnalyticsService {
         predictionDate: new Date().toISOString()
       };
     }
-  },
+  }
 
   async forecastTranslationImpact(translationId: string): Promise<TranslationImpactForecast | null> {
     try {
@@ -234,7 +234,7 @@ class PredictiveAnalyticsService {
       console.error('Error forecasting translation impact:', error);
       return null;
     }
-  },
+  }
 
   async analyzeTrends(metric: string, clinicId?: string, months: number = 6): Promise<TrendAnalysis | null> {
     try {
@@ -285,7 +285,7 @@ class PredictiveAnalyticsService {
       console.error('Error analyzing trends:', error);
       return null;
     }
-  },
+  }
 
   async identifyHighImpactResearchGaps(): Promise<Array<{
     topic: string;
