@@ -23,30 +23,25 @@ interface PatientOption {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-blue-100 text-blue-800',
+  new: 'bg-blue-100 text-blue-800',
   active: 'bg-green-100 text-green-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  closed: 'bg-gray-100 text-gray-800',
-  critical: 'bg-red-100 text-red-800',
+  on_hold: 'bg-yellow-100 text-yellow-800',
+  pending_approval: 'bg-orange-100 text-orange-800',
+  completed: 'bg-gray-100 text-gray-800',
+  cancelled: 'bg-red-100 text-red-800',
+  archived: 'bg-gray-100 text-gray-600',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
   low: 'bg-green-100 text-green-700',
+  medium: 'bg-yellow-100 text-yellow-700',
+  high: 'bg-red-100 text-red-700',
   urgent: 'bg-red-200 text-red-900',
+  critical: 'bg-red-300 text-red-900',
 };
 
 const CASE_TYPES = ['physiotherapy', 'massage', 'chiropractic', 'occupational', 'mva', 'wcb'];
-const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
-
-const DEMO_PATIENTS: PatientOption[] = [
-  { id: '1', first_name: 'Jane', last_name: 'Smith' },
-  { id: '2', first_name: 'Mark', last_name: 'Johnson' },
-  { id: '3', first_name: 'Sara', last_name: 'Lee' },
-  { id: '4', first_name: 'Tom', last_name: 'Brown' },
-  { id: '5', first_name: 'Alice', last_name: 'Park' },
-];
+const PRIORITIES = ['low', 'medium', 'high', 'urgent', 'critical'];
 
 function generateCaseNumber() {
   const year = new Date().getFullYear();
@@ -64,37 +59,40 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
   const [patientId, setPatientId] = useState('');
   const [caseType, setCaseType] = useState(CASE_TYPES[0]);
   const [priority, setPriority] = useState('medium');
-  const [notes, setNotes] = useState('');
+  const [chiefComplaint, setChiefComplaint] = useState('');
+  const [clinicalNotes, setClinicalNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
   const [caseNumber] = useState(generateCaseNumber());
 
   useEffect(() => {
     supabase
       .from('patients')
       .select('id, first_name, last_name')
-      .eq('status', 'active')
-      .limit(50)
+      .limit(100)
       .then(({ data }) => {
-        setPatients(data && data.length > 0 ? data : DEMO_PATIENTS);
+        if (data && data.length > 0) setPatients(data);
       });
   }, []);
 
   const handleSubmit = async () => {
     setSaving(true);
-    try {
-      await supabase.from('cases').insert({
-        case_number: caseNumber,
-        patient_id: patientId || null,
-        case_type: caseType,
-        priority,
-        status: 'open',
-        notes,
-        opened_at: new Date().toISOString(),
-      });
-    } catch {
-    } finally {
-      setSaving(false);
+    setError('');
+    const { error: err } = await supabase.from('ops_cases').insert({
+      case_number: caseNumber,
+      patient_id: patientId || null,
+      case_type: caseType,
+      priority,
+      status: 'new',
+      chief_complaint: chiefComplaint || null,
+      clinical_notes: clinicalNotes || null,
+      opened_at: new Date().toISOString(),
+    });
+    setSaving(false);
+    if (err) {
+      setError(err.message);
+    } else {
       setDone(true);
     }
   };
@@ -105,7 +103,7 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-bold text-gray-900">New Case</h2>
-            <p className="text-sm text-gray-500 font-mono">{caseNumber}</p>
+            <p className="text-xs text-gray-400 font-mono mt-0.5">{caseNumber}</p>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5" />
@@ -118,7 +116,7 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
               <CheckCircle className="w-7 h-7 text-green-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Case Created</h3>
-            <p className="text-sm font-mono text-gray-600 mb-1">{caseNumber}</p>
+            <p className="text-sm font-mono text-gray-500 mb-1">{caseNumber}</p>
             <p className="text-sm text-gray-500 capitalize">{caseType} &middot; {priority} priority</p>
             <button
               onClick={() => { onCreated(); onClose(); }}
@@ -129,6 +127,10 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
           </div>
         ) : (
           <div className="p-6 space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Patient</label>
               <select
@@ -149,10 +151,10 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
                 <select
                   value={caseType}
                   onChange={e => setCaseType(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {CASE_TYPES.map(t => (
-                    <option key={t} value={t} className="capitalize">{t === 'mva' ? 'MVA' : t === 'wcb' ? 'WCB' : t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                    <option key={t} value={t}>{t === 'mva' ? 'MVA' : t === 'wcb' ? 'WCB' : t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
                 </select>
               </div>
@@ -171,12 +173,23 @@ function NewCaseModal({ onClose, onCreated }: NewCaseModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Notes (optional)</label>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Chief Complaint</label>
+              <input
+                type="text"
+                value={chiefComplaint}
+                onChange={e => setChiefComplaint(e.target.value)}
+                placeholder="Primary reason for case opening..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Clinical Notes (optional)</label>
               <textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
+                value={clinicalNotes}
+                onChange={e => setClinicalNotes(e.target.value)}
                 rows={3}
-                placeholder="Initial case notes, reason for referral, relevant history..."
+                placeholder="Initial case notes, relevant history..."
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -217,8 +230,8 @@ export default function CasesView() {
     setLoading(true);
     try {
       let query = supabase
-        .from('ops_case_aging_status')
-        .select('*')
+        .from('ops_cases')
+        .select('id, case_number, case_type, status, priority, opened_at, closed_at, created_at')
         .order('opened_at', { ascending: false });
 
       if (statusFilter) query = query.eq('status', statusFilter);
@@ -226,7 +239,24 @@ export default function CasesView() {
 
       const { data, error } = await query;
       if (error) throw error;
-      setCases(data || []);
+
+      const mapped: Case[] = (data || []).map((c: Record<string, unknown>) => {
+        const openedAt = (c.opened_at || c.created_at) as string;
+        const ageDays = openedAt
+          ? Math.floor((Date.now() - new Date(openedAt).getTime()) / 86400000)
+          : 0;
+        return {
+          id: c.id as string,
+          case_number: c.case_number as string,
+          case_type: c.case_type as string,
+          status: c.status as string,
+          priority: c.priority as string,
+          opened_at: openedAt,
+          closed_at: c.closed_at as string | null,
+          age_days: ageDays,
+        };
+      });
+      setCases(mapped);
     } catch {
       setCases([]);
     } finally {
@@ -238,11 +268,11 @@ export default function CasesView() {
     !searchTerm ||
     c.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.case_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.primary_clinician_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.primary_clinician_name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openCount = cases.filter(c => c.status === 'open' || c.status === 'active').length;
-  const criticalCount = cases.filter(c => c.aging_status === 'critical').length;
+  const openCount = cases.filter(c => c.status === 'new' || c.status === 'active').length;
+  const criticalCount = cases.filter(c => c.priority === 'critical' || c.priority === 'urgent').length;
 
   return (
     <div className="space-y-6">
@@ -267,11 +297,11 @@ export default function CasesView() {
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <div className="text-2xl font-bold text-green-600">{openCount}</div>
-          <div className="text-sm text-gray-600 mt-1">Open / Active</div>
+          <div className="text-sm text-gray-600 mt-1">New / Active</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <div className="text-2xl font-bold text-red-600">{criticalCount}</div>
-          <div className="text-sm text-gray-600 mt-1">Critical Aging</div>
+          <div className="text-sm text-gray-600 mt-1">Urgent / Critical</div>
         </div>
       </div>
 
@@ -293,10 +323,12 @@ export default function CasesView() {
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Statuses</option>
-            <option value="open">Open</option>
+            <option value="new">New</option>
             <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="closed">Closed</option>
+            <option value="on_hold">On Hold</option>
+            <option value="pending_approval">Pending Approval</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
           <select
             value={typeFilter}
@@ -327,26 +359,30 @@ export default function CasesView() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-gray-900 text-sm">{c.case_number}</span>
                       <span className={`px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[c.status] ?? 'bg-gray-100 text-gray-700'}`}>
-                        {c.status}
+                        {c.status.replace(/_/g, ' ')}
                       </span>
                       <span className={`px-2 py-0.5 text-xs rounded-full ${PRIORITY_COLORS[c.priority] ?? 'bg-gray-100 text-gray-700'}`}>
                         {c.priority}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {c.primary_clinician_name ?? 'Unassigned'}
-                      </span>
+                      {c.primary_clinician_name && (
+                        <span className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {c.primary_clinician_name}
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(c.opened_at).toLocaleDateString()}
                       </span>
-                      <span className="flex items-center gap-1 capitalize">
+                      <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {c.age_days}d old
                       </span>
-                      {c.case_type && <span className="capitalize">{c.case_type}</span>}
+                      {c.case_type && (
+                        <span className="capitalize">{c.case_type === 'mva' ? 'MVA' : c.case_type === 'wcb' ? 'WCB' : c.case_type}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -358,7 +394,7 @@ export default function CasesView() {
           <div className="text-center py-12 text-gray-500">
             <AlertCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="font-medium">No cases found</p>
-            <p className="text-sm mt-1">Try adjusting your filters or search term</p>
+            <p className="text-sm mt-1">Try adjusting your filters or create a new case</p>
           </div>
         )}
       </div>
