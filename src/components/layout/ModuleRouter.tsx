@@ -50,6 +50,7 @@ const PatientEducationPanel = lazy(() => import('../patient/PatientEducationPane
 const SemanticSearchPanel = lazy(() => import('../aim-os/SemanticSearchPanel').then(m => ({ default: m.SemanticSearchPanel })));
 const CIIAutomationDashboard = lazy(() => import('../aim-os/CIIAutomationDashboard').then(m => ({ default: m.CIIAutomationDashboard })));
 const EvidenceLibraryAdmin = lazy(() => import('../aim-os/EvidenceLibraryAdmin').then(m => ({ default: m.EvidenceLibraryAdmin })));
+const PatientsView = lazy(() => import('../clinical/PatientsView'));
 const CasesView = lazy(() => import('../clinical/CasesView'));
 const AssessmentsView = lazy(() => import('../clinical/AssessmentsView'));
 const TreatmentPlansView = lazy(() => import('../clinical/TreatmentPlansView'));
@@ -253,7 +254,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── CLINICAL ─────────────────────────────────────────────────────────
       case 'clinical':
         switch (currentSubModule) {
-          case 'patients': return <PatientPortalDashboard />;
+          case 'patients': return <PatientsView />;
           case 'visits':
           case 'charting': return <ClinicalChartingWorkflow />;
           case 'outcomes': return <ClinicalQualityView />;
