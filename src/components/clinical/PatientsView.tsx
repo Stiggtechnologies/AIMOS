@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Plus, Phone, Mail, Calendar, ChevronRight, Filter, RefreshCw, UserCheck, CircleAlert as AlertCircle, Clock, Activity, X, Send, CircleCheck as CheckCircle } from 'lucide-react';
+import { Users, Search, Plus, Phone, Mail, Calendar, ChevronRight, Filter, RefreshCw, UserCheck, CircleAlert as AlertCircle, Clock, Activity, X, Send, CircleCheck as CheckCircle, User } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Patient {
@@ -307,6 +307,238 @@ function SendMessageModal({ patient, onClose }: MessageModalProps) {
   );
 }
 
+interface Clinic {
+  id: string;
+  name: string;
+}
+
+interface NewPatientModalProps {
+  onClose: () => void;
+  onCreated: (patient: Patient) => void;
+}
+
+function NewPatientModal({ onClose, onCreated }: NewPatientModalProps) {
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [step, setStep] = useState<'form' | 'done'>(('form'));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [createdPatient, setCreatedPatient] = useState<Patient | null>(null);
+
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    date_of_birth: '',
+    gender: '',
+    phone: '',
+    email: '',
+    clinic_id: '',
+    address_line1: '',
+    city: '',
+    postal_code: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    status: 'active',
+  });
+
+  useEffect(() => {
+    supabase.from('clinics').select('id, name').order('name').then(({ data }) => {
+      if (data) setClinics(data);
+    });
+  }, []);
+
+  const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const generateMRN = () => `MRN-${Date.now().toString().slice(-5)}`;
+
+  const handleSave = async () => {
+    if (!form.first_name.trim() || !form.last_name.trim()) { setError('First and last name are required.'); return; }
+    if (!form.date_of_birth) { setError('Date of birth is required.'); return; }
+    if (!form.clinic_id) { setError('Please select a clinic.'); return; }
+    setSaving(true);
+    setError('');
+    const mrn = generateMRN();
+    const { data, error: err } = await supabase.from('patients').insert({
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      date_of_birth: form.date_of_birth,
+      gender: form.gender || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      clinic_id: form.clinic_id,
+      address_line1: form.address_line1 || null,
+      city: form.city || null,
+      postal_code: form.postal_code || null,
+      emergency_contact_name: form.emergency_contact_name || null,
+      emergency_contact_phone: form.emergency_contact_phone || null,
+      medical_record_number: mrn,
+      status: form.status,
+    }).select('id, first_name, last_name, date_of_birth, phone, email, medical_record_number, status').single();
+    setSaving(false);
+    if (err) { setError(err.message); return; }
+    const newPatient: Patient = {
+      id: data.id,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      date_of_birth: data.date_of_birth,
+      phone: data.phone,
+      email: data.email,
+      medical_record_number: data.medical_record_number,
+      status: data.status,
+      clinic_name: clinics.find(c => c.id === form.clinic_id)?.name,
+    };
+    setCreatedPatient(newPatient);
+    setStep('done');
+    onCreated(newPatient);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-50 p-2 rounded-lg">
+              <User className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">New Patient</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Register a new patient record</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {step === 'done' && createdPatient ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle className="w-7 h-7 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Patient Registered</h3>
+            <p className="text-sm text-gray-700 font-medium">{createdPatient.last_name}, {createdPatient.first_name}</p>
+            <p className="text-sm text-gray-400 mt-0.5">{createdPatient.medical_record_number}</p>
+            <button onClick={onClose} className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+              )}
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Personal Information</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">First Name <span className="text-red-500">*</span></label>
+                    <input value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="First name" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Last Name <span className="text-red-500">*</span></label>
+                    <input value={form.last_name} onChange={e => set('last_name', e.target.value)} placeholder="Last name" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Date of Birth <span className="text-red-500">*</span></label>
+                    <input type="date" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Gender</label>
+                    <select value={form.gender} onChange={e => set('gender', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Select</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                      <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Contact</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Phone</label>
+                    <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="(780) 555-0100" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Email</label>
+                    <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="patient@email.com" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-600 mb-1">Address</label>
+                    <input value={form.address_line1} onChange={e => set('address_line1', e.target.value)} placeholder="Street address" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">City</label>
+                    <input value={form.city} onChange={e => set('city', e.target.value)} placeholder="Edmonton" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Postal Code</label>
+                    <input value={form.postal_code} onChange={e => set('postal_code', e.target.value)} placeholder="T5A 0A1" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Clinic & Status</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-600 mb-1">Clinic <span className="text-red-500">*</span></label>
+                    <select value={form.clinic_id} onChange={e => set('clinic_id', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Select clinic</option>
+                      {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-600 mb-1">Status</label>
+                    <select value={form.status} onChange={e => set('status', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="active">Active</option>
+                      <option value="new">New</option>
+                      <option value="waitlist">Waitlist</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Emergency Contact</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Name</label>
+                    <input value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} placeholder="Contact name" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Phone</label>
+                    <input value={form.emergency_contact_phone} onChange={e => set('emergency_contact_phone', e.target.value)} placeholder="(780) 555-0100" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+              <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {saving ? 'Registering...' : 'Register Patient'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function PatientsView() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -315,6 +547,7 @@ export default function PatientsView() {
   const [selected, setSelected] = useState<Patient | null>(null);
   const [bookingPatient, setBookingPatient] = useState<Patient | null>(null);
   const [messagingPatient, setMessagingPatient] = useState<Patient | null>(null);
+  const [showNewPatient, setShowNewPatient] = useState(false);
 
   useEffect(() => { loadPatients(); }, []);
 
@@ -384,7 +617,10 @@ export default function PatientsView() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <button
+            onClick={() => setShowNewPatient(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
             <Plus className="w-4 h-4" />
             New Patient
           </button>
@@ -552,6 +788,12 @@ export default function PatientsView() {
       )}
       {messagingPatient && (
         <SendMessageModal patient={messagingPatient} onClose={() => setMessagingPatient(null)} />
+      )}
+      {showNewPatient && (
+        <NewPatientModal
+          onClose={() => setShowNewPatient(false)}
+          onCreated={newPt => setPatients(prev => [newPt, ...prev])}
+        />
       )}
     </div>
   );
