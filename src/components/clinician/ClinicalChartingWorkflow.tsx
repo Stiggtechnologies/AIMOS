@@ -12,14 +12,20 @@ interface ChartingNote {
   findings?: string[];
 }
 
+const DEFAULT_PROFILE: PatientProfile = {
+  region: 'Alberta',
+  condition_type: 'musculoskeletal',
+  acuity: 'sub-acute',
+};
+
 interface ClinicalChartingProps {
-  patientId: string;
-  patientProfile: PatientProfile;
+  patientId?: string;
+  patientProfile?: PatientProfile;
   onSave?: (note: ChartingNote) => void;
 }
 
 export const ClinicalChartingWorkflow: React.FC<ClinicalChartingProps> = ({
-  patientProfile,
+  patientProfile = DEFAULT_PROFILE,
   onSave,
 }) => {
   const [activeTab, setActiveTab] = useState<'assessment' | 'intervention' | 'progress'>('assessment');
@@ -28,13 +34,13 @@ export const ClinicalChartingWorkflow: React.FC<ClinicalChartingProps> = ({
   const [newFinding, setNewFinding] = useState('');
   const [showEvidencePanel, setShowEvidencePanel] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedDomain, setSelectedDomain] = useState<ClinicalDomain | null>(patientProfile.domain || null);
+  const [selectedDomain, setSelectedDomain] = useState<ClinicalDomain | null>(patientProfile?.domain ?? null);
   const [activeProfile, setActiveProfile] = useState<PatientProfile>(patientProfile);
 
   useEffect(() => {
     setActiveProfile({
       ...patientProfile,
-      domain: selectedDomain || patientProfile.domain
+      domain: selectedDomain ?? patientProfile?.domain
     });
   }, [selectedDomain, patientProfile]);
 
