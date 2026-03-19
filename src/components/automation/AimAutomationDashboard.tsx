@@ -19,6 +19,7 @@ import IntegrationsView from './IntegrationsView';
 import PolicyRulesView from './PolicyRulesView';
 import AuditLogView from './AuditLogView';
 import SettingsView from './SettingsView';
+import WorkflowOpsView from './WorkflowOpsView';
 
 export default function AimAutomationDashboard() {
   const [activeView, setActiveView] = useState<AutomationView>('overview');
@@ -222,6 +223,8 @@ export default function AimAutomationDashboard() {
         );
       case 'settings':
         return <SettingsView locations={locations} />;
+      case 'workflow-ops':
+        return <WorkflowOpsView />;
       default:
         return null;
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, ListChecks, SquareCheck as CheckSquare, MessageSquare, TriangleAlert as AlertTriangle, ChartBar as BarChart3, MapPin, Plug, Shield, ScrollText, Settings, ChevronLeft, ChevronRight, Bell, Zap, X, Menu } from 'lucide-react';
+import { LayoutDashboard, ListChecks, SquareCheck as CheckSquare, MessageSquare, TriangleAlert as AlertTriangle, ChartBar as BarChart3, MapPin, Plug, Shield, ScrollText, Settings, ChevronLeft, ChevronRight, Bell, Zap, X, Menu, GitBranch } from 'lucide-react';
 import type { AimLocation } from '../../services/aimAutomationService';
 
 export type AutomationView =
@@ -13,7 +13,8 @@ export type AutomationView =
   | 'integrations'
   | 'policy-rules'
   | 'audit-log'
-  | 'settings';
+  | 'settings'
+  | 'workflow-ops';
 
 interface NavItem {
   view: AutomationView;
@@ -59,6 +60,7 @@ export default function AimAutomationShell({
     { view: 'integrations', label: 'Integrations', icon: Plug },
     { view: 'policy-rules', label: 'Policy Rules', icon: Shield },
     { view: 'audit-log', label: 'Audit Log', icon: ScrollText },
+    { view: 'workflow-ops', label: 'Workflow Ops', icon: GitBranch },
     { view: 'settings', label: 'Settings', icon: Settings },
   ];
 
