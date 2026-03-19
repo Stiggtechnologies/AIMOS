@@ -78,7 +78,7 @@ export interface KpiDailySnapshot {
   id: string;
   snapshot_date: string;
   location_id: string | null;
-  channel: string | null;
+  channel_id: string | null;
   metric_name: string;
   metric_value: number;
   metadata_json: Record<string, unknown>;
@@ -108,16 +108,15 @@ export interface ContentItem {
   description: string | null;
   location_id: string | null;
   content_pillar: string | null;
-  primary_channel: string | null;
+  primary_channel_id: string | null;
   status: string;
   risk_score: number;
   owner_user_id: string | null;
   scheduled_for: string | null;
-  idempotency_key: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  aim_locations?: { name: string; city: string } | null;
+  wf_locations?: { name: string } | null;
 }
 
 export interface ContentVariant {
@@ -138,7 +137,7 @@ export interface PublishJob {
   id: string;
   content_item_id: string;
   content_variant_id: string | null;
-  channel: string;
+  channel_id: string | null;
   location_id: string | null;
   scheduled_for: string;
   status: 'queued' | 'due' | 'publishing' | 'published' | 'failed' | 'cancelled' | 'held';
@@ -147,8 +146,8 @@ export interface PublishJob {
   failure_reason: string | null;
   created_at: string;
   updated_at: string;
-  aim_content_items?: { title: string; status: string } | null;
-  aim_locations?: { name: string; city: string } | null;
+  wf_content_items?: { title: string; status: string } | null;
+  wf_locations?: { name: string } | null;
 }
 
 export interface AimReview {
@@ -165,9 +164,7 @@ export interface AimReview {
   response_status: string;
   created_at: string;
   updated_at: string;
-  aim_locations?: { name: string; city: string } | null;
-  aim_review_flags?: { flag_code: string; confidence: number }[];
-  aim_review_drafts?: { id: string; draft_text: string; status: string }[];
+  wf_locations?: { name: string } | null;
 }
 
 export interface WorkflowPolicyRule {
@@ -187,9 +184,6 @@ export interface AuditEvent {
   action: string;
   target_type: string;
   target_id: string | null;
-  correlation_id: string | null;
-  source_system: string | null;
-  environment: string | null;
   payload_json: Record<string, unknown>;
   created_at: string;
 }
@@ -243,7 +237,7 @@ async function queryOpenClaw(endpoint: string): Promise<Record<string, unknown>>
 }
 
 async function getWorkflowRuns(filters?: { workflow_name?: string; status?: string; limit?: number }): Promise<WorkflowRun[]> {
-  let query = supabase.from('aim_workflow_runs').select('*').order('started_at', { ascending: false });
+  let query = supabase.from('wf_workflow_runs').select('*').order('started_at', { ascending: false });
   if (filters?.workflow_name) query = query.eq('workflow_name', filters.workflow_name);
   if (filters?.status) query = query.eq('status', filters.status);
   query = query.limit(filters?.limit || 100);
@@ -253,7 +247,7 @@ async function getWorkflowRuns(filters?: { workflow_name?: string; status?: stri
 }
 
 async function getExceptions(filters?: { status?: string; severity?: string; limit?: number }): Promise<WorkflowException[]> {
-  let query = supabase.from('aim_workflow_exceptions').select('*').order('created_at', { ascending: false });
+  let query = supabase.from('wf_workflow_exceptions').select('*').order('created_at', { ascending: false });
   if (filters?.status) query = query.eq('status', filters.status);
   if (filters?.severity) query = query.eq('severity', filters.severity);
   query = query.limit(filters?.limit || 100);
@@ -264,14 +258,14 @@ async function getExceptions(filters?: { status?: string; severity?: string; lim
 
 async function resolveException(id: string): Promise<void> {
   const { error } = await supabase
-    .from('aim_workflow_exceptions')
+    .from('wf_workflow_exceptions')
     .update({ status: 'resolved', resolved_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
 }
 
 async function getOperationalAlerts(filters?: { status?: string; severity?: string }): Promise<OperationalAlert[]> {
-  let query = supabase.from('aim_operational_alerts').select('*').order('created_at', { ascending: false });
+  let query = supabase.from('wf_alerts').select('*').order('created_at', { ascending: false });
   if (filters?.status) query = query.eq('status', filters.status);
   if (filters?.severity) query = query.eq('severity', filters.severity);
   const { data, error } = await query;
@@ -281,7 +275,7 @@ async function getOperationalAlerts(filters?: { status?: string; severity?: stri
 
 async function acknowledgeAlert(id: string): Promise<void> {
   const { error } = await supabase
-    .from('aim_operational_alerts')
+    .from('wf_alerts')
     .update({ status: 'acknowledged' })
     .eq('id', id);
   if (error) throw error;
@@ -289,29 +283,29 @@ async function acknowledgeAlert(id: string): Promise<void> {
 
 async function resolveAlert(id: string): Promise<void> {
   const { error } = await supabase
-    .from('aim_operational_alerts')
+    .from('wf_alerts')
     .update({ status: 'resolved', resolved_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
 }
 
-async function getKpiSnapshots(filters?: { location_id?: string; channel?: string; days?: number }): Promise<KpiDailySnapshot[]> {
+async function getKpiSnapshots(filters?: { location_id?: string; channel_id?: string; days?: number }): Promise<KpiDailySnapshot[]> {
   const daysBack = filters?.days || 30;
   const since = new Date(Date.now() - daysBack * 86400000).toISOString().split('T')[0];
   let query = supabase
-    .from('aim_kpi_daily_snapshots')
+    .from('wf_kpi_daily_snapshots')
     .select('*')
     .gte('snapshot_date', since)
     .order('snapshot_date', { ascending: false });
   if (filters?.location_id) query = query.eq('location_id', filters.location_id);
-  if (filters?.channel) query = query.eq('channel', filters.channel);
+  if (filters?.channel_id) query = query.eq('channel_id', filters.channel_id);
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }
 
 async function getIntegrationAccounts(locationId?: string): Promise<IntegrationAccount[]> {
-  let query = supabase.from('aim_integration_accounts').select('*').order('provider');
+  let query = supabase.from('wf_integration_accounts').select('*').order('provider');
   if (locationId) query = query.eq('location_id', locationId);
   const { data, error } = await query;
   if (error) throw error;
@@ -320,8 +314,8 @@ async function getIntegrationAccounts(locationId?: string): Promise<IntegrationA
 
 async function getContentItems(filters?: { location_id?: string; status?: string; limit?: number }): Promise<ContentItem[]> {
   let query = supabase
-    .from('aim_content_items')
-    .select('*, aim_locations(name, city)')
+    .from('wf_content_items')
+    .select('*, wf_locations(name)')
     .order('created_at', { ascending: false });
   if (filters?.location_id) query = query.eq('location_id', filters.location_id);
   if (filters?.status) query = query.eq('status', filters.status);
@@ -332,13 +326,12 @@ async function getContentItems(filters?: { location_id?: string; status?: string
 }
 
 async function createContentItem(item: Partial<ContentItem>): Promise<ContentItem> {
-  const idempotencyKey = `content_${crypto.randomUUID()}`;
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
-    .from('aim_content_items')
-    .insert({ ...item, idempotency_key: idempotencyKey, created_by: user?.id, owner_user_id: user?.id })
-    .select('*, aim_locations(name, city)')
+    .from('wf_content_items')
+    .insert({ ...item, created_by: user?.id, owner_user_id: user?.id })
+    .select('*, wf_locations(name)')
     .single();
   if (error) throw error;
 
@@ -346,19 +339,19 @@ async function createContentItem(item: Partial<ContentItem>): Promise<ContentIte
     title: data.title,
     risk_score: data.risk_score || 0,
     location_id: data.location_id,
-    primary_channel: data.primary_channel,
+    primary_channel_id: data.primary_channel_id,
   });
 
   return data as ContentItem;
 }
 
-async function getPublishJobs(filters?: { location_id?: string; status?: string; channel?: string }): Promise<PublishJob[]> {
+async function getPublishJobs(filters?: { location_id?: string; status?: string; channel_id?: string }): Promise<PublishJob[]> {
   let query = supabase
-    .from('aim_publish_jobs')
-    .select('*, aim_content_items(title, status), aim_locations(name, city)')
+    .from('wf_publish_jobs')
+    .select('*, wf_content_items(title, status), wf_locations(name)')
     .order('scheduled_for', { ascending: false });
   if (filters?.status) query = query.eq('status', filters.status);
-  if (filters?.channel) query = query.eq('channel', filters.channel);
+  if (filters?.channel_id) query = query.eq('channel_id', filters.channel_id);
   if (filters?.location_id) query = query.eq('location_id', filters.location_id);
   const { data, error } = await query;
   if (error) throw error;
@@ -367,8 +360,8 @@ async function getPublishJobs(filters?: { location_id?: string; status?: string;
 
 async function getReviews(filters?: { location_id?: string; response_status?: string; limit?: number }): Promise<AimReview[]> {
   let query = supabase
-    .from('aim_reviews')
-    .select('*, aim_locations(name, city), aim_review_flags(flag_code, confidence), aim_review_drafts(id, draft_text, status)')
+    .from('wf_reviews')
+    .select('*, wf_locations(name)')
     .order('created_at', { ascending: false });
   if (filters?.location_id) query = query.eq('location_id', filters.location_id);
   if (filters?.response_status) query = query.eq('response_status', filters.response_status);
@@ -380,7 +373,7 @@ async function getReviews(filters?: { location_id?: string; response_status?: st
 
 async function getWorkflowPolicyRules(): Promise<WorkflowPolicyRule[]> {
   const { data, error } = await supabase
-    .from('aim_workflow_policy_rules')
+    .from('wf_policy_rules')
     .select('*')
     .order('rule_type');
   if (error) throw error;
@@ -389,7 +382,7 @@ async function getWorkflowPolicyRules(): Promise<WorkflowPolicyRule[]> {
 
 async function toggleWorkflowPolicyRule(id: string, active: boolean): Promise<void> {
   const { error } = await supabase
-    .from('aim_workflow_policy_rules')
+    .from('wf_policy_rules')
     .update({ active, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
@@ -397,7 +390,7 @@ async function toggleWorkflowPolicyRule(id: string, active: boolean): Promise<vo
 
 async function getAuditEvents(filters?: { target_type?: string; action?: string; limit?: number }): Promise<AuditEvent[]> {
   let query = supabase
-    .from('aim_audit_events')
+    .from('wf_audit_events')
     .select('*')
     .order('created_at', { ascending: false });
   if (filters?.target_type) query = query.eq('target_type', filters.target_type);
