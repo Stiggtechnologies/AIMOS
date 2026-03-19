@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Clock, FileText, Activity, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Brain, TrendingUp, TrendingDown, Dumbbell, ClipboardList, ArrowRight, ChevronRight, ChevronDown, ChevronUp, RefreshCw, Star, Calendar, Minus, ArrowUpRight, ArrowDownRight, BookOpen, Zap, Heart, Target, MessageSquare, X, Send, Plus, CirclePlay as PlayCircle, Search } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import { EvidenceOverlay } from '../aim-os/EvidenceOverlay';
 import { SemanticSearchPanel } from '../aim-os/SemanticSearchPanel';
 import { PatientEducationPanel } from '../patient/PatientEducationPanel';
@@ -207,16 +208,61 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
   const [assigningExercise, setAssigningExercise] = useState<string | null>(null);
   const [chartingPatient, setChartingPatient] = useState<string | null>(null);
   const [showTimeline, setShowTimeline] = useState<string | null>(null);
+  const [todayPatients, setTodayPatients] = useState<SchedulePatient[]>(CLINICIAN_PATIENTS);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(t);
   }, []);
 
-  const completedVisits = CLINICIAN_PATIENTS.filter(p => p.charted).length;
+  useEffect(() => {
+    if (!profile?.id) return;
+    const today = new Date().toISOString().split('T')[0];
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('patient_appointments')
+          .select(`
+            id,
+            start_time,
+            appointment_type,
+            status,
+            reason_for_visit,
+            visit_number,
+            total_visits,
+            patient:patient_id(id, full_name, date_of_birth),
+            provider:provider_id(id, full_name)
+          `)
+          .eq('appointment_date', today)
+          .eq('provider_id', profile.id)
+          .neq('status', 'cancelled')
+          .order('start_time');
+
+        if (data && data.length > 0) {
+          const mapped: SchedulePatient[] = data.map((a) => ({
+            id: String(a.id),
+            time: (a.start_time as string)?.slice(0, 5) ?? '00:00',
+            name: (a.patient as { full_name?: string } | null)?.full_name ?? 'Patient',
+            visitType: a.appointment_type ?? 'Treatment',
+            visitNum: (a.visit_number as number) ?? 1,
+            totalVisits: (a.total_visits as number) ?? 1,
+            condition: (a.reason_for_visit as string) ?? 'Treatment',
+            painScore: 0, painTrend: 0, outcomeImprovement: 0,
+            flags: [],
+            notes: '',
+            charted: a.status === 'completed',
+          }));
+          setTodayPatients(mapped);
+        }
+      } catch {
+      }
+    })();
+  }, [profile?.id]);
+
+  const completedVisits = todayPatients.filter(p => p.charted).length;
   const pendingDocs = DOC_STATUS.filter(d => d.status === 'pending' || d.status === 'unsigned').length;
   const urgentAlerts = ALERT_PATIENTS.filter(a => a.urgency === 'high').length;
-  const nextPatient = CLINICIAN_PATIENTS.find(p => !p.charted);
+  const nextPatient = todayPatients.find(p => !p.charted);
 
   const toggleAlert = (id: string) => setExpandedAlert(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
@@ -225,7 +271,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
     const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n;
   });
 
-  const selectedPatient = CLINICIAN_PATIENTS.find(p => p.id === expandedPatient);
+  const selectedPatient = todayPatients.find(p => p.id === expandedPatient);
   const patientProfile = { condition: selectedPatient?.condition ?? 'Lumbar disc herniation', age: 42, occupation: 'Office worker', flags: [] };
 
   return (
@@ -238,7 +284,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
             Clinician
           </div>
           <div className="w-px h-4 bg-gray-700 hidden sm:block" />
-          <span className="flex items-center gap-1.5 text-xs"><span className="text-gray-400">Patients Today</span><span className="font-bold text-white">{CLINICIAN_PATIENTS.length}</span></span>
+          <span className="flex items-center gap-1.5 text-xs"><span className="text-gray-400">Patients Today</span><span className="font-bold text-white">{todayPatients.length}</span></span>
           <span className="flex items-center gap-1.5 text-xs"><span className="text-gray-400">Charted</span><span className="font-bold text-emerald-400">{completedVisits}</span></span>
           <span className="flex items-center gap-1.5 text-xs"><span className="text-gray-400">Utilization</span><span className="font-bold text-amber-400">{CLINICIAN_METRICS.utilization}%</span></span>
           {urgentAlerts > 0 && (
@@ -307,7 +353,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
             {/* Productivity KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Visits Today', value: CLINICIAN_PATIENTS.length, sub: `${completedVisits} charted`, icon: <Calendar className="h-5 w-5 text-teal-500" />, color: 'text-gray-900' },
+                { label: 'Visits Today', value: todayPatients.length, sub: `${completedVisits} charted`, icon: <Calendar className="h-5 w-5 text-teal-500" />, color: 'text-gray-900' },
                 { label: 'Utilization', value: `${CLINICIAN_METRICS.utilization}%`, sub: 'Target: 85%', icon: <Activity className="h-5 w-5 text-amber-500" />, color: 'text-amber-600' },
                 { label: 'Avg Improvement', value: `${CLINICIAN_METRICS.avgImprovement}%`, sub: 'All active patients', icon: <TrendingUp className="h-5 w-5 text-emerald-500" />, color: 'text-emerald-600' },
                 { label: 'Patient Rating', value: CLINICIAN_METRICS.patientRating.toFixed(1), sub: 'Last 30 days', icon: <Star className="h-5 w-5 text-amber-400" />, color: 'text-amber-500' },
@@ -373,10 +419,10 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
                   <Clock className="h-5 w-5 text-gray-400" />
                   <h2 className="font-semibold text-gray-900">Today's Patients</h2>
                 </div>
-                <span className="text-xs text-gray-500">{CLINICIAN_PATIENTS.length} appointments</span>
+                <span className="text-xs text-gray-500">{todayPatients.length} appointments</span>
               </div>
               <div className="divide-y divide-gray-50">
-                {CLINICIAN_PATIENTS.map(p => (
+                {todayPatients.map(p => (
                   <div key={p.id}>
                     <button
                       onClick={() => setExpandedPatient(expandedPatient === p.id ? null : p.id)}
@@ -506,7 +552,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
                   <h2 className="font-semibold text-gray-900">Active Patients</h2>
                 </div>
                 <div className="divide-y divide-gray-50">
-                  {CLINICIAN_PATIENTS.map(p => (
+                  {todayPatients.map(p => (
                     <button
                       key={p.id}
                       onClick={() => setExpandedPatient(expandedPatient === p.id ? null : p.id)}
@@ -672,7 +718,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
                   <h2 className="font-semibold text-gray-900">Quick Chart — Today</h2>
                 </div>
                 <div className="divide-y divide-gray-50">
-                  {CLINICIAN_PATIENTS.slice(0, 6).map(p => (
+                  {todayPatients.slice(0, 6).map(p => (
                     <div key={p.id} className="px-4 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${p.charted ? 'bg-emerald-500' : 'bg-gray-300'}`} />
@@ -860,7 +906,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
                   onChange={e => setSelectedPatientForEvidence(e.target.value)}
                   className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white"
                 >
-                  {CLINICIAN_PATIENTS.map(p => (
+                  {todayPatients.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -868,7 +914,7 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
               <div className="p-4">
                 <EvidenceOverlay
                   patientProfile={{
-                    condition: CLINICIAN_PATIENTS.find(p => p.id === selectedPatientForEvidence)?.condition ?? 'Lumbar disc herniation',
+                    condition: todayPatients.find(p => p.id === selectedPatientForEvidence)?.condition ?? 'Lumbar disc herniation',
                     age: 42,
                     occupation: 'Office worker',
                     flags: []

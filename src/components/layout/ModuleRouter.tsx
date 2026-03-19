@@ -287,7 +287,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'pricing': return <PricingPayerView />;
           case 'retail': return <RetailProductsView />;
           case 'inventory': return <InventoryView />;
-          case 'executive-finance': return <ExecutiveFinancialDashboard />;
+          case 'executive-finance': return <ExecutiveFinancialDashboard onNavigate={handleNavigate} />;
           case 'import': return <RevenueReportImport />;
           case 'dashboard':
           default: return <FinancialView />;

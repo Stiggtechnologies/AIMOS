@@ -13,7 +13,11 @@ interface DashboardStats {
   activeAlerts: number;
 }
 
-export function ExecutiveFinancialDashboard() {
+interface ExecutiveFinancialDashboardProps {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export function ExecutiveFinancialDashboard({ onNavigate }: ExecutiveFinancialDashboardProps = {}) {
   const [stats, setStats] = useState<DashboardStats>({
     totalBudget: 0,
     totalSpent: 0,
@@ -249,7 +253,7 @@ export function ExecutiveFinancialDashboard() {
           <p className="text-sm text-gray-600 mb-4">
             Review and adjust monthly budget allocations
           </p>
-          <button className="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+          <button onClick={() => onNavigate?.('operations', 'procurement')} className="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors">
             Manage Budgets
           </button>
         </div>
@@ -260,18 +264,18 @@ export function ExecutiveFinancialDashboard() {
           <p className="text-sm text-gray-600 mb-4">
             Generate financial reports and analytics
           </p>
-          <button className="w-full px-4 py-2 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-100 transition-colors">
+          <button onClick={() => onNavigate?.('intelligence', 'reports')} className="w-full px-4 py-2 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-100 transition-colors">
             View Reports
           </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <CreditCard className="h-8 w-8 text-purple-600 mb-4" />
+          <CreditCard className="h-8 w-8 text-sky-600 mb-4" />
           <h3 className="font-semibold text-gray-900 mb-2">Card Reconciliation</h3>
           <p className="text-sm text-gray-600 mb-4">
             Reconcile corporate card transactions
           </p>
-          <button className="w-full px-4 py-2 bg-purple-50 text-purple-700 rounded-lg font-medium hover:bg-purple-100 transition-colors">
+          <button onClick={() => onNavigate?.('revenue', 'payments')} className="w-full px-4 py-2 bg-sky-50 text-sky-700 rounded-lg font-medium hover:bg-sky-100 transition-colors">
             Reconcile Cards
           </button>
         </div>

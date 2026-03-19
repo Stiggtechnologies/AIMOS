@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import {
   Building2, Users, DollarSign, Activity, TriangleAlert as AlertTriangle,
   Brain, ChevronRight, Rocket, Star, CircleCheck as CheckCircle,
@@ -170,14 +171,51 @@ interface Props {
   onNavigate: (module: string, subModule: string) => void;
 }
 
+type ClinicItem = typeof ALL_CLINICS[number];
+
 export function RegionalOpsCommandCenter({ onNavigate }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [regionKey, setRegionKey] = useState('ab_east');
   const [drillClinic, setDrillClinic] = useState<string | null>(null);
   const [expandedEx, setExpandedEx] = useState<Set<string>>(new Set());
+  const [allClinicsData, setAllClinicsData] = useState<ClinicItem[]>(ALL_CLINICS);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('clinics')
+          .select('id, name, region, status, is_active, launch_date, is_partner_clinic')
+          .order('name');
+        if (data && data.length > 0) {
+          const regionMap: Record<string, string> = {
+            'AB South': 'ab_south', 'AB West': 'ab_west', 'AB East': 'ab_east',
+            'AB North': 'ab_north', 'AB SW': 'ab_sw',
+          };
+          const mapped: ClinicItem[] = data.map((c) => {
+            const existing = ALL_CLINICS.find(x => x.name.toLowerCase().includes((c.name ?? '').toLowerCase().split(' ')[1] ?? '___'));
+            if (existing) return existing;
+            return {
+              id: String(c.id), name: c.name ?? 'Clinic',
+              region: regionMap[c.region ?? ''] ?? 'ab_east',
+              revMTD: 0, revTarget: 0, utilization: 0, nps: 0, noShow: 0, waitDays: 0,
+              alerts: 0, status: c.is_active ? 'green' : 'blue',
+              launching: !c.is_active, integrating: false,
+              newPatients: 0, arDays: 0, denialRate: 0, fillRate: 0,
+              outcomes: 0, rtw: 0, reassess: 0, providers: 0,
+            };
+          });
+          setAllClinicsData(mapped);
+          const regions = [...new Set(mapped.map(c => c.region))];
+          if (regions.length > 0 && !regions.includes('ab_east')) setRegionKey(regions[0]);
+        }
+      } catch {
+      }
+    })();
+  }, []);
 
   const region = REGIONS.find(r => r.key === regionKey) ?? REGIONS[0];
-  const clinics = ALL_CLINICS.filter(c => c.region === regionKey);
+  const clinics = allClinicsData.filter(c => c.region === regionKey);
   const openClinics = clinics.filter(c => !c.launching);
   const exceptions = EXCEPTIONS_BY_REGION[regionKey] ?? [];
   const aiInsights = AI_INSIGHTS_BY_REGION[regionKey] ?? [];
@@ -492,11 +530,11 @@ export function RegionalOpsCommandCenter({ onNavigate }: Props) {
                 </div>
               </div>
 
-              {/* AI Regional Insights */}
+              {/* Operational Insights */}
               <div className="bg-gray-900 rounded-xl p-5 text-white">
                 <div className="flex items-center gap-2 mb-4">
                   <Brain className="h-5 w-5 text-blue-400" />
-                  <h2 className="font-semibold">AI Regional Insights</h2>
+                  <h2 className="font-semibold">Operational Insights</h2>
                   <span className="ml-auto text-xs text-gray-500">Ranked by impact</span>
                 </div>
                 {aiInsights.length === 0 ? (

@@ -22,6 +22,16 @@ interface ExecutiveAlert {
   timestamp: string;
 }
 
+interface FinancialAlertRow {
+  id: string;
+  severity: string;
+  alert_type?: string;
+  description?: string;
+  recommended_action?: string;
+  metric_name?: string;
+  alert_date: string;
+}
+
 
 export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterProps) {
   const [networkStats, setNetworkStats] = useState<NetworkStats | null>(null);
@@ -67,7 +77,7 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
       setClinicPerformance(clinics);
       setInitiatives(activeInitiatives.slice(0, 4));
       setLaunches(allLaunches.filter(l => ['planning', 'approved', 'in_progress', 'at_risk', 'delayed'].includes(l.status)).slice(0, 3));
-      setAlerts(financialAlerts.slice(0, 5).map((a: any) => ({
+      setAlerts((financialAlerts as FinancialAlertRow[]).slice(0, 5).map((a) => ({
         id: a.id,
         severity: a.severity === 'critical' ? 'critical' : a.severity === 'high' ? 'critical' : a.severity === 'medium' ? 'warning' : 'info',
         title: a.alert_type?.replace(/_/g, ' ') || 'Financial Alert',

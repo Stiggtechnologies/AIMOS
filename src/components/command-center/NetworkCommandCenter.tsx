@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { Building2, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Activity, Users, Target, ArrowUpRight, ArrowDownRight, Brain, ChevronRight, Rocket, Star, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Zap, ChartBar as BarChart3, Map, RefreshCw, Phone, Clock, Calendar, Shield, Award, ChevronDown, ChevronUp, Minus, ArrowRight } from 'lucide-react';
 
 type Tab = 'overview' | 'performance' | 'growth' | 'expansion' | 'strategy';
@@ -53,12 +54,7 @@ const OKR_ROCKS = [
   { title: 'Complete 2 acquisition integrations', progress: 50, status: 'at_risk' },
 ];
 
-const openClinics = CLINICS.filter(c => !c.launching && !c.integrating);
-const networkRevMTD = openClinics.reduce((s, c) => s + c.revMTD, 0);
-const networkRevTarget = openClinics.reduce((s, c) => s + c.revTarget, 0);
-const avgUtilization = openClinics.reduce((s, c) => s + c.utilization, 0) / openClinics.length;
-const avgNPS = openClinics.filter(c => c.nps > 0).reduce((s, c) => s + c.nps, 0) / openClinics.filter(c => c.nps > 0).length;
-const criticalAlerts = EXCEPTIONS.filter(e => e.severity === 'critical').length;
+type ClinicRow = typeof CLINICS[number];
 
 function fmt(v: number) {
   if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
@@ -86,8 +82,42 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
   const [region, setRegion] = useState('');
   const [drillClinic, setDrillClinic] = useState<string | null>(null);
   const [expandedExceptions, setExpandedExceptions] = useState<Set<string>>(new Set());
+  const [clinics, setClinics] = useState<ClinicRow[]>(CLINICS);
 
-  const filteredClinics = region ? CLINICS.filter(c => c.region === region) : CLINICS;
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('clinics')
+          .select('id, name, region, status, is_active, launch_date, is_partner_clinic')
+          .order('name');
+        if (data && data.length > 0) {
+          const mapped: ClinicRow[] = data.map((c, idx) => {
+            const existing = CLINICS.find(x => x.name.toLowerCase().includes(c.name?.toLowerCase()?.split(' ')?.[1] ?? '___'));
+            return existing ?? {
+              id: String(c.id ?? idx),
+              name: c.name ?? 'Clinic',
+              region: c.region ?? 'AB South',
+              revMTD: 0, revTarget: 0, utilization: 0, nps: 0, noShow: 0, waitDays: 0,
+              alerts: 0, status: c.is_active ? 'green' : 'blue',
+              launching: !c.is_active && !c.launch_date, integrating: false,
+              newPatients: 0, arDays: 0, denialRate: 0,
+            };
+          });
+          setClinics(mapped);
+        }
+      } catch {
+      }
+    })();
+  }, []);
+
+  const filteredClinics = region ? clinics.filter(c => c.region === region) : clinics;
+  const openClinics = clinics.filter(c => !c.launching && !c.integrating);
+  const networkRevMTD = openClinics.reduce((s, c) => s + c.revMTD, 0);
+  const networkRevTarget = openClinics.reduce((s, c) => s + c.revTarget, 0);
+  const avgUtilization = openClinics.length ? openClinics.reduce((s, c) => s + c.utilization, 0) / openClinics.length : 0;
+  const avgNPS = openClinics.filter(c => c.nps > 0).length ? openClinics.filter(c => c.nps > 0).reduce((s, c) => s + c.nps, 0) / openClinics.filter(c => c.nps > 0).length : 0;
+  const criticalAlerts = EXCEPTIONS.filter(e => e.severity === 'critical').length;
 
   const toggleException = (id: string) => {
     setExpandedExceptions(prev => {
@@ -112,11 +142,11 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-400 text-xs">Launching</span>
-            <span className="font-bold text-blue-400">{CLINICS.filter(c => c.launching).length}</span>
+            <span className="font-bold text-blue-400">{clinics.filter(c => c.launching).length}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-gray-400 text-xs">Integrating</span>
-            <span className="font-bold text-amber-400">{CLINICS.filter(c => c.integrating).length}</span>
+            <span className="font-bold text-amber-400">{clinics.filter(c => c.integrating).length}</span>
           </div>
           <div className="w-px h-4 bg-gray-700 hidden sm:block" />
           <div className="flex items-center gap-1.5">
@@ -253,7 +283,7 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
                 })}
               </div>
               {drillClinic && (() => {
-                const c = CLINICS.find(x => x.id === drillClinic)!;
+                const c = clinics.find(x => x.id === drillClinic)!;
                 return (
                   <div className="mx-5 mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
@@ -315,11 +345,11 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
                 </div>
               </div>
 
-              {/* Zone 7 — AI Executive Insights */}
+              {/* Zone 7 — Operational Insights */}
               <div className="bg-gray-900 rounded-xl p-5 text-white">
                 <div className="flex items-center gap-2 mb-4">
                   <Brain className="h-5 w-5 text-blue-400" />
-                  <h2 className="font-semibold">AI Executive Insights</h2>
+                  <h2 className="font-semibold">Operational Insights</h2>
                   <span className="ml-auto text-xs text-gray-500">Ranked by impact</span>
                 </div>
                 <div className="space-y-3">
@@ -353,9 +383,9 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { label: 'New Patients MTD', value: openClinics.reduce((s, c) => s + c.newPatients, 0), sub: '+8.4% vs last month' },
-                      { label: 'Launches Active', value: CLINICS.filter(c => c.launching).length, sub: 'Avg readiness 67%' },
+                      { label: 'Launches Active', value: clinics.filter(c => c.launching).length, sub: 'Avg readiness 67%' },
                       { label: 'Avg Launch Time', value: '39 days', sub: 'vs 120 days pre-CRE' },
-                      { label: 'Integrations', value: CLINICS.filter(c => c.integrating).length, sub: '1 behind milestone' },
+                      { label: 'Integrations', value: clinics.filter(c => c.integrating).length, sub: '1 behind milestone' },
                     ].map((m, i) => (
                       <div key={i} className="bg-gray-50 rounded-lg p-3">
                         <div className="text-xl font-bold text-gray-900">{m.value}</div>
