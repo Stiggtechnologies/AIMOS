@@ -136,6 +136,9 @@ export const moduleConfig: NavModule[] = [
       { key: 'referral-sources', label: 'Referral Sources', icon: 'Share2' },
       { key: 'experience', label: 'Experience & Reputation', icon: 'Heart' },
       { key: 'call-tracking', label: 'Call Tracking', icon: 'Phone', roles: ['executive', 'admin', 'clinic_manager'] },
+      { key: 'growth-engine', label: 'Growth Engine', icon: 'Zap', roles: ['executive', 'admin', 'marketing'] },
+      { key: 'growth-engine-pipeline', label: 'Pipeline', icon: 'LayoutKanban', roles: ['executive', 'admin', 'marketing', 'clinic_manager'] },
+      { key: 'growth-engine-attribution', label: 'Attribution', icon: 'BarChart2', roles: ['executive', 'admin', 'marketing'] },
       { key: 'crm', label: 'CRM', icon: 'Target' },
       { key: 'revops', label: 'RevOps', icon: 'DollarSign', roles: ['executive', 'admin'] },
       { key: 'playbooks', label: 'Growth Playbooks', icon: 'BookOpen', roles: ['executive', 'admin', 'marketing'] }

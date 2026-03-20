@@ -71,6 +71,11 @@ const InvoicesView = lazy(() => import('../revenue/InvoicesView'));
 const PaymentsView = lazy(() => import('../revenue/PaymentsView'));
 const InventoryView = lazy(() => import('../revenue/InventoryView'));
 
+// ─── GROWTH ENGINE ────────────────────────────────────────────────────────────
+const AIMGrowthEngineDashboard = lazy(() => import('../growth-engine/AIMGrowthEngineDashboard').then(m => ({ default: m.AIMGrowthEngineDashboard })));
+const LeadPipelineKanban = lazy(() => import('../growth-engine/LeadPipelineKanban').then(m => ({ default: m.LeadPipelineKanban })));
+const ChannelAttributionView = lazy(() => import('../growth-engine/ChannelAttributionView').then(m => ({ default: m.ChannelAttributionView })));
+
 // ─── GROWTH ──────────────────────────────────────────────────────────────────
 const GrowthOSDashboard = lazy(() => import('../growth-os/GrowthOSDashboard'));
 const IntakePipelineView = lazy(() => import('../growth-os/IntakePipelineView'));
@@ -297,6 +302,9 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── GROWTH ───────────────────────────────────────────────────────────
       case 'growth':
         switch (currentSubModule) {
+          case 'growth-engine': return <AIMGrowthEngineDashboard onNavigate={onNavigate} />;
+          case 'growth-engine-pipeline': return <LeadPipelineKanban />;
+          case 'growth-engine-attribution': return <ChannelAttributionView />;
           case 'leads':
           case 'pipeline': return <IntakePipelineView />;
           case 'intake-conversion': return <IntakeConversionView />;
