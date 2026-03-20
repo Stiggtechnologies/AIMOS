@@ -75,6 +75,10 @@ const InventoryView = lazy(() => import('../revenue/InventoryView'));
 const AIMGrowthEngineDashboard = lazy(() => import('../growth-engine/AIMGrowthEngineDashboard').then(m => ({ default: m.AIMGrowthEngineDashboard })));
 const LeadPipelineKanban = lazy(() => import('../growth-engine/LeadPipelineKanban').then(m => ({ default: m.LeadPipelineKanban })));
 const ChannelAttributionView = lazy(() => import('../growth-engine/ChannelAttributionView').then(m => ({ default: m.ChannelAttributionView })));
+const MessengerIntakeFlow = lazy(() => import('../growth-engine/MessengerIntakeFlow').then(m => ({ default: m.MessengerIntakeFlow })));
+const AutomationEngineView = lazy(() => import('../growth-engine/AutomationEngineView').then(m => ({ default: m.AutomationEngineView })));
+const LandingPageGallery = lazy(() => import('../growth-engine/LandingPageIntake').then(m => ({ default: m.LandingPageGallery })));
+const LandingPageIntake = lazy(() => import('../growth-engine/LandingPageIntake').then(m => ({ default: m.LandingPageIntake })));
 
 // ─── GROWTH ──────────────────────────────────────────────────────────────────
 const GrowthOSDashboard = lazy(() => import('../growth-os/GrowthOSDashboard'));
@@ -305,8 +309,11 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'growth-engine': return <AIMGrowthEngineDashboard onNavigate={onNavigate} />;
           case 'growth-engine-pipeline': return <LeadPipelineKanban />;
           case 'growth-engine-attribution': return <ChannelAttributionView />;
+          case 'growth-engine-messenger': return <MessengerIntakeFlow />;
+          case 'growth-engine-landing': return <LandingPageGallery onSelect={slug => onNavigate('growth', `landing-page:${slug}`)} />;
+          case 'growth-engine-automation': return <AutomationEngineView />;
           case 'leads':
-          case 'pipeline': return <IntakePipelineView />;
+          case 'pipeline': return <LeadPipelineKanban />;
           case 'intake-conversion': return <IntakeConversionView />;
           case 'marketing':
           case 'campaigns': return <MarketingIntelligenceView />;
@@ -321,7 +328,13 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'revops': return <RevOpsView />;
           case 'playbooks': return <GrowthPlaybooksView />;
           case 'dashboard':
-          default: return <GrowthOSDashboard />;
+          default: {
+            if (currentSubModule.startsWith('landing-page:')) {
+              const slug = currentSubModule.split(':')[1];
+              return <LandingPageIntake slug={slug as import('../growth-engine/LandingPageIntake').LandingPageSlug} />;
+            }
+            return <GrowthOSDashboard />;
+          }
         }
 
       // ─── INTELLIGENCE ─────────────────────────────────────────────────────

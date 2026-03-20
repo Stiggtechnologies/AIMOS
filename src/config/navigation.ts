@@ -139,6 +139,9 @@ export const moduleConfig: NavModule[] = [
       { key: 'growth-engine', label: 'Growth Engine', icon: 'Zap', roles: ['executive', 'admin', 'marketing'] },
       { key: 'growth-engine-pipeline', label: 'Pipeline', icon: 'LayoutKanban', roles: ['executive', 'admin', 'marketing', 'clinic_manager'] },
       { key: 'growth-engine-attribution', label: 'Attribution', icon: 'BarChart2', roles: ['executive', 'admin', 'marketing'] },
+      { key: 'growth-engine-messenger', label: 'Messenger Intake', icon: 'MessageCircle', roles: ['executive', 'admin', 'marketing', 'clinic_manager'] },
+      { key: 'growth-engine-landing', label: 'Landing Pages', icon: 'Globe', roles: ['executive', 'admin', 'marketing'] },
+      { key: 'growth-engine-automation', label: 'Automation Engine', icon: 'GitBranch', roles: ['executive', 'admin', 'marketing'] },
       { key: 'crm', label: 'CRM', icon: 'Target' },
       { key: 'revops', label: 'RevOps', icon: 'DollarSign', roles: ['executive', 'admin'] },
       { key: 'playbooks', label: 'Growth Playbooks', icon: 'BookOpen', roles: ['executive', 'admin', 'marketing'] }
