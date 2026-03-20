@@ -19,9 +19,13 @@ export const PatientEducationPanel: React.FC<PatientEducationPanelProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const topicTagsKey = JSON.stringify(topicTags);
+  const patientProfileKey = JSON.stringify(patientProfile);
+
   useEffect(() => {
     loadEducationAssets();
-  }, [readingLevel, topicTags, patientProfile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readingLevel, topicTagsKey, patientProfileKey]);
 
   const loadEducationAssets = async () => {
     setLoading(true);
