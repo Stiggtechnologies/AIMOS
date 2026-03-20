@@ -271,6 +271,20 @@ export const moduleConfig: NavModule[] = [
     ]
   },
   {
+    key: 'call_agent',
+    label: 'Call Agent',
+    description: '24/7 AI inbound call agent — intake, triage, booking, and escalation',
+    icon: 'PhoneCall',
+    color: 'blue',
+    gradient: 'from-blue-700 to-cyan-600',
+    subItems: [
+      { key: 'sessions', label: 'Call Sessions', icon: 'Phone', roles: ['executive', 'admin', 'clinic_manager'] },
+      { key: 'appointments', label: 'Appointments', icon: 'Calendar', roles: ['executive', 'admin', 'clinic_manager'] },
+      { key: 'queue', label: 'Booking Queue', icon: 'PhoneCall', roles: ['executive', 'admin', 'clinic_manager'] },
+      { key: 'settings', label: 'Agent Settings', icon: 'Settings', roles: ['executive', 'admin'] },
+    ]
+  },
+  {
     key: 'aim_automation',
     label: 'Automation',
     description: 'Marketing automation, social media, content approvals, and review management',
@@ -299,9 +313,9 @@ export const getModuleByKey = (key: ModuleKey): NavModule | undefined => {
 
 export const getAccessibleModules = (roleLevel: string): ModuleKey[] => {
   const modulesByLevel: Record<string, ModuleKey[]> = {
-    corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
-    regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce', 'aim_automation'],
-    clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation'],
+    corporate: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'call_agent', 'aim_automation'],
+    regional: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce', 'call_agent', 'aim_automation'],
+    clinic: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'call_agent', 'aim_automation'],
     clinical: ['command_center', 'clinical', 'operations'],
     support: ['command_center', 'operations', 'revenue'],
     external: ['growth']

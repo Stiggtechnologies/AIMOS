@@ -145,6 +145,9 @@ const QuickPurchaseRequest = lazy(() => import('../procurement/QuickPurchaseRequ
 // ─── PATIENT EXPERIENCE ──────────────────────────────────────────────────────
 const PatientExperienceDashboard = lazy(() => import('../patient-experience/PatientExperienceDashboard'));
 
+// ─── CALL AGENT ──────────────────────────────────────────────────────────────
+const CallAgentShell = lazy(() => import('../call-agent/CallAgentShell').then(m => ({ default: m.CallAgentShell })));
+
 // ─── AIM AUTOMATION ──────────────────────────────────────────────────────────
 const AimAutomationDashboard = lazy(() => import('../automation/AimAutomationDashboard'));
 
@@ -436,6 +439,10 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── PATIENT EXPERIENCE ───────────────────────────────────────────────
       case 'patient_experience':
         return <PatientExperienceDashboard />;
+
+      // ─── CALL AGENT ───────────────────────────────────────────────────────
+      case 'call_agent':
+        return <CallAgentShell />;
 
       // ─── AIM AUTOMATION ───────────────────────────────────────────────────
       case 'aim_automation':
