@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { CircleCheck as CheckCircle, Phone, Mail, User, ChevronRight, CircleAlert as AlertCircle, Loader as Loader2, MapPin, Clock } from 'lucide-react';
 import { growthEngineService } from '../../services/growthEngineService';
 
