@@ -19,15 +19,13 @@ async function getMinimaxKey(): Promise<string | null> {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceRoleKey) return null;
 
-    const admin = createClient(supabaseUrl, serviceRoleKey);
-    const { data, error } = await admin
-      .from("vault.decrypted_secrets")
-      .select("decrypted_secret")
-      .eq("name", "minimax_api_key")
-      .maybeSingle();
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
 
+    const { data, error } = await admin.rpc("get_minimax_api_key");
     if (error || !data) return null;
-    return data.decrypted_secret as string;
+    return data as string;
   } catch {
     return null;
   }
