@@ -8,6 +8,7 @@ export interface Notification {
   message: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   read: boolean;
+  is_read?: boolean;
   action_url?: string;
   metadata?: Record<string, any>;
   created_at: string;

@@ -98,7 +98,7 @@ export default function ForecastsView() {
 
       const rows = data as ForecastRecord[];
       const points: MonthPoint[] = rows.map(r => ({
-        month: MONTH_ABBR[r.period_month - 1] || `M${r.period_month}`,
+        month: MONTH_ABBR[Number(r.period_month) - 1] || `M${r.period_month}`,
         actual: r.actual_revenue,
         forecast: r.forecast_revenue,
         prior_year: r.prior_year_revenue,
@@ -211,7 +211,7 @@ export default function ForecastsView() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tickFormatter={v => `$${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v: number) => fmtK(v)} />
+                  <Tooltip formatter={((v: number) => fmtK(v)) as any} />
                   <Legend />
                   <Line type="monotone" dataKey="actual" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4 }} name="Actual" connectNulls={false} />
                   <Line type="monotone" dataKey="forecast" stroke="#0ea5e9" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} name="Forecast" />

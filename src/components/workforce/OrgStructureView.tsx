@@ -22,20 +22,20 @@ interface ClinicRow {
 }
 
 function buildOrgTree(clinics: ClinicRow[], totalStaff: number): OrgNode {
-  const regionMap = new Map<string, ClinicRow[]>();
+  const regionMapObj: Record<string, ClinicRow[]> = {};
   clinics.forEach(c => {
     const region = c.region || c.city || 'Other';
-    if (!regionMap.has(region)) regionMap.set(region, []);
-    regionMap.get(region)!.push(c);
+    if (!regionMapObj[region]) regionMapObj[region] = [];
+    regionMapObj[region].push(c);
   });
 
-  const regionNodes: OrgNode[] = Array.from(regionMap.entries()).map(([regionName, clinicList], idx) => ({
+  const regionNodes: OrgNode[] = Object.entries(regionMapObj).map(([regionName, clinicList], idx) => ({
     id: `region-${idx}`,
     name: `${regionName} Region`,
     title: `${clinicList.length} clinic${clinicList.length !== 1 ? 's' : ''}`,
     type: 'region' as const,
     count: clinicList.length,
-    children: clinicList.map(c => ({
+    children: clinicList.map((c: ClinicRow) => ({
       id: c.id,
       name: c.name,
       title: c.manager_name ? `Manager: ${c.manager_name}` : (c.status === 'active' ? 'Active' : c.status || 'Active'),

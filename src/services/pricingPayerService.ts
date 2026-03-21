@@ -4,6 +4,7 @@ export interface ServicePricing {
   id: string;
   clinic_id: string;
   service_name: string;
+  service_code?: string;
   standard_price: number;
   payer_name?: string;
   payer_rate?: number;
@@ -16,6 +17,7 @@ export interface PayerContract {
   id: string;
   clinic_id: string;
   payer_name: string;
+  contract_number?: string;
   contract_type: string;
   start_date: string;
   end_date: string;
@@ -45,6 +47,7 @@ export interface MarginByServiceLine {
   period_start: string;
   period_end: string;
   total_revenue: number;
+  direct_costs?: number;
   gross_margin: number;
   gross_margin_percentage: number;
   contribution_margin_percentage: number;

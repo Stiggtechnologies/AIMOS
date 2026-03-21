@@ -162,7 +162,7 @@ export default function PaymentsView() {
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="day" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${(v / 1000).toFixed(1)}k`} />
-            <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, 'Collected']} />
+            <Tooltip formatter={((v: number) => [`$${v.toLocaleString()}`, 'Collected']) as any} />
             <Bar dataKey="amount" fill="#10b981" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

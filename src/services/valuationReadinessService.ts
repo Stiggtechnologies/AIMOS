@@ -411,6 +411,8 @@ export interface ValuationKPI {
   ltv_cac_ratio: number;
   rule_of_40_score: number;
   gross_margin: number;
+  operating_margin?: number;
+  net_revenue_retention?: number;
   free_cash_flow: number;
   quality_of_earnings_score: number;
 }

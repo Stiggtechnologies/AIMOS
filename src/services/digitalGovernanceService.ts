@@ -10,6 +10,17 @@ import type {
   AuditAction,
 } from '../types/digitalGovernance';
 
+export type {
+  DigitalAsset,
+  WorkspaceUser,
+  WorkspaceRoleTemplate,
+  AccessAuditLog,
+  OnboardingQueueItem,
+  OffboardingQueueItem,
+  DigitalGovernanceDashboard,
+  AuditAction,
+};
+
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════════

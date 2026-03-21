@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Database,
-  Plus,
-  Filter,
-  Search,
-  Shield,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  Edit,
-  Calendar,
-} from 'lucide-react';
+import { Database, Plus, Filter, Search, Shield, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ExternalLink, CreditCard as Edit, Calendar } from 'lucide-react';
 import {
   getDigitalAssets,
   createDigitalAsset,
@@ -202,7 +191,7 @@ export default function AssetsRegistry() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-gray-900">{asset.asset_name}</span>
                         {asset.is_critical && (
-                          <Shield className="w-4 h-4 text-red-600" title="Critical asset" />
+                          <span title="Critical asset"><Shield className="w-4 h-4 text-red-600" /></span>
                         )}
                       </div>
                     </td>

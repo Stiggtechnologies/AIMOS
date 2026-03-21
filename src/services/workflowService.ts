@@ -90,10 +90,11 @@ export const workflowService = {
     if (conditions.conditions) {
       for (const [key, condition] of Object.entries(conditions.conditions)) {
         const value = payload[key];
-        if (typeof condition === 'object') {
-          if ('gte' in condition && value < condition.gte) return false;
-          if ('lte' in condition && value > condition.lte) return false;
-          if ('eq' in condition && value !== condition.eq) return false;
+        if (typeof condition === 'object' && condition !== null) {
+          const cond = condition as Record<string, unknown>;
+          if ('gte' in cond && value < (cond.gte as number)) return false;
+          if ('lte' in cond && value > (cond.lte as number)) return false;
+          if ('eq' in cond && value !== cond.eq) return false;
         } else if (value !== condition) {
           return false;
         }

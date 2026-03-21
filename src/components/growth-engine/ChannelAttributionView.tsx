@@ -189,7 +189,7 @@ export const ChannelAttributionView: React.FC = () => {
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => [`${v} leads`, '']} />
+                <Tooltip formatter={((v: number) => [`${v} leads`, '']) as any} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -206,7 +206,7 @@ export const ChannelAttributionView: React.FC = () => {
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => [fmt$(v), '']} />
+                <Tooltip formatter={((v: number) => [fmt$(v), '']) as any} />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>

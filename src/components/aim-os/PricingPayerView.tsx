@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Calendar,
-  PieChart,
-  FileText,
-  CheckCircle2,
-  XCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, Calendar, ChartPie as PieChart, FileText, CircleCheck as CheckCircle2, Circle as XCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import {
   getPayerContracts,
   getContractRenewalAlerts,
@@ -510,7 +498,7 @@ export default function PricingPayerView() {
                     <div className="p-3 bg-red-50 rounded">
                       <p className="text-xs text-red-700 font-medium">Direct Costs</p>
                       <p className="text-lg font-bold text-red-900 mt-1">
-                        ${(margin.direct_costs / 1000).toFixed(0)}K
+                        ${((margin.direct_costs ?? 0) / 1000).toFixed(0)}K
                       </p>
                     </div>
                     <div className="p-3 bg-green-50 rounded">

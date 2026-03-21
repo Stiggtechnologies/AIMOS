@@ -5,14 +5,14 @@ import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 // ─── COMMAND CENTER ─────────────────────────────────────────────────────────
 const CommandCenter = lazy(() => import('../command-center/CommandCenter').then(m => ({ default: m.CommandCenter })));
-const ExecutiveCommandCenter = lazy(() => import('../command-center/ExecutiveCommandCenter').then(m => ({ default: m.ExecutiveCommandCenter ?? m.default })));
-const ClinicCommandCenter = lazy(() => import('../command-center/ClinicCommandCenter').then(m => ({ default: m.ClinicCommandCenter ?? m.default })));
-const ClinicianCommandCenter = lazy(() => import('../command-center/ClinicianCommandCenter').then(m => ({ default: m.ClinicianCommandCenter ?? m.default })));
-const RegionalOpsCommandCenter = lazy(() => import('../command-center/RegionalOpsCommandCenter').then(m => ({ default: m.RegionalOpsCommandCenter ?? m.default })));
-const RevenueCycleCommandCenter = lazy(() => import('../command-center/RevenueCycleCommandCenter').then(m => ({ default: m.RevenueCycleCommandCenter ?? m.default })));
-const GrowthCommandCenter = lazy(() => import('../command-center/GrowthCommandCenter').then(m => ({ default: m.GrowthCommandCenter ?? m.default })));
-const NetworkCommandCenter = lazy(() => import('../command-center/NetworkCommandCenter').then(m => ({ default: m.NetworkCommandCenter ?? m.default })));
-const StrategyCommandCenter = lazy(() => import('../command-center/StrategyCommandCenter').then(m => ({ default: m.StrategyCommandCenter ?? m.default })));
+const ExecutiveCommandCenter = lazy(() => import('../command-center/ExecutiveCommandCenter').then(m => ({ default: m.ExecutiveCommandCenter })));
+const ClinicCommandCenter = lazy(() => import('../command-center/ClinicCommandCenter').then(m => ({ default: m.ClinicCommandCenter })));
+const ClinicianCommandCenter = lazy(() => import('../command-center/ClinicianCommandCenter').then(m => ({ default: m.ClinicianCommandCenter })));
+const RegionalOpsCommandCenter = lazy(() => import('../command-center/RegionalOpsCommandCenter').then(m => ({ default: m.RegionalOpsCommandCenter })));
+const RevenueCycleCommandCenter = lazy(() => import('../command-center/RevenueCycleCommandCenter').then(m => ({ default: m.RevenueCycleCommandCenter })));
+const GrowthCommandCenter = lazy(() => import('../command-center/GrowthCommandCenter').then(m => ({ default: m.GrowthCommandCenter })));
+const NetworkCommandCenter = lazy(() => import('../command-center/NetworkCommandCenter').then(m => ({ default: m.NetworkCommandCenter })));
+const StrategyCommandCenter = lazy(() => import('../command-center/StrategyCommandCenter').then(m => ({ default: m.StrategyCommandCenter })));
 const NotificationsCenter = lazy(() => import('../NotificationsCenter').then(m => ({ default: m.NotificationsCenter })));
 const AIAssistantDashboard = lazy(() => import('../AIAssistantDashboard'));
 const AlertsView = lazy(() => import('../command-center/AlertsView'));
@@ -235,7 +235,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       case 'operations': {
         if (currentSubModule.startsWith('launch-detail:')) {
           const launchId = currentSubModule.split(':')[1];
-          return <LaunchDetailView launchId={launchId} onBack={() => onNavigate('operations', 'launches')} />;
+          return <LaunchDetailView launchId={launchId} onBack={() => handleNavigate('operations', 'launches')} />;
         }
         switch (currentSubModule) {
           case 'schedule': return <SchedulerView />;
@@ -248,12 +248,12 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'ai-agents': return <EnhancedAgentsDashboard />;
           case 'excellence': return <ExcellenceDemoView />;
           case 'clinics': return <ClinicsView />;
-          case 'launches': return <LaunchManagementDashboard onNavigate={onNavigate} />;
-          case 'launch-detail': return <LaunchDetailView onBack={() => onNavigate('operations', 'launches')} />;
-          case 'launch-readiness': return <BranchLaunchReadinessDashboard onNavigate={onNavigate} />;
-          case 'launch-playbooks': return <LaunchPlaybookManager onNavigate={onNavigate} />;
-          case 'launch-performance': return <NewClinicPerformanceDashboard onNavigate={onNavigate} />;
-          case 'acquisition-integration': return <AcquisitionIntegrationDashboard onNavigate={onNavigate} />;
+          case 'launches': return <LaunchManagementDashboard onNavigate={handleNavigate} />;
+          case 'launch-detail': return <LaunchDetailView onBack={() => handleNavigate('operations', 'launches')} />;
+          case 'launch-readiness': return <BranchLaunchReadinessDashboard onNavigate={handleNavigate} />;
+          case 'launch-playbooks': return <LaunchPlaybookManager onNavigate={handleNavigate} />;
+          case 'launch-performance': return <NewClinicPerformanceDashboard onNavigate={handleNavigate} />;
+          case 'acquisition-integration': return <AcquisitionIntegrationDashboard onNavigate={handleNavigate} />;
           case 'partners': return <PartnerClinicsView />;
           case 'partner-dashboard': return <PartnerDashboard />;
           case 'after-hours': return <AfterHoursView />;
@@ -309,11 +309,11 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── GROWTH ───────────────────────────────────────────────────────────
       case 'growth':
         switch (currentSubModule) {
-          case 'growth-engine': return <AIMGrowthEngineDashboard onNavigate={onNavigate} />;
+          case 'growth-engine': return <AIMGrowthEngineDashboard onNavigate={handleNavigate} />;
           case 'growth-engine-pipeline': return <LeadPipelineKanban />;
           case 'growth-engine-attribution': return <ChannelAttributionView />;
           case 'growth-engine-messenger': return <MessengerIntakeFlow />;
-          case 'growth-engine-landing': return <LandingPageGallery onSelect={slug => onNavigate('growth', `landing-page:${slug}`)} />;
+          case 'growth-engine-landing': return <LandingPageGallery onSelect={slug => handleNavigate('growth', `landing-page:${slug}`)} />;
           case 'growth-engine-automation': return <AutomationEngineView />;
           case 'leads':
           case 'pipeline': return <LeadPipelineKanban />;
@@ -351,7 +351,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'acquisition': return <AcquisitionView />;
           case 'forecasting': return <ForecastingView />;
           case 'benchmarking': return <BenchmarkingView />;
-          case 'reports': return <ReportsView onNavigate={onNavigate} />;
+          case 'reports': return <ReportsView onNavigate={handleNavigate} />;
           case 'agent-execution': return <AgentExecutionDashboard />;
           case 'agents': return <AgentsView />;
           case 'analytics': return <AnalyticsView />;

@@ -162,7 +162,7 @@ class BillingService {
       // Get invoice details
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .select('patient_id, amount_paid, total, balance')
+        .select('patient_id, amount_paid, total, balance, status')
         .eq('id', invoiceId)
         .single();
 
@@ -328,12 +328,12 @@ class BillingService {
 
     return {
       receipt_number: receiptNumber,
-      patient_name: `${payment.invoices.patients.first_name} ${payment.invoices.patients.last_name}`,
+      patient_name: `${(payment.invoices as any).patients?.[0]?.first_name ?? ''} ${(payment.invoices as any).patients?.[0]?.last_name ?? ''}`.trim(),
       amount: payment.amount,
       payment_method: payment.payment_method,
       payment_date: payment.payment_date,
-      clinic_name: payment.invoices.clinics.name,
-      invoice_number: payment.invoices.invoice_number,
+      clinic_name: (payment.invoices as any).clinics?.[0]?.name ?? '',
+      invoice_number: (payment.invoices as any).invoice_number ?? '',
     };
   }
 
@@ -426,7 +426,7 @@ class BillingService {
     return data.map(inv => ({
       id: inv.id,
       patient_id: patientId,
-      patient_name: `${inv.patients.first_name} ${inv.patients.last_name}`,
+      patient_name: `${(inv.patients as any)?.[0]?.first_name ?? ''} ${(inv.patients as any)?.[0]?.last_name ?? ''}`.trim(),
       clinic_id: '', // Would need to include in query
       invoice_number: inv.invoice_number,
       invoice_date: inv.invoice_date,

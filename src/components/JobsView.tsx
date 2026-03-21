@@ -44,7 +44,7 @@ export default function JobsView() {
         compensation_min: parseFloat(formData.compensation_min) || 0,
         compensation_max: parseFloat(formData.compensation_max) || 0,
         compensation_currency: formData.compensation_currency,
-        target_fill_date: formData.target_fill_date || null,
+        target_fill_date: formData.target_fill_date || undefined,
         status: formData.status as Job['status'],
         priority_score: 5.0
       };

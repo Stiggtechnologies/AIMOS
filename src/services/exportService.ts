@@ -58,7 +58,7 @@ function generateCSV(data: any[], columns?: { key: string; label: string }[]): s
 }
 
 function generateExcelXML(data: any[], options: ExportOptions): string {
-  const columns = options.columns || Object.keys(data[0] || {}).map(key => ({ key, label: key }));
+  const columns: { key: string; label: string; width?: number }[] = options.columns || Object.keys(data[0] || {}).map(key => ({ key, label: key }));
   const timestamp = options.includeTimestamp ? new Date().toLocaleString() : '';
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';

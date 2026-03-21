@@ -7,7 +7,7 @@ interface EvidenceClaimWithEmbedding {
   similarity_score?: number;
 }
 
-interface SearchResult {
+export interface SearchResult {
   claim_id: string;
   claim_text: string;
   similarity_score: number;
@@ -21,16 +21,15 @@ class SemanticSearchService {
 
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-embeddings`;
+
+      const response = await fetch(`${apiUrl}?text=${encodeURIComponent(text)}`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY || ''}`,
+          'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          input: text,
-          model: 'text-embedding-3-small',
-        }),
       });
 
       if (!response.ok) {
@@ -38,7 +37,7 @@ class SemanticSearchService {
       }
 
       const data = await response.json();
-      return data.data[0].embedding;
+      return Array.isArray(data) ? data : (data.embedding ?? []);
     } catch (error) {
       console.error('Error generating embedding:', error);
       return [];

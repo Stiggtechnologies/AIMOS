@@ -218,7 +218,7 @@ export const growthEngineService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as PipelineLead[];
+    return (data || []) as unknown as PipelineLead[];
   },
 
   async updateLeadStatus(id: string, status: string, extra?: Partial<PipelineLead>): Promise<void> {

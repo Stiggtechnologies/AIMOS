@@ -36,6 +36,7 @@ export interface SystemHealthScore {
   critical_issues: number;
   warnings: number;
   recommendations?: string[];
+  completion_rate_score?: number;
 }
 
 export interface IncompleteWorkflow {

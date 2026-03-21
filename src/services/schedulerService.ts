@@ -13,7 +13,7 @@ export interface SchedulerAppointment {
   appointment_date: string;
   start_time: string;
   end_time: string;
-  status: 'scheduled' | 'confirmed' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  status: 'scheduled' | 'confirmed' | 'checked_in' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'available' | 'gap';
   color_code?: string;
   reason_for_visit?: string;
   chief_complaint?: string;
@@ -100,7 +100,7 @@ class SchedulerService {
     lastRefreshed: null,
     isRefreshing: false,
   };
-  private refreshInterval: NodeJS.Timer | null = null;
+  private refreshInterval: ReturnType<typeof setInterval> | null = null;
   private refreshIntervalMs: number = 5 * 60 * 1000;
 
   async getAppointments(
@@ -147,7 +147,7 @@ class SchedulerService {
 
     console.log(`[SchedulerService] Loaded ${data?.length || 0} appointments for ${date} at clinic ${clinicId}`, data);
 
-    return (data || []).map(appt => ({
+    return (data || []).map((appt: any) => ({
       id: appt.id,
       patient_id: appt.patient_id,
       patient_name: `${appt.patients.last_name}, ${appt.patients.first_name}`,
@@ -979,26 +979,27 @@ class SchedulerService {
 
     // Generate confirmation code (e.g., APT-ABC123)
     const confirmationCode = `APT-${appointmentId.substring(0, 6).toUpperCase()}`;
+    const appt = appointment as any;
 
     return {
-      appointmentId: appointment.id,
+      appointmentId: appt.id,
       confirmationCode,
       patient: {
-        name: `${appointment.patients.first_name} ${appointment.patients.last_name}`,
-        email: appointment.patients.email,
-        phone: appointment.patients.phone,
+        name: `${appt.patients.first_name} ${appt.patients.last_name}`,
+        email: appt.patients.email,
+        phone: appt.patients.phone,
       },
       appointment: {
-        date: appointment.appointment_date,
-        time: appointment.start_time,
-        provider: appointment.user_profiles?.display_name ||
-                  `${appointment.user_profiles?.first_name} ${appointment.user_profiles?.last_name}`,
-        service: appointment.appointment_type,
+        date: appt.appointment_date,
+        time: appt.start_time,
+        provider: appt.user_profiles?.display_name ||
+                  `${appt.user_profiles?.first_name} ${appt.user_profiles?.last_name}`,
+        service: appt.appointment_type,
       },
       clinic: {
-        name: appointment.clinics.name,
-        address: `${appointment.clinics.address}, ${appointment.clinics.city}, ${appointment.clinics.province} ${appointment.clinics.postal_code}`,
-        phone: appointment.clinics.phone,
+        name: appt.clinics.name,
+        address: `${appt.clinics.address}, ${appt.clinics.city}, ${appt.clinics.province} ${appt.clinics.postal_code}`,
+        phone: appt.clinics.phone,
       },
     };
   }

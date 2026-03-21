@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCheck, Trash2, Settings, Filter, X, AlertCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
+import { Bell, CheckCheck, Trash2, Settings, Filter, X, CircleAlert as AlertCircle, Info, TriangleAlert as AlertTriangle, Circle as XCircle } from 'lucide-react';
 import { notificationService, Notification, NotificationPreferences } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -78,7 +78,7 @@ export function NotificationsCenter() {
     try {
       await notificationService.markAsRead(notificationId);
       setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -90,7 +90,7 @@ export function NotificationsCenter() {
     if (!user) return;
     try {
       await notificationService.markAllAsRead(user.id);
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -381,7 +381,7 @@ export function NotificationsCenter() {
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={preferences?.[key as keyof NotificationPreferences] ?? true}
+                          checked={Boolean(preferences?.[key as keyof NotificationPreferences] ?? true)}
                           onChange={(e) =>
                             handleUpdatePreferences({ [key]: e.target.checked })
                           }
@@ -405,7 +405,7 @@ export function NotificationsCenter() {
               <div
                 key={notification.id}
                 className={`p-4 hover:bg-gray-50 transition-colors ${
-                  !notification.is_read ? getPriorityColor(notification.priority) : ''
+                  !notification.read ? getPriorityColor(notification.priority) : ''
                 }`}
               >
                 <div className="flex items-start space-x-4">
@@ -425,7 +425,7 @@ export function NotificationsCenter() {
                           <h4 className="text-sm font-semibold text-gray-900">
                             {notification.title}
                           </h4>
-                          {!notification.is_read && (
+                          {!notification.read && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                               New
                             </span>
@@ -440,7 +440,7 @@ export function NotificationsCenter() {
                         </p>
                       </div>
                       <div className="flex items-center space-x-2 ml-4">
-                        {!notification.is_read && (
+                        {!notification.read && (
                           <button
                             onClick={() => handleMarkAsRead(notification.id)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"

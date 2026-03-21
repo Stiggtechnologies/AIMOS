@@ -79,20 +79,24 @@ class SMSNotificationService {
         return false;
       }
 
-      if (!appointment.patients.phone) {
+      const patient0 = (appointment.patients as any)?.[0];
+      const provider0 = (appointment.user_profiles as any)?.[0];
+      const clinic0 = (appointment.clinics as any)?.[0];
+
+      if (!patient0?.phone) {
         console.log('[SMSService] Patient has no phone number');
         return false;
       }
 
       const message = this.fillTemplate('appointment_reminder_24h', {
-        patient_name: appointment.patients.first_name,
+        patient_name: patient0.first_name,
         time: appointment.start_time,
-        provider: appointment.user_profiles?.display_name || 'your provider',
-        clinic: appointment.clinics.city,
-        phone: appointment.clinics.phone,
+        provider: provider0?.display_name || 'your provider',
+        clinic: clinic0?.city ?? '',
+        phone: clinic0?.phone ?? '',
       });
 
-      return await this.sendSMS(appointment.patients.phone, message, 'appointment_reminder', appointmentId);
+      return await this.sendSMS(patient0.phone, message, 'appointment_reminder', appointmentId);
     } catch (error) {
       console.error('[SMSService] Error sending reminder:', error);
       return false;
@@ -124,21 +128,25 @@ class SMSNotificationService {
         return false;
       }
 
-      if (!appointment.patients.phone) {
+      const patient1 = (appointment.patients as any)?.[0];
+      const provider1 = (appointment.user_profiles as any)?.[0];
+      const clinic1 = (appointment.clinics as any)?.[0];
+
+      if (!patient1?.phone) {
         return false;
       }
 
       const message = this.fillTemplate('appointment_confirmation', {
-        patient_name: appointment.patients.first_name,
+        patient_name: patient1.first_name,
         date: new Date(appointment.appointment_date).toLocaleDateString(),
         time: appointment.start_time,
-        provider: appointment.user_profiles?.display_name || 'your provider',
-        clinic: appointment.clinics.city,
-        address: `${appointment.clinics.address}, ${appointment.clinics.city}`,
+        provider: provider1?.display_name || 'your provider',
+        clinic: clinic1?.city ?? '',
+        address: `${clinic1?.address ?? ''}, ${clinic1?.city ?? ''}`,
         confirmation_code: confirmationCode,
       });
 
-      return await this.sendSMS(appointment.patients.phone, message, 'confirmation', appointmentId);
+      return await this.sendSMS(patient1.phone, message, 'confirmation', appointmentId);
     } catch (error) {
       console.error('[SMSService] Error sending confirmation:', error);
       return false;
@@ -207,20 +215,23 @@ class SMSNotificationService {
         return false;
       }
 
-      if (!invoice.patients.phone) {
+      const patient2 = (invoice.patients as any)?.[0];
+      const clinic2 = (invoice.clinics as any)?.[0];
+
+      if (!patient2?.phone) {
         return false;
       }
 
       const message = this.fillTemplate('payment_reminder', {
-        patient_name: invoice.patients.first_name,
+        patient_name: patient2.first_name,
         invoice_number: invoice.invoice_number,
         amount: invoice.balance.toFixed(2),
         due_date: new Date(invoice.due_date).toLocaleDateString(),
         payment_link: 'https://aim.clinic/pay',
-        phone: invoice.clinics.phone,
+        phone: clinic2?.phone ?? '',
       });
 
-      return await this.sendSMS(invoice.patients.phone, message, 'payment_reminder', invoiceId);
+      return await this.sendSMS(patient2.phone, message, 'payment_reminder', invoiceId);
     } catch (error) {
       console.error('[SMSService] Error sending payment reminder:', error);
       return false;
@@ -249,18 +260,22 @@ class SMSNotificationService {
         return false;
       }
 
-      if (!appointment.patients.phone) {
+      const patient3 = (appointment.patients as any)?.[0];
+      const provider3 = (appointment.user_profiles as any)?.[0];
+      const clinic3 = (appointment.clinics as any)?.[0];
+
+      if (!patient3?.phone) {
         return false;
       }
 
       const message = this.fillTemplate('running_late', {
-        patient_name: appointment.patients.first_name,
-        provider: appointment.user_profiles?.display_name || 'Your provider',
+        patient_name: patient3.first_name,
+        provider: provider3?.display_name || 'Your provider',
         minutes: delayMinutes.toString(),
-        phone: appointment.clinics.phone,
+        phone: clinic3?.phone ?? '',
       });
 
-      return await this.sendSMS(appointment.patients.phone, message, 'running_late', appointmentId);
+      return await this.sendSMS(patient3.phone, message, 'running_late', appointmentId);
     } catch (error) {
       console.error('[SMSService] Error sending running late notification:', error);
       return false;

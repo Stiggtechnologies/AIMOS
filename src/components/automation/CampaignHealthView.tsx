@@ -153,7 +153,7 @@ export default function CampaignHealthView({
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="platform" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => `$${v.toFixed(0)}`} />
+              <Tooltip formatter={((v: number) => `$${v.toFixed(0)}`) as any} />
               <Bar dataKey="spend" fill="#f59e0b" name="Spend ($)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

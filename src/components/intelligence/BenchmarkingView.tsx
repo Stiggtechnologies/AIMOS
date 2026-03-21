@@ -72,9 +72,9 @@ export default function BenchmarkingView() {
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="clinic" tick={{ fontSize: 11 }} />
             <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v) => [`${v}%`, 'Utilization']} />
+            <Tooltip formatter={((v: number) => [`${v}%`, 'Utilization']) as any} />
             <Bar dataKey="utilization" fill="#3b82f6" radius={[3, 3, 0, 0]}
-              label={{ position: 'top', fontSize: 10, formatter: (v: number) => `${v}%` }} />
+              label={{ position: 'top', fontSize: 10, formatter: ((v: number) => `${v}%`) as any }} />
           </BarChart>
         </ResponsiveContainer>
       </div>

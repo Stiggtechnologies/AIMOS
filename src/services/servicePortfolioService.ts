@@ -6,7 +6,7 @@ export interface ServiceLine {
   name: string;
   category: 'core' | 'growth' | 'emerging' | 'sunset';
   description?: string;
-  status: 'planning' | 'pilot' | 'active' | 'retiring' | 'retired';
+  status: 'planning' | 'pilot' | 'active' | 'launching' | 'retiring' | 'retired';
   launch_date?: string;
   target_retirement_date?: string;
   strategic_priority?: 'high' | 'medium' | 'low';

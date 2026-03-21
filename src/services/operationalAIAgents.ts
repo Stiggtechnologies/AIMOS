@@ -77,7 +77,7 @@ export class OperationalAIAgents {
           return acc;
         }, {} as Record<string, number>);
 
-        const maxDept = Object.entries(departmentCounts).sort((a, b) => b[1] - a[1])[0];
+        const maxDept = (Object.entries(departmentCounts) as [string, number][]).sort((a, b) => b[1] - a[1])[0];
         if (maxDept && maxDept[1] > applications.length * 0.5) {
           insights.push({
             insight: `${maxDept[0]} department has ${maxDept[1]} pending applications (${Math.round(maxDept[1] / applications.length * 100)}% of total)`,
@@ -193,7 +193,7 @@ Provide 2-3 actionable recommendations for optimizing the intake routing process
           return acc;
         }, {} as Record<string, any[]>);
 
-        Object.entries(clinicSchedules).forEach(([clinic, scheds]) => {
+        (Object.entries(clinicSchedules) as [string, any[]][]).forEach(([clinic, scheds]) => {
           const avgPerDay = scheds.length / 7;
           if (avgPerDay < 3) {
             insights.push({
@@ -435,7 +435,7 @@ Provide 2-3 recommendations for revenue optimization and risk mitigation.`;
           return acc;
         }, {} as Record<string, number>);
 
-        const topIncident = Object.entries(incidentTypes).sort((a, b) => b[1] - a[1])[0];
+        const topIncident = (Object.entries(incidentTypes) as [string, number][]).sort((a, b) => b[1] - a[1])[0];
         if (topIncident) {
           insights.push({
             insight: `Recurring incident pattern: ${topIncident[1]} ${topIncident[0]} incidents in last 30 days`,

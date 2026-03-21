@@ -448,8 +448,8 @@ class ExpenseService {
           summary.reimbursement_amount += Number(expense.amount);
         }
 
-        summary.by_payment_method[expense.payment_method] += Number(expense.amount);
-        summary.by_status[expense.status]++;
+        (summary.by_payment_method as any)[expense.payment_method] += Number(expense.amount);
+        (summary.by_status as any)[expense.status]++;
       });
     }
 

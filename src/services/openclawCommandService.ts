@@ -79,59 +79,59 @@ async function callOpenClaw(
 
 export const openclawCommandService = {
   getPendingApprovalsSummary(input: GetPendingApprovalsSummaryInput = {}) {
-    return callOpenClaw('get_pending_approvals_summary', input as Record<string, unknown>);
+    return callOpenClaw('get_pending_approvals_summary', input as unknown as Record<string, unknown>);
   },
 
   getFailedWorkflowsSummary(input: GetFailedWorkflowsSummaryInput = {}) {
-    return callOpenClaw('get_failed_workflows_summary', input as Record<string, unknown>);
+    return callOpenClaw('get_failed_workflows_summary', input as unknown as Record<string, unknown>);
   },
 
   getReviewSlaSummary(input: GetReviewSlaSummaryInput = {}) {
-    return callOpenClaw('get_review_sla_summary', input as Record<string, unknown>);
+    return callOpenClaw('get_review_sla_summary', input as unknown as Record<string, unknown>);
   },
 
   getLocationStatusSummary(input: GetLocationStatusSummaryInput) {
-    return callOpenClaw('get_location_status_summary', input as Record<string, unknown>);
+    return callOpenClaw('get_location_status_summary', input as unknown as unknown as Record<string, unknown>);
   },
 
   getDailyKpiSummary(input: GetDailyKpiSummaryInput) {
-    return callOpenClaw('get_daily_kpi_summary', input as Record<string, unknown>);
+    return callOpenClaw('get_daily_kpi_summary', input as unknown as Record<string, unknown>);
   },
 
   safeRetryPublishJob(input: SafeRetryPublishJobInput) {
-    return callOpenClaw('safe_retry_publish_job', input as Record<string, unknown>);
+    return callOpenClaw('safe_retry_publish_job', input as unknown as Record<string, unknown>);
   },
 
   safeRescheduleContentItem(input: SafeRescheduleContentItemInput) {
-    return callOpenClaw('safe_reschedule_content_item', input as Record<string, unknown>);
+    return callOpenClaw('safe_reschedule_content_item', input as unknown as Record<string, unknown>);
   },
 
   requestCaptionVariants(input: RequestCaptionVariantsInput) {
-    return callOpenClaw('request_caption_variants', input as Record<string, unknown>);
+    return callOpenClaw('request_caption_variants', input as unknown as Record<string, unknown>);
   },
 
   requestReviewReplyDraft(input: RequestReviewReplyDraftInput) {
-    return callOpenClaw('request_review_reply_draft', input as Record<string, unknown>);
+    return callOpenClaw('request_review_reply_draft', input as unknown as Record<string, unknown>);
   },
 
   approveItem(input: ApproveItemInput) {
-    return callOpenClaw('approve_item', input as Record<string, unknown>);
+    return callOpenClaw('approve_item', input as unknown as Record<string, unknown>);
   },
 
   rejectItem(input: RejectItemInput) {
-    return callOpenClaw('reject_item', input as Record<string, unknown>);
+    return callOpenClaw('reject_item', input as unknown as Record<string, unknown>);
   },
 
   requestRewrite(input: RequestRewriteInput) {
-    return callOpenClaw('request_rewrite', input as Record<string, unknown>);
+    return callOpenClaw('request_rewrite', input as unknown as Record<string, unknown>);
   },
 
   escalateException(input: EscalateExceptionInput) {
-    return callOpenClaw('escalate_exception', input as Record<string, unknown>);
+    return callOpenClaw('escalate_exception', input as unknown as Record<string, unknown>);
   },
 
   assignOwner(input: AssignOwnerInput) {
-    return callOpenClaw('assign_owner', input as Record<string, unknown>);
+    return callOpenClaw('assign_owner', input as unknown as Record<string, unknown>);
   },
 
   getContentItemDetail(id: string) {

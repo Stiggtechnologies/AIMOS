@@ -462,11 +462,11 @@ class ClinicalIntelligenceService {
       });
 
     if (packError) {
-      console.error('Error generating pack data:', error);
+      console.error('Error generating pack data:', packError);
       return null;
     }
 
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('evidence_packs')
       .insert({
         pack_type: packType,
@@ -485,8 +485,8 @@ class ClinicalIntelligenceService {
       .select()
       .single();
 
-    if (error) {
-      console.error('Error saving evidence pack:', error);
+    if (insertError) {
+      console.error('Error saving evidence pack:', insertError);
       return null;
     }
 

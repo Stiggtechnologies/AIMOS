@@ -115,7 +115,7 @@ export const afterHoursService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as AfterHoursStats;
   },
 
   /**

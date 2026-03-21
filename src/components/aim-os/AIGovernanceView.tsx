@@ -1,23 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Shield,
-  Lock,
-  Unlock,
-  Database,
-  FileText,
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  TrendingUp,
-  Users,
-  Activity,
-  BookOpen,
-  Award,
-  Eye,
-  FileCheck,
-  Clock,
-  Layers,
-} from 'lucide-react';
+import { Shield, Lock, Clock as Unlock, Database, FileText, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, TrendingUp, Users, Activity, BookOpen, Award, Eye, FileCheck, Clock, Layers } from 'lucide-react';
 import {
   getAIGovernanceDashboard,
   type AIGovernanceDashboard,
@@ -448,13 +430,13 @@ export default function AIGovernanceView() {
               </div>
               <div className="flex items-center gap-3">
                 {log.consent_verified && (
-                  <CheckCircle2 className="w-4 h-4 text-green-600" title="Consent Verified" />
+                  <span title="Consent Verified"><CheckCircle2 className="w-4 h-4 text-green-600" /></span>
                 )}
                 {log.classification_verified && (
-                  <Shield className="w-4 h-4 text-blue-600" title="Classification Verified" />
+                  <span title="Classification Verified"><Shield className="w-4 h-4 text-blue-600" /></span>
                 )}
                 {log.anonymization_applied && (
-                  <Eye className="w-4 h-4 text-purple-600" title="Anonymized" />
+                  <span title="Anonymized"><Eye className="w-4 h-4 text-purple-600" /></span>
                 )}
                 <span className={`text-sm font-semibold ${getResultColor(log.result)}`}>
                   {log.result}

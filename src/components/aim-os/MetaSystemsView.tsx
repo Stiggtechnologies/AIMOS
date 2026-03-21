@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Shield,
-  TrendingUp,
-  AlertTriangle,
-  Target,
-  BarChart3,
-  DollarSign,
-  Users,
-  Server,
-  CheckCircle2,
-  Zap,
-} from 'lucide-react';
+import { Shield, TrendingUp, TriangleAlert as AlertTriangle, Target, ChartBar as BarChart3, DollarSign, Users, Server, CircleCheck as CheckCircle2, Zap } from 'lucide-react';
 import { getPayerContracts, getContractRenewalAlerts, type PayerContract, type ContractRenewalAlert } from '../../services/pricingPayerService';
 import { getServiceLines, type ServiceLine } from '../../services/servicePortfolioService';
 import { getAnomalyDetections, getAuditFlags, type AnomalyDetection, type AuditFlag } from '../../services/internalControlsService';
@@ -487,7 +476,7 @@ export default function MetaSystemsView() {
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="text-sm font-medium text-purple-900">Completion Rate</p>
                   <p className="text-2xl font-bold text-purple-600 mt-1">
-                    {(latestHealth.completion_rate_score * 100).toFixed(0)}%
+                    {((latestHealth.completion_rate_score ?? 0) * 100).toFixed(0)}%
                   </p>
                 </div>
                 <div className="p-4 bg-orange-50 rounded-lg">
@@ -569,7 +558,7 @@ export default function MetaSystemsView() {
                   <p className="text-3xl font-bold text-orange-600 mt-2">
                     {latestValuation.gross_margin.toFixed(1)}%
                   </p>
-                  <p className="text-xs text-orange-700 mt-1">Operating margin: {latestValuation.operating_margin.toFixed(1)}%</p>
+                  <p className="text-xs text-orange-700 mt-1">Operating margin: {(latestValuation.operating_margin ?? 0).toFixed(1)}%</p>
                 </div>
 
                 <div className="p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
@@ -586,7 +575,7 @@ export default function MetaSystemsView() {
                     {latestValuation.customer_retention_rate.toFixed(0)}%
                   </p>
                   <p className="text-xs text-indigo-700 mt-1">
-                    NRR: {latestValuation.net_revenue_retention.toFixed(0)}%
+                    NRR: {(latestValuation.net_revenue_retention ?? 0).toFixed(0)}%
                   </p>
                 </div>
               </div>

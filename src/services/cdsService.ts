@@ -2,10 +2,17 @@ import { researchIntelligenceService, EvidenceClaim, ClinicalRule } from './rese
 import { ClinicalDomain } from './evidenceAuthorityService';
 
 export interface PatientProfile {
+  id?: string;
+  name?: string;
+  age?: number;
+  condition?: string;
+  status?: string;
+  occupation?: string;
+  flags?: string[];
   domain?: ClinicalDomain;
-  region: string;
-  condition_type: string;
-  acuity: string;
+  region?: string;
+  condition_type?: string;
+  acuity?: string;
   age_range?: string;
   centralization?: boolean;
   directional_preference?: string;

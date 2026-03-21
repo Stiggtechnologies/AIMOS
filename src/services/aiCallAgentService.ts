@@ -246,6 +246,7 @@ export const aiCallAgentService = {
       .update({ escalation_required: true, escalation_reason: reason, updated_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw error;
+    await this.logEvent({ event_type: 'staff_escalation_triggered', call_session_id: id, payload: { reason } });
   },
 
   // ─── APPOINTMENTS ─────────────────────────────────────────────────────────
@@ -296,7 +297,15 @@ export const aiCallAgentService = {
       .single();
 
     if (error) throw error;
-    return result as unknown as AIAppointment;
+    const appt = result as unknown as AIAppointment;
+    const eventType = data.booking_source === 'ai_call_agent' ? 'ai_booking_completed' : 'appointment_confirmed';
+    await this.logEvent({
+      event_type: eventType,
+      appointment_id: appt.id,
+      lead_id: data.lead_id ?? undefined,
+      payload: { service_type: data.service_type, booking_source: data.booking_source },
+    });
+    return appt;
   },
 
   async updateAppointmentStatus(id: string, status: AppointmentStatus, reason?: string): Promise<void> {
@@ -310,6 +319,16 @@ export const aiCallAgentService = {
 
     const { error } = await supabase.from('ai_appointments').update(updates).eq('id', id);
     if (error) throw error;
+
+    const eventMap: Partial<Record<AppointmentStatus, string>> = {
+      confirmed: 'appointment_confirmed',
+      cancelled: 'appointment_cancelled',
+      reschedule_requested: 'appointment_reschedule_requested',
+    };
+    const eventType = eventMap[status];
+    if (eventType) {
+      await this.logEvent({ event_type: eventType, appointment_id: id, payload: { status, reason } });
+    }
   },
 
   async getAppointmentStats() {
@@ -343,6 +362,7 @@ export const aiCallAgentService = {
       wcb: allData.filter(a => a.service_type === 'wcb_assessment').length,
       mva: allData.filter(a => a.service_type === 'mva_assessment').length,
       total_revenue: totalRevenue,
+      estimated_revenue: totalRevenue,
       today_ai: todayData.filter(a => a.booking_source === 'ai_call_agent').length,
     };
   },
@@ -400,11 +420,12 @@ export const aiCallAgentService = {
   // ─── BOOKING QUEUE ────────────────────────────────────────────────────────
 
   async getBookingQueue() {
-    const [callbacks, escalations, employers, existingPatients] = await Promise.all([
+    const [callbacks, escalations, employers, existingPatients, bookingFailed] = await Promise.all([
       supabase.from('call_sessions').select('*, assigned_location:ai_clinic_locations(name)').eq('routing_result', 'callback_requested').is('follow_up_sent_at', null).order('created_at', { ascending: false }).limit(50),
       supabase.from('call_sessions').select('*, assigned_location:ai_clinic_locations(name)').eq('escalation_required', true).order('urgency_level', { ascending: false }).order('created_at', { ascending: false }).limit(50),
       supabase.from('call_sessions').select('*, assigned_location:ai_clinic_locations(name)').eq('intent_type', 'employer').order('created_at', { ascending: false }).limit(20),
       supabase.from('call_sessions').select('*, assigned_location:ai_clinic_locations(name)').eq('intent_type', 'existing_patient').eq('routing_result', 'callback_requested').order('created_at', { ascending: false }).limit(20),
+      supabase.from('call_sessions').select('*, assigned_location:ai_clinic_locations(name)').in('routing_result', ['incomplete', 'lost']).is('lead_id', null).order('created_at', { ascending: false }).limit(50),
     ]);
 
     return {
@@ -412,6 +433,7 @@ export const aiCallAgentService = {
       escalations: (escalations.data || []) as unknown as CallSession[],
       employers: (employers.data || []) as unknown as CallSession[],
       existingPatients: (existingPatients.data || []) as unknown as CallSession[],
+      bookingFailed: (bookingFailed.data || []) as unknown as CallSession[],
     };
   },
 

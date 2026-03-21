@@ -1,8 +1,8 @@
-export type UserRole = 'executive' | 'clinic_manager' | 'clinician' | 'admin' | 'contractor' | 'regional_director';
+export type UserRole = 'executive' | 'clinic_manager' | 'clinician' | 'admin' | 'contractor' | 'regional_director' | 'patient';
 export type EmploymentType = 'full_time' | 'part_time' | 'contractor' | 'casual';
 export type ContentType = 'document' | 'video' | 'course' | 'quiz' | 'link';
 export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';
-export type IncidentStatus = 'draft' | 'submitted' | 'under_review' | 'resolved' | 'closed';
+export type IncidentStatus = 'draft' | 'submitted' | 'under_review' | 'resolved' | 'closed' | 'verified';
 export type AnnouncementPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 export interface UserProfile {
@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string;
   first_name: string;
   last_name: string;
+  full_name?: string;
   display_name?: string;
   role: UserRole;
   primary_clinic_id?: string;

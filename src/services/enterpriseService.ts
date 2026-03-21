@@ -94,7 +94,7 @@ export const enterpriseService = {
       return ['command_center', 'operations'];
     }
 
-    const role = data.enterprise_roles as { default_modules: ModuleKey[] } | null;
+    const role = data.enterprise_roles as unknown as { default_modules: ModuleKey[] } | null;
     return role?.default_modules || ['command_center', 'operations'];
   },
 
@@ -135,7 +135,7 @@ export const enterpriseService = {
       console.error('Error fetching regional performance:', error);
       return [];
     }
-    return data || [];
+    return (data || []) as unknown as RegionalPerformance[];
   },
 
   async getClinicPerformance(regionId?: string): Promise<ClinicPerformance[]> {
@@ -153,7 +153,7 @@ export const enterpriseService = {
       console.error('Error fetching clinic performance:', error);
       return [];
     }
-    return data || [];
+    return (data || []) as unknown as ClinicPerformance[];
   },
 
   async getClinicsWithRegions(): Promise<Array<{
@@ -187,7 +187,7 @@ export const enterpriseService = {
       name: clinic.name,
       code: clinic.code,
       region_id: clinic.region_id,
-      region_name: (clinic.regions as { name: string } | null)?.name || null,
+      region_name: (clinic.regions as unknown as { name: string } | null)?.name || null,
       is_active: clinic.is_active
     }));
   },

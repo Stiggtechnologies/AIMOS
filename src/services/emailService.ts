@@ -486,7 +486,7 @@ The AIM Team
 
       <div class="amount-due">
         <div style="font-size:14px;color:#92400e;margin-bottom:5px;">Amount Due</div>
-        <div class="amount">${{total_due}}</div>
+        <div class="amount">DOLLAR_SIGN{{total_due}}</div>
         <div style="font-size:12px;color:#6b7280;margin-top:5px;">Due by {{due_date}}</div>
       </div>
 
@@ -505,15 +505,15 @@ The AIM Team
         <tfoot>
           <tr class="total-row">
             <td colspan="2">Insurance Payments</td>
-            <td>-${{insurance_paid}}</td>
+            <td>-DOLLAR_SIGN{{insurance_paid}}</td>
           </tr>
           <tr class="total-row">
             <td colspan="2">Previous Payments</td>
-            <td>-${{patient_paid}}</td>
+            <td>-DOLLAR_SIGN{{patient_paid}}</td>
           </tr>
           <tr class="total-row">
             <td colspan="2">Balance Due</td>
-            <td>${{total_due}}</td>
+            <td>DOLLAR_SIGN{{total_due}}</td>
           </tr>
         </tfoot>
       </table>
@@ -545,7 +545,7 @@ Dear {{patient_name}},
 BILLING STATEMENT
 Statement Date: {{statement_date}}
 
-Amount Due: ${{total_due}}
+Amount Due: DOLLAR_SIGN{{total_due}}
 Due by: {{due_date}}
 
 Pay online: {{payment_url}}
@@ -609,7 +609,7 @@ Thank you for choosing AIM Integrative Medicine.
           <div class="metric-change {{util_change_class}}">{{util_change}}</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value">${{revenue_today}}</div>
+          <div class="metric-value">DOLLAR_SIGN{{revenue_today}}</div>
           <div class="metric-label">Revenue</div>
           <div class="metric-change {{revenue_change_class}}">{{revenue_change}}</div>
         </div>
@@ -651,7 +651,7 @@ Good morning, {{recipient_name}}!
 KEY METRICS:
 - Visits Today: {{visits_today}} ({{visits_change}})
 - Utilization: {{utilization_pct}}% ({{util_change}})
-- Revenue: ${{revenue_today}} ({{revenue_change}})
+- Revenue: DOLLAR_SIGN{{revenue_today}} ({{revenue_change}})
 - NPS Score: {{nps_score}}
 
 ACTION ITEMS: {{action_count}}
@@ -668,7 +668,7 @@ Have a great day!
 };
 
 function interpolateTemplate(template: string, variables: Record<string, any>): string {
-  let result = template;
+  let result = template.replace(/DOLLAR_SIGN/g, '$');
   for (const [key, value] of Object.entries(variables)) {
     const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
     result = result.replace(regex, String(value ?? ''));

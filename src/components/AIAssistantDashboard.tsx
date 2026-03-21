@@ -1,21 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Brain,
-  AlertTriangle,
-  TrendingUp,
-  DollarSign,
-  Users,
-  Clock,
-  Zap,
-  CheckCircle,
-  XCircle,
-  Target,
-  Lightbulb,
-  AlertCircle,
-  BarChart3,
-  ArrowRight,
-  MessageSquare
-} from 'lucide-react';
+import { Brain, TriangleAlert as AlertTriangle, TrendingUp, DollarSign, Users, Clock, Zap, CircleCheck as CheckCircle, Circle as XCircle, Target, Lightbulb, CircleAlert as AlertCircle, ChartBar as BarChart3, ArrowRight, MessageSquare } from 'lucide-react';
 import {
   getAIAssistantDashboard,
   AIAssistantDashboard as AIAssistantDashboardType,
@@ -185,7 +169,7 @@ export default function AIAssistantDashboard() {
   );
 }
 
-function OverviewTab({ dashboard, setActiveTab }: { dashboard: AIAssistantDashboard; setActiveTab: (tab: any) => void }) {
+function OverviewTab({ dashboard, setActiveTab }: { dashboard: AIAssistantDashboardType; setActiveTab: (tab: any) => void }) {
   return (
     <div className="space-y-6">
       {dashboard.summary.critical_items > 0 && (

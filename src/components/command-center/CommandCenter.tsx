@@ -84,14 +84,14 @@ export function CommandCenter({ onNavigate }: CommandCenterProps) {
       if (user) {
         try {
           const notifs = await notificationService.getNotifications(user.id);
-          const mapped: Alert[] = (notifs || []).slice(0, 5).map((n: Record<string, unknown>) => ({
+          const mapped: Alert[] = (notifs || []).slice(0, 5).map(((n: Record<string, unknown>) => ({
             id: n.id as string,
             type: n.priority === 'critical' ? 'critical' : n.priority === 'high' ? 'warning' : 'info',
             title: (n.title as string) || 'Alert',
             message: (n.message as string) || '',
             time: 'recently',
             action: 'View'
-          }));
+          })) as any);
           setAlerts(mapped.length > 0 ? mapped : DEMO_ALERTS);
         } catch {
           setAlerts(DEMO_ALERTS);

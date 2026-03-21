@@ -21,6 +21,7 @@ export interface ClinicalRule {
   patient_explanation_text: string;
   safety_notes?: string;
   priority: number;
+  domain?: string;
   is_active: boolean;
 }
 
@@ -30,6 +31,7 @@ export interface PatientEducationAsset {
   reading_level: number;
   topic_tags: string[];
   content_md: string;
+  contraindications_banner?: string;
   is_active: boolean;
 }
 
@@ -40,6 +42,7 @@ export interface CarePathwayTemplate {
   phases: Record<string, any>;
   visit_guidance: Record<string, any>;
   home_program_guidance: Record<string, any>;
+  domain?: string;
   is_active: boolean;
 }
 

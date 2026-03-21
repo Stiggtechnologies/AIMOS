@@ -1,14 +1,14 @@
 export type OutcomeStatus = 'active' | 'completed' | 'discontinued';
 export type PerformanceRating = 'red' | 'amber' | 'green';
-export type ReferralSourceType = 'employer' | 'insurer' | 'physician' | 'self_referral' | 'other';
+export type ReferralSourceType = 'employer' | 'insurer' | 'physician' | 'hospital' | 'self_referral' | 'other';
 export type RelationshipTier = 'platinum' | 'gold' | 'silver' | 'standard';
 export type ReferralStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled' | 'no_show';
 export type TrendType = 'growing' | 'stable' | 'declining' | 'improving';
 export type AccountHealth = 'healthy' | 'at_risk' | 'critical';
 export type SlotStatus = 'available' | 'booked' | 'blocked' | 'completed' | 'cancelled' | 'no_show';
 export type AlertLevel = 'normal' | 'warning' | 'critical';
-export type PlanStatus = 'pending' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
-export type ActionStatus = 'pending' | 'in_progress' | 'completed' | 'blocked';
+export type PlanStatus = 'pending' | 'in_progress' | 'completed' | 'overdue' | 'cancelled' | 'verified';
+export type ActionStatus = 'pending' | 'in_progress' | 'completed' | 'blocked' | 'verified';
 export type AttestationType = 'read_and_understood' | 'training_completed' | 'compliance_confirmed';
 export type AccessType = 'view' | 'download' | 'print' | 'edit';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
