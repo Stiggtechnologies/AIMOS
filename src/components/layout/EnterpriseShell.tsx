@@ -42,10 +42,10 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
   const accessibleModules = useMemo(() => {
     const role = profile?.role;
     const modulesByRole: Record<string, ModuleKey[]> = {
-      executive:         ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
-      admin:             ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation'],
+      executive:         ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation', 'assets'],
+      admin:             ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'strategy', 'workforce', 'supply_chain', 'admin', 'aim_automation', 'assets'],
       regional_director: ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'intelligence', 'workforce', 'aim_automation'],
-      clinic_manager:    ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation'],
+      clinic_manager:    ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation', 'assets'],
       clinician:         ['command_center', 'clinical', 'operations'],
       contractor:        ['command_center', 'clinical', 'operations'],
     };

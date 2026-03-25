@@ -151,6 +151,17 @@ const CallAgentShell = lazy(() => import('../call-agent/CallAgentShell').then(m 
 // ─── AIM AUTOMATION ──────────────────────────────────────────────────────────
 const AimAutomationDashboard = lazy(() => import('../automation/AimAutomationDashboard'));
 
+// ─── ASSETS ──────────────────────────────────────────────────────────────────
+const AssetDashboard = lazy(() => import('../assets/AssetDashboard'));
+const AssetDetailView = lazy(() => import('../assets/AssetDetailView'));
+const WorkOrdersView = lazy(() => import('../assets/WorkOrdersView'));
+const AcquisitionIntakeView = lazy(() => import('../assets/AcquisitionIntakeView'));
+const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView'));
+const DocumentsCenter = lazy(() => import('../assets/DocumentsCenter'));
+const AnalyticsView = lazy(() => import('../assets/AnalyticsView'));
+const AICopilotView = lazy(() => import('../assets/AICopilotView'));
+const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup'));
+
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 const SOPHubView = lazy(() => import('../intranet/SOPHubView'));
 const FormsView = lazy(() => import('../intranet/FormsView'));
@@ -447,6 +458,36 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── AIM AUTOMATION ───────────────────────────────────────────────────
       case 'aim_automation':
         return <AimAutomationDashboard />;
+
+      // ─── ASSETS ────────────────────────────────────────────────────────────
+      case 'assets':
+        switch (currentSubModule) {
+          case 'dashboard':
+          case 'overview':
+          default:
+            return <AssetDashboard onNavigate={handleNavigate} />;
+          case 'register':
+            return <AssetDashboard onNavigate={handleNavigate} view="register" />;
+          case 'detail':
+          case 'detail:id':
+            return <AssetDetailView onBack={() => handleNavigate('assets', 'dashboard')} />;
+          case 'acquisitions':
+            return <AcquisitionIntakeView onNavigate={handleNavigate} />;
+          case 'maintenance':
+            return <AssetDashboard onNavigate={handleNavigate} view="maintenance" />;
+          case 'work-orders':
+            return <WorkOrdersView onNavigate={handleNavigate} />;
+          case 'capital-planning':
+            return <CapitalPlanningView onNavigate={handleNavigate} />;
+          case 'documents':
+            return <DocumentsCenter onNavigate={handleNavigate} />;
+          case 'analytics':
+            return <AnalyticsView onNavigate={handleNavigate} />;
+          case 'ai-copilot':
+            return <AICopilotView onNavigate={handleNavigate} />;
+          case 'mobile':
+            return <MobileAssetLookup onNavigate={handleNavigate} />;
+        }
 
       default:
         return <CommandCenter onNavigate={handleNavigate} />;

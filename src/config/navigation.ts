@@ -285,6 +285,26 @@ export const moduleConfig: NavModule[] = [
     ]
   },
   {
+    key: 'assets',
+    label: 'Assets',
+    description: 'Asset Intelligence & Lifecycle Command Center',
+    icon: 'Package',
+    color: 'purple',
+    gradient: 'from-purple-600 to-purple-700',
+    subItems: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
+      { key: 'register', label: 'Asset Register', icon: 'Package' },
+      { key: 'acquisitions', label: 'Acquisitions', icon: 'ShoppingCart' },
+      { key: 'maintenance', label: 'Maintenance Plans', icon: 'Wrench' },
+      { key: 'work-orders', label: 'Work Orders', icon: 'ClipboardList' },
+      { key: 'capital-planning', label: 'Capital Planning', icon: 'Calculator' },
+      { key: 'documents', label: 'Documents', icon: 'FolderOpen' },
+      { key: 'analytics', label: 'Analytics', icon: 'BarChart3' },
+      { key: 'ai-copilot', label: 'AI Copilot', icon: 'Bot' },
+      { key: 'mobile', label: 'Mobile Lookup', icon: 'Smartphone' }
+    ]
+  },
+  {
     key: 'aim_automation',
     label: 'Automation',
     description: 'Marketing automation, social media, content approvals, and review management',
