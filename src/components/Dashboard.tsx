@@ -131,7 +131,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Autonomous Talent Acquisition Engine</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">AIMOS Command Center</h1>
         <p className="mt-2 text-sm lg:text-base text-gray-600">Real-time metrics and AI agent performance</p>
       </div>
 
