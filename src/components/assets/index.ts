@@ -2,3 +2,8 @@ export { AssetDashboard } from './AssetDashboard';
 export { AssetDetailView } from './AssetDetailView';
 export { WorkOrdersView } from './WorkOrdersView';
 export { AcquisitionIntakeView } from './AcquisitionIntakeView';
+export { CapitalPlanningView } from './CapitalPlanningView';
+export { DocumentsCenter } from './DocumentsCenter';
+export { AnalyticsView } from './AnalyticsView';
+export { AICopilotView } from './AICopilotView';
+export { MobileAssetLookup } from './MobileAssetLookup';
