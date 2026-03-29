@@ -141,6 +141,10 @@ const TalentDashboard = lazy(() => import('../Dashboard'));
 const ProcurementDashboard = lazy(() => import('../procurement/ProcurementDashboard').then(m => ({ default: m.ProcurementDashboard })));
 const QuickPurchaseRequest = lazy(() => import('../procurement/QuickPurchaseRequest').then(m => ({ default: m.QuickPurchaseRequest })));
 
+// ─── CLINICAL DOCUMENTATION ────────────────────────────────────────────────
+const EncounterWorkspacePage = lazy(() => import('../../features/clinical-documentation/pages/EncounterWorkspacePage').then(m => ({ default: m.EncounterWorkspacePage })));
+const DraftReviewPage = lazy(() => import('../../features/clinical-documentation/pages/DraftReviewPage').then(m => ({ default: m.DraftReviewPage })));
+
 // ─── PATIENT EXPERIENCE ──────────────────────────────────────────────────────
 const PatientExperienceDashboard = lazy(() => import('../patient-experience/PatientExperienceDashboard'));
 
@@ -465,6 +469,30 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── AIM AUTOMATION ───────────────────────────────────────────────────
       case 'aim_automation':
         return <AimAutomationDashboard />;
+
+      // ─── CLINICAL DOCUMENTATION ───────────────────────────────────────────
+      case 'clinical-documentation': {
+        if (currentSubModule.startsWith('encounter:')) {
+          const encounterId = currentSubModule.split(':')[1];
+          return <EncounterWorkspacePage encounterId={encounterId} />;
+        }
+        if (currentSubModule.startsWith('draft:')) {
+          const draftId = currentSubModule.split(':')[1];
+          return <DraftReviewPage draftId={draftId} onNavigate={(action, id) => {
+            if (action === 'back') handleNavigate('clinical', 'patients');
+            if (action === 'signed' && id) handleNavigate('clinical-documentation', `signed:${id}`);
+          }} />;
+        }
+        if (currentSubModule.startsWith('signed:')) {
+          const signedNoteId = currentSubModule.split(':')[1];
+          // Signed note viewer — simple read-only display
+          return <DraftReviewPage draftId={signedNoteId} onNavigate={(action) => {
+            if (action === 'back') handleNavigate('clinical', 'patients');
+          }} />;
+        }
+        // Default: redirect to patient list
+        return <DraftReviewPage draftId="" onNavigate={() => handleNavigate('clinical', 'patients')} />;
+      }
 
       default:
         return <CommandCenter onNavigate={handleNavigate} />;
