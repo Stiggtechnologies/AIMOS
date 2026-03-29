@@ -8,6 +8,7 @@ import { RiskCompletenessPanel } from '../components/RiskCompletenessPanel';
 import { SignNoteModal } from '../components/SignNoteModal';
 import { AddendumModal } from '../components/AddendumModal';
 
+import { useAuth } from '../../../contexts/AuthContext';
 import { useEncounter } from '../hooks/useEncounter';
 import { useSaveDraftNote } from '../hooks/useSaveDraftNote';
 import { useValidateDraftNote } from '../hooks/useValidateDraftNote';
@@ -69,14 +70,16 @@ export function EncounterWorkspacePage({
   initialModality,
   initialPatientName,
   initialClinicName,
-  currentUserId,
 }: EncounterWorkspacePageProps) {
-  // --- Core IDs ---
+  // --- Auth context: real user ---
+  const { user } = useAuth();
+  const realUserId = user?.id || 'bd4e7fde-bf74-4160-9428-7de6b2cdedc9'; // fallback only for dev
+
+  // --- Core IDs (fallback to test data in dev) ---
   const realEncounterId = encounterId || '00000000-4444-0000-0000-000000000001';
   const realPatientId = patientId || '00000000-2222-0000-0000-000000000001';
   const realClinicId = '00000000-1111-0000-0000-000000000001';
   const realCaseId = '00000000-3333-0000-0000-000000000001';
-  const realUserId = currentUserId || 'bd4e7fde-bf74-4160-9428-7de6b2cdedc9';
 
   // --- Data hooks ---
   const { data: encounter, isLoading: encLoading } = useEncounter(realEncounterId);

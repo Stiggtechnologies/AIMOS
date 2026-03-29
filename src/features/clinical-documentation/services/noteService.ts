@@ -2,22 +2,39 @@ import { supabase } from '../../../lib/supabase';
 import type { INoteService } from './types';
 import type { CreateDraftNoteInput, SaveDraftNoteVersionInput, CreateAddendumInput, NoteDraft, NoteDraftVersion, SignedNote, NoteAddendum, PaginatedResult, PaginationParams, NoteDraftWithVersions, SignedNoteWithAddenda } from '../types';
 
-// Helper: compute completeness score from SOAP sections
+// Completeness score: 0-1 range (numeric(5,4) in DB)
 function computeCompleteness(sp: Record<string, unknown>): number {
   const sections = ['subjective_section', 'objective_section', 'assessment_section', 'treatment_section', 'response_section', 'plan_section', 'follow_up_section'];
   const filled = sections.filter(s => sp[s] && String(sp[s]).trim().length > 20).length;
-  return Math.round((filled / sections.length) * 100);
+  return Math.round((filled / sections.length) * 100) / 100; // 0.0 to 1.0
 }
 
-// Helper: compute risk score based on completeness and missing fields
+// Risk score: 0-1 range (numeric(5,4) in DB)
 function computeRisk(sp: Record<string, unknown>): number {
   const completeness = computeCompleteness(sp);
   const hasAssessment = sp.assessment_section && String(sp.assessment_section).trim().length > 10;
   const hasPlan = sp.plan_section && String(sp.plan_section).trim().length > 10;
-  if (completeness >= 80 && hasAssessment && hasPlan) return 0.2;
-  if (completeness >= 60) return 0.5;
+  if (completeness >= 0.8 && hasAssessment && hasPlan) return 0.2;
+  if (completeness >= 0.6) return 0.5;
   return 0.8;
 }
+
+// Map UI note types to DB values
+const NOTE_TYPE_MAP: Record<string, string> = {
+  initial: 'initial',
+  initial_assessment: 'initial',
+  followup: 'progress',
+  follow_up: 'progress',
+  progress: 'progress',
+  soap: 'soap',
+  discharge: 'discharge',
+  assessment: 'assessment',
+  referral: 'referral',
+  letter: 'letter',
+  wcb_report: 'assessment',
+  insurer_update: 'assessment',
+  custom: 'custom',
+};
 
 export const noteService: INoteService = {
   async createDraftNote(input: CreateDraftNoteInput): Promise<NoteDraft> {
@@ -40,7 +57,7 @@ export const noteService: INoteService = {
         case_id: input.case_id ?? null,
         clinic_id: input.clinic_id,
         author_user_id: input.author_user_id,
-        note_type: input.note_type,
+        note_type: NOTE_TYPE_MAP[input.note_type] || input.note_type,
         status: 'draft',
         source_mode: input.source_mode ?? 'manual',
         structured_payload,
@@ -95,7 +112,6 @@ export const noteService: INoteService = {
   },
 
   async saveDraftVersion(input: SaveDraftNoteVersionInput): Promise<NoteDraftVersion> {
-    // Get current draft to snapshot
     const { data: draft, error: draftError } = await supabase
       .from('documentation_note_drafts')
       .select('*')
@@ -106,6 +122,21 @@ export const noteService: INoteService = {
 
     const sp = (draft.structured_payload as Record<string, unknown>) || {};
     const newVersion = (draft.current_version || 1) + 1;
+
+    // Update the draft with new structured payload + bump version
+    const updatedPayload = (input as { structured_payload?: Record<string, unknown> }).structured_payload || sp;
+    const { error: updateError } = await supabase
+      .from('documentation_note_drafts')
+      .update({
+        current_version: newVersion,
+        structured_payload: updatedPayload,
+        completeness_score: computeCompleteness(updatedPayload as Record<string, unknown>),
+        risk_score: computeRisk(updatedPayload as Record<string, unknown>),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', input.note_draft_id);
+
+    if (updateError) throw new Error(`Failed to update draft: ${updateError.message}`);
 
     // Insert version snapshot
     const { data: version, error: versionError } = await supabase
@@ -121,26 +152,14 @@ export const noteService: INoteService = {
         plan_section: sp.plan_section as string ?? null,
         follow_up_section: sp.follow_up_section as string ?? null,
         additional_sections: sp.additional_sections ?? null,
-        change_summary: input.provenance_payload ? `AI-assisted save` : `Manual save`,
-        word_count: sp._wordCount as number ?? null,
+        change_summary: (input as { provenance_payload?: unknown }).provenance_payload ? 'AI-assisted save' : 'Manual save',
+        word_count: (sp._wordCount as number) ?? null,
         created_by_user_id: input.created_by_user_id,
       })
       .select()
       .single();
 
     if (versionError) throw new Error(`Failed to save version: ${versionError.message}`);
-
-    // Update draft version counter and structured payload
-    const updatedPayload = input.structured_payload || sp;
-    await supabase
-      .from('documentation_note_drafts')
-      .update({
-        current_version: newVersion,
-        structured_payload: updatedPayload,
-        completeness_score: computeCompleteness(updatedPayload as Record<string, unknown>),
-        risk_score: computeRisk(updatedPayload as Record<string, unknown>),
-      })
-      .eq('id', input.note_draft_id);
 
     return version as NoteDraftVersion;
   },
@@ -177,6 +196,7 @@ export const noteService: INoteService = {
       errors.push('Subjective section is required and must be at least 10 characters.');
     if (!sp.objective_section || String(sp.objective_section).trim().length < 10)
       errors.push('Objective section is required and must be at least 10 characters.');
+    // completeness_score is 0-1, so 0.6 = 60%
     if ((draft.completeness_score ?? 0) < 0.6)
       errors.push('Note completeness is below 60%.');
     if (draft.status === 'signed')
@@ -253,9 +273,9 @@ export const noteService: INoteService = {
         clinic_id: input.clinic_id,
         addendum_type: input.addendum_type,
         reason: input.reason,
+        addendum_text: input.addendum_text,
         section_affected: input.section_affected ?? null,
         original_text: input.original_text ?? null,
-        corrected_text: input.addendum_text ?? null,
         created_by_user_id: input.created_by_user_id,
       })
       .select()
