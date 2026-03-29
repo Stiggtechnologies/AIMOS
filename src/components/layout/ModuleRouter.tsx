@@ -160,6 +160,15 @@ const CallAgentShell = lazy(() => import('../call-agent/CallAgentShell').then(m 
 const AimAutomationDashboard = lazy(() => import('../automation/AimAutomationDashboard'));
 
 // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
+const AssetDetailView = lazy(() => import('../assets/AssetDetailView'));
+const AssetRegisterView = lazy(() => import('../assets/AssetRegisterView'));
+const WorkOrdersView = lazy(() => import('../assets/WorkOrdersView').then(m => ({ default: m.WorkOrdersView })));
+const AcquisitionIntakeView = lazy(() => import('../assets/AcquisitionIntakeView').then(m => ({ default: m.AcquisitionIntakeView })));
+const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView').then(m => ({ default: m.CapitalPlanningView })));
+const DocumentsCenter = lazy(() => import('../assets/DocumentsCenter').then(m => ({ default: m.DocumentsCenter })));
+const AssetAnalyticsView = lazy(() => import('../assets/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
+const AICopilotView = lazy(() => import('../assets/AICopilotView').then(m => ({ default: m.AICopilotView })));
+const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup').then(m => ({ default: m.MobileAssetLookup })));
 
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 const SOPHubView = lazy(() => import('../intranet/SOPHubView'));
@@ -273,12 +282,14 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         }
       }
 
+      // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
       case 'assets': {
         switch (currentSubModule) {
           case 'dashboard': return <AssetDashboard onNavigate={handleNavigate} />;
+          case 'register': return <AssetRegisterView onNavigate={handleNavigate} />;
           case 'work-orders': return <WorkOrdersView onNavigate={handleNavigate} />;
-          case 'acquisition': return <AcquisitionIntakeView onNavigate={handleNavigate} />;
-          case 'capital': return <CapitalPlanningView onNavigate={handleNavigate} />;
+          case 'acquisitions': return <AcquisitionIntakeView onNavigate={handleNavigate} />;
+          case 'capital-planning': return <CapitalPlanningView onNavigate={handleNavigate} />;
           case 'documents': return <DocumentsCenter onNavigate={handleNavigate} />;
           case 'analytics': return <AssetAnalyticsView onNavigate={handleNavigate} />;
           case 'ai-copilot': return <AICopilotView onNavigate={handleNavigate} />;
