@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -40,7 +39,6 @@ function conditionLabelToMinScore(label: string): number {
 }
 
 export default function AssetRegisterView({ onNavigate }: Props) {
-  const auth = useAuth();
   const [assets, setAssets] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

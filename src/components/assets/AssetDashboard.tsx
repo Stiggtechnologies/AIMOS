@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Boxes, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Wrench, TrendingUp, Calendar, DollarSign, Activity } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -17,7 +16,6 @@ interface Props {
 // Query: assets, asset_categories, asset_alerts
 
 export default function AssetDashboard({ onNavigate }: Props) {
-  const auth = useAuth();
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);

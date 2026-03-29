@@ -1,9 +1,9 @@
-export { AssetDashboard } from './AssetDashboard';
-export { AssetDetailView } from './AssetDetailView';
-export { WorkOrdersView } from './WorkOrdersView';
-export { AcquisitionIntakeView } from './AcquisitionIntakeView';
-export { CapitalPlanningView } from './CapitalPlanningView';
-export { DocumentsCenter } from './DocumentsCenter';
-export { AnalyticsView } from './AnalyticsView';
+export { default as AssetDashboard } from './AssetDashboard';
+export { default as AssetDetailView } from './AssetDetailView';
+export { default as WorkOrdersView } from './WorkOrdersView';
+export { default as AcquisitionIntakeView } from './AcquisitionIntakeView';
+export { default as CapitalPlanningView } from './CapitalPlanningView';
+export { default as DocumentsCenter } from './DocumentsCenter';
+export { default as AnalyticsView } from './AnalyticsView';
 export { AICopilotView } from './AICopilotView';
-export { MobileAssetLookup } from './MobileAssetLookup';
+export { default as MobileAssetLookup } from './MobileAssetLookup';

@@ -163,7 +163,7 @@ const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView'));
 const DocumentsCenter = lazy(() => import('../assets/DocumentsCenter'));
 const AssetAnalyticsView = lazy(() => import('../assets/AnalyticsView'));
 const AICopilotView = lazy(() => import('../assets/AICopilotView').then(m => ({ default: m.AICopilotView })));
-const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup').then(m => ({ default: m.MobileAssetLookup })));
+const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup'));
 
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
 const SOPHubView = lazy(() => import('../intranet/SOPHubView'));
