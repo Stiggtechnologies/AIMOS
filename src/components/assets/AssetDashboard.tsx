@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Boxes, AlertTriangle, CheckCircle, Clock, Wrench, 
   TrendingUp, Calendar, DollarSign, Activity
@@ -12,12 +11,16 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+interface Props {
+  onNavigate?: (module: string, subModule?: string, params?: any) => void;
+  view?: string;
+}
+
 // ─── LIVE DATA ────────────────────────────────────────────────────────────────
 // Query: assets, asset_categories, asset_alerts
 
-export default function AssetDashboard() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+export default function AssetDashboard({ onNavigate }: Props) {
+  const auth = useAuth();
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -34,37 +37,28 @@ export default function AssetDashboard() {
 
   async function fetchData() {
     try {
-      // Fetch assets with stats
-      const { data: assetsData, error: assetsError } = await supabase
-        .from('assets')
-        .select('*, asset_categories(name)')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const [assetsRes, alertsRes] = await Promise.all([
+        supabase.from('assets').select('*, asset_categories(name)').order('created_at', { ascending: false }).limit(50),
+        supabase.from('asset_alerts').select('*, assets(name)').eq('severity', 'critical').eq('status', 'active').order('created_at', { ascending: false }).limit(10)
+      ]);
 
-      if (assetsError) throw assetsError;
-      setAssets(assetsData || []);
+      if (assetsRes.data) setAssets(assetsRes.data);
+      if (alertsRes.data) setAlerts(alertsRes.data);
 
-      // Fetch critical alerts
-      const { data: alertsData, error: alertsError } = await supabase
-        .from('asset_alerts')
-        .select('*, assets(name)')
-        .eq('severity', 'critical')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (alertsError) throw alertsError;
-      setAlerts(alertsData || []);
-
-      // Calculate stats
-      const total = assetsData?.length || 0;
-      const operational = assetsData?.filter(a => a.status === 'operational').length || 0;
-      const maintenance = assetsData?.filter(a => a.status === 'maintenance').length || 0;
-      setStats({ total, operational, maintenance, critical: alertsData?.length || 0 });
+      const total = assetsRes.data?.length || 0;
+      const operational = assetsRes.data?.filter((a: any) => a.status === 'operational').length || 0;
+      const maintenance = assetsRes.data?.filter((a: any) => a.status === 'maintenance').length || 0;
+      setStats({ total, operational, maintenance, critical: alertsRes.data?.length || 0 });
     } catch (error) {
       console.error('Error fetching asset data:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleAssetClick(assetId: string) {
+    if (onNavigate) {
+      onNavigate('assets', 'detail', { id: assetId });
     }
   }
 
@@ -125,7 +119,7 @@ export default function AssetDashboard() {
             <div 
               key={asset.id}
               className="p-4 hover:bg-slate-700/50 cursor-pointer transition-colors"
-              onClick={() => navigate(`/assets/${asset.id}`)}
+              onClick={() => handleAssetClick(asset.id)}
             >
               <div className="flex items-center justify-between">
                 <div>

@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Search, Smartphone, ArrowRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-export default function MobileAssetLookup() {
-  const navigate = useNavigate();
+interface Props {
+  onNavigate?: (module: string, subModule?: string, params?: any) => void;
+}
+
+export default function MobileAssetLookup({ onNavigate }: Props) {
   const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +28,10 @@ export default function MobileAssetLookup() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleAssetClick(assetId: string) {
+    if (onNavigate) onNavigate('assets', 'detail', { id: assetId });
   }
 
   return (
@@ -51,7 +57,7 @@ export default function MobileAssetLookup() {
 
       <div className="space-y-3">
         {assets.map((asset) => (
-          <div key={asset.id} onClick={() => navigate(`/assets/${asset.id}`)}
+          <div key={asset.id} onClick={() => handleAssetClick(asset.id)}
             className="bg-slate-800 rounded-lg border border-slate-700 p-4 hover:border-blue-500/50 cursor-pointer transition-colors">
             <div className="flex items-center justify-between">
               <div>

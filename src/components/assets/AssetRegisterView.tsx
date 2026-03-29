@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Search, Filter, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/auth';
 import { createClient } from '@supabase/supabase-js';
@@ -9,13 +8,12 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// ─── LIVE DATA ────────────────────────────────────────────────────────────────
-// Query: assets, asset_categories
+interface Props {
+  onNavigate?: (module: string, subModule?: string, params?: any) => void;
+}
 
-export default function AssetRegisterView() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
+export default function AssetRegisterView({ onNavigate }: Props) {
+  const auth = useAuth();
   const [assets, setAssets] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +38,6 @@ export default function AssetRegisterView() {
         supabase.from('assets').select('*, asset_categories(name)').order('name'),
         supabase.from('asset_categories').select('*').order('name')
       ]);
-
       if (assetsRes.data) setAssets(assetsRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
     } catch (error) {
@@ -50,19 +47,20 @@ export default function AssetRegisterView() {
     }
   }
 
+  function handleAssetClick(assetId: string) {
+    if (onNavigate) onNavigate('assets', 'detail', { id: assetId });
+  }
+
   const filteredAssets = useMemo(() => {
     return assets.filter(asset => {
       const matchesSearch = search === '' || 
         asset.name?.toLowerCase().includes(search.toLowerCase()) ||
         asset.asset_id?.toLowerCase().includes(search.toLowerCase()) ||
         asset.location?.toLowerCase().includes(search.toLowerCase());
-      
       const matchesStatus = filters.status === 'all' || asset.status === filters.status;
       const matchesCondition = filters.condition === 'all' || asset.condition === filters.condition;
-      const matchesCriticality = filters.criticality === 'all' || asset.criticality === filters.criticality;
       const matchesCategory = filters.category === 'all' || asset.asset_category_id === filters.category;
-      
-      return matchesSearch && matchesStatus && matchesCondition && matchesCriticality && matchesCategory;
+      return matchesSearch && matchesStatus && matchesCondition && matchesCategory;
     }).sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
@@ -149,7 +147,7 @@ export default function AssetRegisterView() {
           <tbody className="divide-y divide-slate-800">
             {filteredAssets.map((asset) => (
               <tr key={asset.id} className="hover:bg-slate-800/50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/assets/${asset.id}`)}>
+                onClick={() => handleAssetClick(asset.id)}>
                 <td className="px-6 py-4">
                   <div>
                     <p className="font-medium text-white">{asset.name}</p>
@@ -174,7 +172,7 @@ export default function AssetRegisterView() {
                 <td className="px-6 py-4 text-sm text-slate-300">{asset.location || '—'}</td>
                 <td className="px-6 py-4 text-sm text-slate-300">{asset.asset_categories?.name || '—'}</td>
                 <td className="px-6 py-4">
-                  <button onClick={(e) => { e.stopPropagation(); navigate(`/assets/${asset.id}`); }}
+                  <button onClick={(e) => { e.stopPropagation(); handleAssetClick(asset.id); }}
                     className="p-2 hover:bg-slate-700 rounded transition-colors">
                     <ExternalLink className="w-4 h-4 text-slate-400" />
                   </button>
