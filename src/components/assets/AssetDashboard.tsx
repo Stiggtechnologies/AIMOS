@@ -80,7 +80,7 @@ export default function AssetDashboard({ onNavigate }: Props) {
         <div className="divide-y divide-gray-100">
           {assets.slice(0, 8).map((asset) => (
             <div key={asset.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
-              onClick={() => onNavigate?.('assets', 'register')}>
+              onClick={() => onNavigate?.('assets', `asset-detail:${asset.id}`)}>
               <div>
                 <p className="font-medium text-gray-900">{asset.name}</p>
                 <p className="text-sm text-gray-500">{asset.asset_categories?.name || 'Uncategorized'}</p>

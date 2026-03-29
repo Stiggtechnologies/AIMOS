@@ -143,7 +143,7 @@ export default function AssetRegisterView({ onNavigate }: Props) {
                 const conditionLabel = conditionScoreToLabel(asset.condition_score);
                 return (
                   <tr key={asset.id} className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => onNavigate?.('assets', 'register')}>
+                    onClick={() => onNavigate?.('assets', `asset-detail:${asset.id}`)}>
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-900">{asset.name}</p>
                       <p className="text-xs text-gray-500">{asset.asset_tag || 'No Tag'}</p>
@@ -159,7 +159,7 @@ export default function AssetRegisterView({ onNavigate }: Props) {
                     <td className="px-6 py-4 text-sm text-gray-600">{asset.room_location || '—'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{asset.asset_categories?.name || '—'}</td>
                     <td className="px-6 py-4">
-                      <button onClick={e => { e.stopPropagation(); onNavigate?.('assets', 'register'); }}
+                      <button onClick={e => { e.stopPropagation(); onNavigate?.('assets', `asset-detail:${asset.id}`); }}
                         className="p-1.5 hover:bg-gray-200 rounded transition-colors">
                         <ExternalLink className="w-4 h-4 text-gray-400" />
                       </button>

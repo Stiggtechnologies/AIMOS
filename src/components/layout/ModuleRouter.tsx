@@ -157,6 +157,7 @@ const AimAutomationDashboard = lazy(() => import('../automation/AimAutomationDas
 // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
 const AssetDashboard = lazy(() => import('../assets/AssetDashboard'));
 const AssetRegisterView = lazy(() => import('../assets/AssetRegisterView'));
+const AssetDetailView = lazy(() => import('../assets/AssetDetailView'));
 const WorkOrdersView = lazy(() => import('../assets/WorkOrdersView'));
 const AcquisitionIntakeView = lazy(() => import('../assets/AcquisitionIntakeView'));
 const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView'));
@@ -279,9 +280,13 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
 
       // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
       case 'assets': {
+        if (currentSubModule.startsWith('asset-detail:')) {
+          const assetId = currentSubModule.split(':')[1];
+          return <AssetDetailView assetId={assetId} onBack={() => handleNavigate('assets', 'register')} />;
+        }
         switch (currentSubModule) {
-          case 'dashboard': return <AssetDashboard />;
-          case 'register': return <AssetRegisterView />;
+          case 'dashboard': return <AssetDashboard onNavigate={handleNavigate} />;
+          case 'register': return <AssetRegisterView onNavigate={handleNavigate} />;
           case 'work-orders': return <WorkOrdersView />;
           case 'acquisitions': return <AcquisitionIntakeView />;
           case 'capital-planning': return <CapitalPlanningView />;
@@ -289,7 +294,7 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'analytics': return <AssetAnalyticsView />;
           case 'ai-copilot': return <AICopilotView />;
           case 'mobile-lookup': return <MobileAssetLookup />;
-          default: return <AssetDashboard />;
+          default: return <AssetDashboard onNavigate={handleNavigate} />;
         }
       }
 

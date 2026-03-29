@@ -315,13 +315,12 @@ export const moduleConfig: NavModule[] = [
       { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
       { key: 'register', label: 'Asset Register', icon: 'Package' },
       { key: 'acquisitions', label: 'Acquisitions', icon: 'ShoppingCart' },
-      { key: 'maintenance', label: 'Maintenance Plans', icon: 'Wrench' },
-      { key: 'work-orders', label: 'Work Orders', icon: 'ClipboardList' },
+      { key: 'work-orders', label: 'Work Orders / Maintenance', icon: 'ClipboardList' },
       { key: 'capital-planning', label: 'Capital Planning', icon: 'Calculator' },
       { key: 'documents', label: 'Documents', icon: 'FolderOpen' },
       { key: 'analytics', label: 'Analytics', icon: 'BarChart3' },
       { key: 'ai-copilot', label: 'AI Copilot', icon: 'Bot' },
-      { key: 'mobile', label: 'Mobile Lookup', icon: 'Smartphone' }
+      { key: 'mobile-lookup', label: 'Mobile Lookup', icon: 'Smartphone' }
     ]
   },
   {
