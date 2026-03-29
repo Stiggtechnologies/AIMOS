@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { useAuth } from '@/auth';
+import { useAuth } from '../../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(

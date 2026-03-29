@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import type { IDocumentationService } from './types';
 import type { PaginatedResult, PaginationParams, Case, Encounter, Consent, DocumentationRisk, PreVisitBrief, DocumentationComplianceMetrics, PatientDocumentationSummaryDTO } from '../types';
 

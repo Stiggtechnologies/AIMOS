@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import { 
-  Boxes, AlertTriangle, CheckCircle, Clock, Wrench, 
-  TrendingUp, Calendar, DollarSign, Activity
-} from 'lucide-react';
-import { useAuth } from '@/auth';
+import { Boxes, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Wrench, TrendingUp, Calendar, DollarSign, Activity } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(

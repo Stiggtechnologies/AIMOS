@@ -1,20 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  ArrowLeft,
-  FileText,
-  History,
-  Save,
-  Trash2,
-  Pen,
-  Loader2,
-} from 'lucide-react';
+import { ArrowLeft, FileText, History, Save, Trash2, Pen, Loader as Loader2 } from 'lucide-react';
 
-import { EncounterHeader } from './components/EncounterHeader';
-import { StructuredNoteEditor } from './components/StructuredNoteEditor';
-import { TranscriptPanel } from './components/TranscriptPanel';
-import { RiskCompletenessPanel } from './components/RiskCompletenessPanel';
-import { SignNoteModal } from './components/SignNoteModal';
-import { AddendumModal } from './components/AddendumModal';
+import { EncounterHeader } from '../components/EncounterHeader';
+import { StructuredNoteEditor } from '../components/StructuredNoteEditor';
+import { TranscriptPanel } from '../components/TranscriptPanel';
+import { RiskCompletenessPanel } from '../components/RiskCompletenessPanel';
+import { SignNoteModal } from '../components/SignNoteModal';
+import { AddendumModal } from '../components/AddendumModal';
 
 import { useEncounter } from '../hooks/useEncounter';
 import { useSaveDraftNote } from '../hooks/useSaveDraftNote';

@@ -155,6 +155,14 @@ const CallAgentShell = lazy(() => import('../call-agent/CallAgentShell').then(m 
 const AimAutomationDashboard = lazy(() => import('../automation/AimAutomationDashboard'));
 
 // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
+const AssetDashboard = lazy(() => import('../assets/AssetDashboard'));
+const AssetRegisterView = lazy(() => import('../assets/AssetRegisterView'));
+const WorkOrdersView = lazy(() => import('../assets/WorkOrdersView'));
+const AcquisitionIntakeView = lazy(() => import('../assets/AcquisitionIntakeView'));
+const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView'));
+const DocumentsCenter = lazy(() => import('../assets/DocumentsCenter'));
+const AssetAnalyticsView = lazy(() => import('../assets/AnalyticsView'));
+const AICopilotView = lazy(() => import('../assets/AICopilotView').then(m => ({ default: m.AICopilotView })));
 const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup').then(m => ({ default: m.MobileAssetLookup })));
 
 // ─── ADMIN ───────────────────────────────────────────────────────────────────
@@ -272,16 +280,16 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── ASSETS (Asset Management) ───────────────────────────────────────────────
       case 'assets': {
         switch (currentSubModule) {
-          case 'dashboard': return <AssetDashboard onNavigate={handleNavigate} />;
-          case 'register': return <AssetRegisterView onNavigate={handleNavigate} />;
-          case 'work-orders': return <WorkOrdersView onNavigate={handleNavigate} />;
-          case 'acquisitions': return <AcquisitionIntakeView onNavigate={handleNavigate} />;
-          case 'capital-planning': return <CapitalPlanningView onNavigate={handleNavigate} />;
-          case 'documents': return <DocumentsCenter onNavigate={handleNavigate} />;
-          case 'analytics': return <AssetAnalyticsView onNavigate={handleNavigate} />;
-          case 'ai-copilot': return <AICopilotView onNavigate={handleNavigate} />;
-          case 'mobile-lookup': return <MobileAssetLookup onNavigate={handleNavigate} />;
-          default: return <AssetDashboard onNavigate={handleNavigate} />;
+          case 'dashboard': return <AssetDashboard />;
+          case 'register': return <AssetRegisterView />;
+          case 'work-orders': return <WorkOrdersView />;
+          case 'acquisitions': return <AcquisitionIntakeView />;
+          case 'capital-planning': return <CapitalPlanningView />;
+          case 'documents': return <DocumentsCenter />;
+          case 'analytics': return <AssetAnalyticsView />;
+          case 'ai-copilot': return <AICopilotView />;
+          case 'mobile-lookup': return <MobileAssetLookup />;
+          default: return <AssetDashboard />;
         }
       }
 

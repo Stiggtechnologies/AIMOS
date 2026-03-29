@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Wrench, AlertTriangle, FileText } from 'lucide-react';
-import { useAuth } from '@/auth';
+import { ArrowLeft, Calendar, MapPin, Wrench, TriangleAlert as AlertTriangle, FileText } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
