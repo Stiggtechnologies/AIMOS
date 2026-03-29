@@ -3,6 +3,32 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { UserProfile } from '../types/intranet';
 
+// Session tracking function
+async function trackSession(userId: string, email: string, actionType: string, pageUrl?: string) {
+  try {
+    // Get IP from a simple fetch (this is approximate, works in most cases)
+    let ipAddress = 'unknown';
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      ipAddress = ipData.ip;
+    } catch (e) { /* fallback to unknown */ }
+    
+    const userAgent = navigator.userAgent || 'unknown';
+    
+    await supabase.from('user_sessions').insert({
+      user_id: userId,
+      email: email,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      page_url: pageUrl || null,
+      action_type: actionType
+    });
+  } catch (error) {
+    console.error('Failed to track session:', error);
+  }
+}
+
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
@@ -64,8 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    // Track login
+    if (data.user) {
+      await trackSession(data.user.id, email, 'login', window.location.href);
+    }
   };
 
   const signOut = async () => {

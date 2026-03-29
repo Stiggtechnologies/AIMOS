@@ -39,6 +39,16 @@ const WorkflowAutomationView = lazy(() => import('../operations/WorkflowAutomati
 const OperationalAIAgentsView = lazy(() => import('../operations/OperationalAIAgentsView'));
 const ExcellenceDemoView = lazy(() => import('../operations/ExcellenceDemoView').then(m => ({ default: m.ExcellenceDemoView })));
 
+// ─── ASSET MANAGEMENT ────────────────────────────────────────────────────────
+const AssetDashboard = lazy(() => import('../assets/AssetDashboard').then(m => ({ default: m.AssetDashboard })));
+const WorkOrdersView = lazy(() => import('../assets/WorkOrdersView').then(m => ({ default: m.WorkOrdersView })));
+const AcquisitionIntakeView = lazy(() => import('../assets/AcquisitionIntakeView').then(m => ({ default: m.AcquisitionIntakeView })));
+const CapitalPlanningView = lazy(() => import('../assets/CapitalPlanningView').then(m => ({ default: m.CapitalPlanningView })));
+const DocumentsCenter = lazy(() => import('../assets/DocumentsCenter').then(m => ({ default: m.DocumentsCenter })));
+const AnalyticsView = lazy(() => import('../assets/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
+const AICopilotView = lazy(() => import('../assets/AICopilotView').then(m => ({ default: m.AICopilotView })));
+const MobileAssetLookup = lazy(() => import('../assets/MobileAssetLookup').then(m => ({ default: m.MobileAssetLookup })));
+
 // ─── CLINICAL ────────────────────────────────────────────────────────────────
 const ClinicalIntelligenceDashboard = lazy(() => import('../aim-os/ClinicalIntelligenceDashboard').then(m => ({ default: m.ClinicalIntelligenceDashboard })));
 const ClinicianMobileDashboard = lazy(() => import('../clinician/ClinicianMobileDashboard'));
@@ -271,6 +281,21 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'communications': return <CommunicationsView />;
           case 'equipment': return <ProcurementDashboard />;
           default: return <OperationsEngineView />;
+        }
+      }
+
+      // ─── ASSET MANAGEMENT ─────────────────────────────────────────────────
+      case 'assets': {
+        switch (currentSubModule) {
+          case 'dashboard': return <AssetDashboard onNavigate={handleNavigate} />;
+          case 'work-orders': return <WorkOrdersView onNavigate={handleNavigate} />;
+          case 'acquisition': return <AcquisitionIntakeView onNavigate={handleNavigate} />;
+          case 'capital': return <CapitalPlanningView onNavigate={handleNavigate} />;
+          case 'documents': return <DocumentsCenter onNavigate={handleNavigate} />;
+          case 'analytics': return <AnalyticsView onNavigate={handleNavigate} />;
+          case 'ai-copilot': return <AICopilotView onNavigate={handleNavigate} />;
+          case 'mobile-lookup': return <MobileAssetLookup onNavigate={handleNavigate} />;
+          default: return <AssetDashboard onNavigate={handleNavigate} />;
         }
       }
 

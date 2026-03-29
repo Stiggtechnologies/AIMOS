@@ -70,6 +70,24 @@ export const moduleConfig: NavModule[] = [
     ]
   },
   {
+    key: 'assets',
+    label: 'Asset Management',
+    description: 'Physical asset tracking, maintenance, and capital planning',
+    icon: 'Boxes',
+    color: 'orange',
+    gradient: 'from-orange-600 to-orange-700',
+    subItems: [
+      { key: 'dashboard', label: 'Asset Dashboard', icon: 'LayoutDashboard' },
+      { key: 'work-orders', label: 'Work Orders', icon: 'ClipboardList' },
+      { key: 'acquisition', label: 'Acquisition & Intake', icon: 'PackagePlus' },
+      { key: 'capital', label: 'Capital Planning', icon: 'Calculator' },
+      { key: 'documents', label: 'Documents Center', icon: 'FileStack' },
+      { key: 'analytics', label: 'Asset Analytics', icon: 'BarChart3' },
+      { key: 'ai-copilot', label: 'AI Asset Copilot', icon: 'Bot' },
+      { key: 'mobile-lookup', label: 'Mobile Lookup', icon: 'Smartphone' }
+    ]
+  },
+  {
     key: 'clinical',
     label: 'Clinical',
     description: 'Patient care delivery and clinical intelligence',
@@ -360,3 +378,5 @@ export const filterSubItemsByRole = (subItems: NavSubItem[], userRole: string): 
     return item.roles.some(r => effectiveRoles.includes(r));
   });
 };
+
+// Asset Management module should be added AFTER operations
