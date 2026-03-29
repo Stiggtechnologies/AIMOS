@@ -4,6 +4,20 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
+// ─── FIELD MAPPING ────────────────────────────────────────────────────────────
+// DB: asset_tag ← UI: asset_id
+// DB: room_location ← UI: location
+// DB: condition_score (numeric) ← UI: condition (text)
+
+function conditionScoreToLabel(score: number | null | undefined): string {
+  if (score == null) return '—';
+  if (score >= 9) return 'excellent';
+  if (score >= 7) return 'good';
+  if (score >= 5) return 'fair';
+  if (score >= 3) return 'poor';
+  return 'critical';
+}
+
 interface Props {
   onNavigate?: (module: string, subModule?: string, params?: any) => void;
 }
@@ -19,8 +33,8 @@ export default function MobileAssetLookup({ onNavigate }: Props) {
     try {
       const { data } = await supabase
         .from('assets')
-        .select('id, name, asset_id, location, status, condition')
-        .or(`name.ilike.%${search}%,asset_id.ilike.%${search}%,serial_number.ilike.%${search}%`)
+        .select('id, name, asset_tag, room_location, status, condition_score')
+        .or(`name.ilike.%${search}%,asset_tag.ilike.%${search}%,serial_number.ilike.%${search}%`)
         .limit(20);
       setAssets(data || []);
     } catch (error) {
@@ -44,7 +58,7 @@ export default function MobileAssetLookup({ onNavigate }: Props) {
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input type="text" placeholder="Search by name, asset ID, or serial..."
+          <input type="text" placeholder="Search by name, asset tag, or serial..."
             value={search} onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500" />
@@ -56,24 +70,27 @@ export default function MobileAssetLookup({ onNavigate }: Props) {
       </div>
 
       <div className="space-y-3">
-        {assets.map((asset) => (
-          <div key={asset.id} onClick={() => handleAssetClick(asset.id)}
-            className="bg-slate-800 rounded-lg border border-slate-700 p-4 hover:border-blue-500/50 cursor-pointer transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-white">{asset.name}</p>
-                <p className="text-sm text-slate-400">{asset.asset_id || 'No ID'} • {asset.location || 'No location'}</p>
+        {assets.map((asset) => {
+          const conditionLabel = conditionScoreToLabel(asset.condition_score);
+          return (
+            <div key={asset.id} onClick={() => handleAssetClick(asset.id)}
+              className="bg-slate-800 rounded-lg border border-slate-700 p-4 hover:border-blue-500/50 cursor-pointer transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-white">{asset.name}</p>
+                  <p className="text-sm text-slate-400">{asset.asset_tag || 'No Tag'} • {asset.room_location || 'No location'}</p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-slate-400" />
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400" />
+              <div className="flex gap-2 mt-2">
+                <span className={`px-2 py-1 rounded text-xs ${
+                  asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'
+                }`}>{asset.status || '—'}</span>
+                <span className="px-2 py-1 rounded text-xs bg-slate-500/20 text-slate-400">{conditionLabel} ({asset.condition_score ?? '—'})</span>
+              </div>
             </div>
-            <div className="flex gap-2 mt-2">
-              <span className={`px-2 py-1 rounded text-xs ${
-                asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'
-              }`}>{asset.status}</span>
-              <span className="px-2 py-1 rounded text-xs bg-slate-500/20 text-slate-400">{asset.condition}</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {assets.length === 0 && search && !loading && (
           <p className="text-center text-slate-400 py-8">No assets found</p>
         )}

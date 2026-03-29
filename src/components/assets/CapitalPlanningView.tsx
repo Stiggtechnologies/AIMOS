@@ -4,6 +4,20 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
+// ─── FIELD MAPPING ────────────────────────────────────────────────────────────
+// DB: asset_tag ← UI: asset_id
+// DB: expected_replacement_date ← UI: replacement_date
+// DB: condition_score (numeric) ← UI: condition (text)
+
+function conditionScoreToLabel(score: number | null | undefined): string {
+  if (score == null) return '—';
+  if (score >= 9) return 'excellent';
+  if (score >= 7) return 'good';
+  if (score >= 5) return 'fair';
+  if (score >= 3) return 'poor';
+  return 'critical';
+}
+
 export default function CapitalPlanningView() {
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,8 +30,8 @@ export default function CapitalPlanningView() {
     try {
       const { data } = await supabase
         .from('assets')
-        .select('id, name, asset_id, purchase_date, replacement_cost, condition, replacement_date, status')
-        .order('replacement_date', { ascending: true })
+        .select('id, name, asset_tag, purchase_date, replacement_cost, condition_score, expected_replacement_date, status')
+        .order('expected_replacement_date', { ascending: true })
         .limit(50);
       setAssets(data || []);
     } catch (error) {
@@ -30,7 +44,7 @@ export default function CapitalPlanningView() {
   if (loading) return <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div></div>;
 
   const totalReplacement = assets.reduce((sum: number, a: any) => sum + (a.replacement_cost || 0), 0);
-  const dueSoon = assets.filter((a: any) => a.replacement_date && new Date(a.replacement_date) <= new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
+  const dueSoon = assets.filter((a: any) => a.expected_replacement_date && new Date(a.expected_replacement_date) <= new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
 
   return (
     <div className="p-6 space-y-6">
@@ -74,30 +88,34 @@ export default function CapitalPlanningView() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
-            {assets.filter((a: any) => a.replacement_date).slice(0, 20).map((asset) => {
-              const isOverdue = new Date(asset.replacement_date) < new Date();
+            {assets.filter((a: any) => a.expected_replacement_date).slice(0, 20).map((asset) => {
+              const isOverdue = new Date(asset.expected_replacement_date) < new Date();
+              const conditionLabel = conditionScoreToLabel(asset.condition_score);
               return (
                 <tr key={asset.id} className="hover:bg-slate-700/50">
                   <td className="px-4 py-3">
                     <p className="text-white">{asset.name}</p>
-                    <p className="text-xs text-slate-400">{asset.asset_id}</p>
+                    <p className="text-xs text-slate-400">{asset.asset_tag || '—'}</p>
                   </td>
                   <td className="px-4 py-3 text-white">${asset.replacement_cost?.toLocaleString() || '—'}</td>
                   <td className={`px-4 py-3 ${isOverdue ? 'text-red-400' : 'text-slate-300'}`}>
-                    {new Date(asset.replacement_date).toLocaleDateString()}
+                    {new Date(asset.expected_replacement_date).toLocaleDateString()}
                     {isOverdue && ' (OVERDUE)'}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">{asset.condition}</td>
+                  <td className="px-4 py-3 text-slate-300">{conditionLabel} ({asset.condition_score ?? '—'})</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs ${
                       asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'
-                    }`}>{asset.status}</span>
+                    }`}>{asset.status || '—'}</span>
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+        {assets.filter((a: any) => a.expected_replacement_date).length === 0 && (
+          <p className="p-8 text-center text-slate-400">No assets with scheduled replacements</p>
+        )}
       </div>
     </div>
   );

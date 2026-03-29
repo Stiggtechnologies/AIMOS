@@ -9,6 +9,21 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+// ─── FIELD MAPPING ────────────────────────────────────────────────────────────
+// DB: room_location ← UI: location
+// DB: asset_tag ← UI: asset_id
+// DB: condition_score (numeric) ← UI: condition (text)
+// DB: warranty_expiry_date ← UI: warranty_expiry
+
+function conditionScoreToLabel(score: number | null | undefined): string {
+  if (score == null) return '—';
+  if (score >= 9) return 'excellent';
+  if (score >= 7) return 'good';
+  if (score >= 5) return 'fair';
+  if (score >= 3) return 'poor';
+  return 'critical';
+}
+
 // ─── LIVE DATA ────────────────────────────────────────────────────────────────
 // Queries: assets, asset_audit_log, asset_documents
 
@@ -35,7 +50,7 @@ export default function AssetDetailView() {
 
       if (assetRes.data) setAsset(assetRes.data);
       if (auditRes.data) setAuditLog(auditRes.data);
-      if (docsRes.data) setDocuments(docsRes.data);
+      if (docsRes.data) setDocuments(docsRes.data || []);
     } catch (error) {
       console.error('Error fetching asset:', error);
     } finally {
@@ -45,6 +60,8 @@ export default function AssetDetailView() {
 
   if (loading) return <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div></div>;
   if (!asset) return <div className="p-6 text-slate-400">Asset not found</div>;
+
+  const conditionLabel = conditionScoreToLabel(asset.condition_score);
 
   return (
     <div className="p-6 space-y-6">
@@ -56,13 +73,13 @@ export default function AssetDetailView() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">{asset.name}</h1>
-            <p className="text-slate-400 mt-1">{asset.asset_id || 'No ID'}</p>
+            <p className="text-slate-400 mt-1">{asset.asset_tag || 'No Tag'}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
             asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' :
             asset.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
             'bg-slate-500/20 text-slate-400'
-          }`}>{asset.status}</span>
+          }`}>{asset.status || '—'}</span>
         </div>
 
         <div className="grid grid-cols-4 gap-6 mt-6">
@@ -70,7 +87,7 @@ export default function AssetDetailView() {
             <MapPin className="w-5 h-5 text-slate-400" />
             <div>
               <p className="text-xs text-slate-400">Location</p>
-              <p className="text-white">{asset.location || '—'}</p>
+              <p className="text-white">{asset.room_location || '—'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -84,15 +101,35 @@ export default function AssetDetailView() {
             <AlertTriangle className="w-5 h-5 text-slate-400" />
             <div>
               <p className="text-xs text-slate-400">Condition</p>
-              <p className="text-white">{asset.condition || '—'}</p>
+              <p className="text-white">{conditionLabel} ({asset.condition_score ?? '—'})</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-slate-400" />
             <div>
               <p className="text-xs text-slate-400">Warranty Expiry</p>
-              <p className="text-white">{asset.warranty_expiry ? new Date(asset.warranty_expiry).toLocaleDateString() : '—'}</p>
+              <p className="text-white">{asset.warranty_expiry_date ? new Date(asset.warranty_expiry_date).toLocaleDateString() : '—'}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Extended info grid */}
+        <div className="grid grid-cols-4 gap-6 mt-6 pt-6 border-t border-slate-700">
+          <div>
+            <p className="text-xs text-slate-400">Manufacturer</p>
+            <p className="text-white">{asset.manufacturer || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Model</p>
+            <p className="text-white">{asset.model || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Serial Number</p>
+            <p className="text-white">{asset.serial_number || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Purchase Cost</p>
+            <p className="text-white">{asset.purchase_cost ? `$${asset.purchase_cost.toLocaleString()}` : '—'}</p>
           </div>
         </div>
       </div>
@@ -108,10 +145,10 @@ export default function AssetDetailView() {
           {documents.map((doc) => (
             <div key={doc.id} className="p-4 hover:bg-slate-700/50">
               <p className="text-white">{doc.title}</p>
-              <p className="text-xs text-slate-400">{doc.document_type} • {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : ''}</p>
+              <p className="text-xs text-slate-400">{doc.document_type || '—'} • {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : ''}</p>
             </div>
           ))}
-          {documents.length === 0 && <p className="p-4 text-slate-400 text-center">No documents</p>}
+          {documents.length === 0 && <p className="p-4 text-slate-400 text-center">No documents uploaded yet</p>}
         </div>
       </div>
 

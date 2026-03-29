@@ -12,6 +12,33 @@ interface Props {
   onNavigate?: (module: string, subModule?: string, params?: any) => void;
 }
 
+// ─── FIELD MAPPING ────────────────────────────────────────────────────────────
+// DB: room_location ← UI: location
+// DB: asset_tag ← UI: asset_id
+// DB: condition_score (numeric 0-10) ← UI: condition (text)
+// DB: warranty_expiry_date ← UI: warranty_expiry
+// DB: category_id ← UI: asset_category_id
+
+function conditionScoreToLabel(score: number | null | undefined): string {
+  if (score == null) return '—';
+  if (score >= 9) return 'excellent';
+  if (score >= 7) return 'good';
+  if (score >= 5) return 'fair';
+  if (score >= 3) return 'poor';
+  return 'critical';
+}
+
+function conditionLabelToMinScore(label: string): number {
+  switch (label) {
+    case 'excellent': return 9;
+    case 'good': return 7;
+    case 'fair': return 5;
+    case 'poor': return 3;
+    case 'critical': return 0;
+    default: return 0;
+  }
+}
+
 export default function AssetRegisterView({ onNavigate }: Props) {
   const auth = useAuth();
   const [assets, setAssets] = useState<any[]>([]);
@@ -53,13 +80,20 @@ export default function AssetRegisterView({ onNavigate }: Props) {
 
   const filteredAssets = useMemo(() => {
     return assets.filter(asset => {
+      const searchLower = search.toLowerCase();
       const matchesSearch = search === '' || 
-        asset.name?.toLowerCase().includes(search.toLowerCase()) ||
-        asset.asset_id?.toLowerCase().includes(search.toLowerCase()) ||
-        asset.location?.toLowerCase().includes(search.toLowerCase());
+        asset.name?.toLowerCase().includes(searchLower) ||
+        asset.asset_tag?.toLowerCase().includes(searchLower) ||
+        asset.room_location?.toLowerCase().includes(searchLower);
+      
       const matchesStatus = filters.status === 'all' || asset.status === filters.status;
-      const matchesCondition = filters.condition === 'all' || asset.condition === filters.condition;
-      const matchesCategory = filters.category === 'all' || asset.asset_category_id === filters.category;
+      
+      // Condition filter: compare numeric score against label ranges
+      const conditionLabel = conditionScoreToLabel(asset.condition_score);
+      const matchesCondition = filters.condition === 'all' || conditionLabel === filters.condition;
+      
+      const matchesCategory = filters.category === 'all' || asset.category_id === filters.category;
+      
       return matchesSearch && matchesStatus && matchesCondition && matchesCategory;
     }).sort((a, b) => {
       const aVal = a[sortField];
@@ -117,6 +151,18 @@ export default function AssetRegisterView({ onNavigate }: Props) {
                 </select>
               </div>
               <div>
+                <label className="block text-xs text-slate-400 mb-1">Condition</label>
+                <select value={filters.condition} onChange={(e) => setFilters({...filters, condition: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white text-sm">
+                  <option value="all">All Conditions</option>
+                  <option value="excellent">Excellent (9-10)</option>
+                  <option value="good">Good (7-8.9)</option>
+                  <option value="fair">Fair (5-6.9)</option>
+                  <option value="poor">Poor (3-4.9)</option>
+                  <option value="critical">Critical (0-2.9)</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs text-slate-400 mb-1">Category</label>
                 <select value={filters.category} onChange={(e) => setFilters({...filters, category: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white text-sm">
@@ -136,8 +182,8 @@ export default function AssetRegisterView({ onNavigate }: Props) {
                 <div className="flex items-center gap-1">Asset Name <SortIcon field="name" /></div>
               </th>
               <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('condition')}>
-                <div className="flex items-center gap-1">Condition <SortIcon field="condition" /></div>
+              <th className="px-6 py-3 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('condition_score')}>
+                <div className="flex items-center gap-1">Condition <SortIcon field="condition_score" /></div>
               </th>
               <th className="px-6 py-3 font-medium">Location</th>
               <th className="px-6 py-3 font-medium">Category</th>
@@ -145,40 +191,46 @@ export default function AssetRegisterView({ onNavigate }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
-            {filteredAssets.map((asset) => (
-              <tr key={asset.id} className="hover:bg-slate-800/50 cursor-pointer transition-colors"
-                onClick={() => handleAssetClick(asset.id)}>
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="font-medium text-white">{asset.name}</p>
-                    <p className="text-xs text-slate-400">{asset.asset_id || 'No ID'}</p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' :
-                    asset.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-slate-500/20 text-slate-400'
-                  }`}>{asset.status}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    asset.condition === 'excellent' ? 'bg-emerald-500/20 text-emerald-400' :
-                    asset.condition === 'good' ? 'bg-blue-500/20 text-blue-400' :
-                    asset.condition === 'fair' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-red-500/20 text-red-400'
-                  }`}>{asset.condition}</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-300">{asset.location || '—'}</td>
-                <td className="px-6 py-4 text-sm text-slate-300">{asset.asset_categories?.name || '—'}</td>
-                <td className="px-6 py-4">
-                  <button onClick={(e) => { e.stopPropagation(); handleAssetClick(asset.id); }}
-                    className="p-2 hover:bg-slate-700 rounded transition-colors">
-                    <ExternalLink className="w-4 h-4 text-slate-400" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filteredAssets.map((asset) => {
+              const conditionLabel = conditionScoreToLabel(asset.condition_score);
+              return (
+                <tr key={asset.id} className="hover:bg-slate-800/50 cursor-pointer transition-colors"
+                  onClick={() => handleAssetClick(asset.id)}>
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="font-medium text-white">{asset.name}</p>
+                      <p className="text-xs text-slate-400">{asset.asset_tag || 'No Tag'}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' :
+                      asset.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-slate-500/20 text-slate-400'
+                    }`}>{asset.status || '—'}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      conditionLabel === 'excellent' ? 'bg-emerald-500/20 text-emerald-400' :
+                      conditionLabel === 'good' ? 'bg-blue-500/20 text-blue-400' :
+                      conditionLabel === 'fair' ? 'bg-amber-500/20 text-amber-400' :
+                      conditionLabel === 'poor' ? 'bg-orange-500/20 text-orange-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>{conditionLabel} ({asset.condition_score ?? '—'})</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-300">{asset.room_location || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-slate-300">
+                    {asset.asset_categories?.name || '—'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button onClick={(e) => { e.stopPropagation(); handleAssetClick(asset.id); }}
+                      className="p-2 hover:bg-slate-700 rounded transition-colors">
+                      <ExternalLink className="w-4 h-4 text-slate-400" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {filteredAssets.length === 0 && (
