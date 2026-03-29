@@ -132,16 +132,17 @@ export const AICopilotView: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex bg-slate-950">
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-shrink-0 px-6 py-5 border-b border-slate-800 bg-slate-900/60">
+    <div className="flex h-[calc(100vh-130px)] min-h-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+      {/* Chat panel */}
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-50">
+        <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-blue-400" />
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-slate-100">AI Asset Copilot</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Ask questions about your asset portfolio</p>
+              <h1 className="text-lg font-semibold text-gray-900">AI Asset Copilot</h1>
+              <p className="text-xs text-gray-500 mt-0.5">Ask questions about your asset portfolio</p>
             </div>
           </div>
         </div>
@@ -149,15 +150,15 @@ export const AICopilotView: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {chatHistory.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-5">
-                <MessageSquare className="w-7 h-7 text-slate-500" />
+              <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-5 shadow-sm">
+                <MessageSquare className="w-7 h-7 text-gray-400" />
               </div>
-              <h3 className="font-semibold text-slate-200 mb-2">How can I help with your assets today?</h3>
-              <p className="text-slate-500 text-sm mb-8">Try one of these prompts or ask your own question</p>
+              <h3 className="font-semibold text-gray-800 mb-2">How can I help with your assets today?</h3>
+              <p className="text-gray-500 text-sm mb-8">Try one of these prompts or ask your own question</p>
               <div className="flex flex-wrap justify-center gap-2 max-w-xl">
                 {suggestedPrompts.map(p => (
                   <button key={p.id} onClick={() => setInput(p.text)}
-                    className="px-3 py-2 bg-slate-800 border border-slate-700 hover:border-slate-500 hover:bg-slate-700 rounded-full text-sm text-slate-300 hover:text-slate-100 transition-colors">
+                    className="px-3 py-2 bg-white border border-gray-300 hover:border-blue-400 hover:text-blue-600 rounded-full text-sm text-gray-600 transition-colors shadow-sm">
                     {p.text}
                   </button>
                 ))}
@@ -172,14 +173,14 @@ export const AICopilotView: React.FC = () => {
                     <p className="text-xs text-blue-200 mt-1.5">{msg.timestamp}</p>
                   </div>
                 ) : (
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-sm px-4 py-4">
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <Sparkles className="w-3 h-3 text-blue-400" />
+                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 text-blue-600" />
                       </div>
-                      <span className="text-xs text-slate-500">AI Copilot · {msg.timestamp}</span>
+                      <span className="text-xs text-gray-500">AI Copilot · {msg.timestamp}</span>
                     </div>
-                    <p className="text-sm text-slate-300 mb-4">{msg.content}</p>
+                    <p className="text-sm text-gray-700 mb-4">{msg.content}</p>
                     {msg.recommendations && (
                       <div className="space-y-3">
                         {msg.recommendations.map(r => <RecCard key={r.id} rec={r} />)}
@@ -192,14 +193,14 @@ export const AICopilotView: React.FC = () => {
           ))}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-blue-400" />
+                  <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-blue-600" />
                   </div>
                   <div className="flex gap-1">
                     {[0, 150, 300].map(d => (
-                      <span key={d} className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                      <span key={d} className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
                     ))}
                   </div>
                 </div>
@@ -208,65 +209,66 @@ export const AICopilotView: React.FC = () => {
           )}
         </div>
 
-        <div className="flex-shrink-0 px-6 py-4 border-t border-slate-800 bg-slate-900/60">
+        <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
           <div className="flex items-center gap-3">
             <input type="text" value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               placeholder="Ask about assets, replacements, acquisitions..."
-              className="flex-1 px-4 py-2.5 bg-slate-800 border border-slate-700 hover:border-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 rounded-lg text-slate-100 placeholder:text-slate-500 text-sm outline-none transition-colors" />
+              className="flex-1 px-4 py-2.5 border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg text-gray-900 placeholder:text-gray-400 text-sm outline-none transition-colors" />
             <button onClick={handleSend} disabled={!input.trim() || isTyping}
-              className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
+              className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
               <Send className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="w-72 flex-shrink-0 border-l border-slate-800 bg-slate-900/40 hidden lg:flex flex-col">
-        <div className="px-5 py-4 border-b border-slate-800">
-          <h2 className="text-sm font-semibold text-slate-200">Context</h2>
+      {/* Context sidebar */}
+      <div className="w-72 flex-shrink-0 border-l border-gray-200 bg-white hidden lg:flex flex-col">
+        <div className="px-5 py-4 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900">Context</h2>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Selected Clinic</p>
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg">
-              <Building2 className="w-4 h-4 text-slate-400" />
-              <span className="text-sm text-slate-300 flex-1">All Clinics</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Selected Clinic</p>
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+              <Building2 className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-700 flex-1">All Clinics</span>
+              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Network Overview</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Network Overview</p>
             <div className="space-y-2.5">
               {([['Total Assets', '428', false], ['Avg Health Score', '7.8 / 10', false], ['12M Capex Est.', '$312K', true]] as [string, string, boolean][]).map(([label, value, hi]) => (
                 <div key={label} className="flex justify-between">
-                  <span className="text-sm text-slate-400">{label}</span>
-                  <span className={`text-sm font-medium ${hi ? 'text-blue-400' : 'text-slate-200'}`}>{value}</span>
+                  <span className="text-sm text-gray-500">{label}</span>
+                  <span className={`text-sm font-medium ${hi ? 'text-blue-600' : 'text-gray-900'}`}>{value}</span>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Active Recommendations</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Active Recommendations</p>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <AlertTriangle className="w-3.5 h-3.5 text-red-400" /><span className="text-sm text-red-400">3 Critical</span>
+              <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-500" /><span className="text-sm text-red-700">3 Critical</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <Clock className="w-3.5 h-3.5 text-amber-400" /><span className="text-sm text-amber-400">5 Medium</span>
+              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                <Clock className="w-3.5 h-3.5 text-amber-500" /><span className="text-sm text-amber-700">5 Medium</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /><span className="text-sm text-emerald-400">8 Resolved</span>
+              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /><span className="text-sm text-emerald-700">8 Resolved</span>
               </div>
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Quick Actions</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Quick Actions</p>
             <div className="space-y-2">
               {['Create Capex Plan', 'Generate Report', 'Export Asset List'].map(label => (
                 <button key={label}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-lg text-sm text-slate-300 hover:text-slate-100 transition-colors">
-                  {label}<ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors">
+                  {label}<ArrowRight className="w-3.5 h-3.5 text-gray-400" />
                 </button>
               ))}
             </div>

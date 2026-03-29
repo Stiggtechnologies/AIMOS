@@ -1,34 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Boxes, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Wrench, TrendingUp, Calendar, DollarSign, Activity } from 'lucide-react';
+import { Boxes, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Wrench } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 interface Props {
   onNavigate?: (module: string, subModule?: string, params?: any) => void;
   view?: string;
 }
 
-// ─── LIVE DATA ────────────────────────────────────────────────────────────────
-// Query: assets, asset_categories, asset_alerts
-
 export default function AssetDashboard({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    operational: 0,
-    maintenance: 0,
-    critical: 0,
-  });
+  const [stats, setStats] = useState({ total: 0, operational: 0, maintenance: 0, critical: 0 });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
     try {
@@ -36,117 +23,90 @@ export default function AssetDashboard({ onNavigate }: Props) {
         supabase.from('assets').select('*, asset_categories(name)').order('created_at', { ascending: false }).limit(50),
         supabase.from('asset_alerts').select('*, assets(name)').eq('severity', 'critical').eq('status', 'active').order('created_at', { ascending: false }).limit(10)
       ]);
-
       if (assetsRes.data) setAssets(assetsRes.data);
       if (alertsRes.data) setAlerts(alertsRes.data);
-
       const total = assetsRes.data?.length || 0;
       const operational = assetsRes.data?.filter((a: any) => a.status === 'operational').length || 0;
       const maintenance = assetsRes.data?.filter((a: any) => a.status === 'maintenance').length || 0;
       setStats({ total, operational, maintenance, critical: alertsRes.data?.length || 0 });
-    } catch (error) {
-      console.error('Error fetching asset data:', error);
+    } catch (err) {
+      console.error('Error fetching asset data:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  function handleAssetClick(assetId: string) {
-    if (onNavigate) {
-      onNavigate('assets', 'detail', { id: assetId });
-    }
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const statCards = [
+    { label: 'Total Assets',     value: stats.total,       color: 'blue',    icon: <Boxes className="w-5 h-5 text-blue-600" /> },
+    { label: 'Operational',      value: stats.operational,  color: 'emerald', icon: <CheckCircle className="w-5 h-5 text-emerald-600" /> },
+    { label: 'In Maintenance',   value: stats.maintenance,  color: 'amber',   icon: <Wrench className="w-5 h-5 text-amber-600" /> },
+    { label: 'Critical Alerts',  value: stats.critical,     color: 'red',     icon: <AlertTriangle className="w-5 h-5 text-red-600" /> },
+  ];
+
+  const valueColor: Record<string, string> = {
+    blue: 'text-gray-900', emerald: 'text-emerald-600', amber: 'text-amber-600', red: 'text-red-600',
+  };
+  const bgColor: Record<string, string> = {
+    blue: 'bg-blue-50', emerald: 'bg-emerald-50', amber: 'bg-amber-50', red: 'bg-red-50',
+  };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Asset Dashboard</h1>
-        <p className="text-slate-400 mt-1">Live data from Supabase assets table</p>
+        <h1 className="text-2xl font-bold text-gray-900">Asset Dashboard</h1>
+        <p className="text-gray-500 mt-1">Live overview of all assets across the network</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 text-sm">Total Assets</span>
-            <Boxes className="w-5 h-5 text-blue-400" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map(({ label, value, color, icon }) => (
+          <div key={label} className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-500">{label}</span>
+              <div className={`w-8 h-8 rounded-lg ${bgColor[color]} flex items-center justify-center`}>{icon}</div>
+            </div>
+            <p className={`text-3xl font-bold ${valueColor[color]}`}>{value}</p>
           </div>
-          <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
-        </div>
-        <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 text-sm">Operational</span>
-            <CheckCircle className="w-5 h-5 text-emerald-400" />
-          </div>
-          <p className="text-3xl font-bold text-emerald-400 mt-2">{stats.operational}</p>
-        </div>
-        <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 text-sm">In Maintenance</span>
-            <Wrench className="w-5 h-5 text-amber-400" />
-          </div>
-          <p className="text-3xl font-bold text-amber-400 mt-2">{stats.maintenance}</p>
-        </div>
-        <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 text-sm">Critical Alerts</span>
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-          </div>
-          <p className="text-3xl font-bold text-red-400 mt-2">{stats.critical}</p>
-        </div>
+        ))}
       </div>
 
-      {/* Recent Assets */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700">
-        <div className="p-4 border-b border-slate-700">
-          <h2 className="text-lg font-semibold text-white">Recent Assets</h2>
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-base font-semibold text-gray-900">Recent Assets</h2>
         </div>
-        <div className="divide-y divide-slate-700">
-          {assets.slice(0, 5).map((asset) => (
-            <div 
-              key={asset.id}
-              className="p-4 hover:bg-slate-700/50 cursor-pointer transition-colors"
-              onClick={() => handleAssetClick(asset.id)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-white">{asset.name}</p>
-                  <p className="text-sm text-slate-400">{asset.asset_categories?.name || 'Uncategorized'}</p>
-                </div>
-                <span className={`px-2 py-1 rounded text-xs ${
-                  asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' :
-                  asset.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
-                  'bg-slate-500/20 text-slate-400'
-                }`}>
-                  {asset.status}
-                </span>
+        <div className="divide-y divide-gray-100">
+          {assets.slice(0, 8).map((asset) => (
+            <div key={asset.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => onNavigate?.('assets', 'register')}>
+              <div>
+                <p className="font-medium text-gray-900">{asset.name}</p>
+                <p className="text-sm text-gray-500">{asset.asset_categories?.name || 'Uncategorized'}</p>
               </div>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                asset.status === 'operational' ? 'bg-emerald-100 text-emerald-700' :
+                asset.status === 'maintenance'  ? 'bg-amber-100 text-amber-700' :
+                'bg-gray-100 text-gray-600'
+              }`}>{asset.status || '—'}</span>
             </div>
           ))}
-          {assets.length === 0 && (
-            <p className="p-4 text-slate-400 text-center">No assets found</p>
-          )}
+          {assets.length === 0 && <p className="px-6 py-8 text-gray-500 text-center">No assets found</p>}
         </div>
       </div>
 
-      {/* Critical Alerts */}
       {alerts.length > 0 && (
-        <div className="bg-red-500/10 rounded-lg border border-red-500/20 p-4">
-          <h2 className="text-lg font-semibold text-red-400 mb-3">Critical Alerts</h2>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+          <h2 className="text-base font-semibold text-red-800 mb-3 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> Critical Alerts
+          </h2>
           <div className="space-y-2">
             {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-center gap-3 p-2 bg-slate-800 rounded">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-white text-sm">{alert.title}</span>
-                <span className="text-slate-400 text-xs ml-auto">{alert.assets?.name}</span>
+              <div key={alert.id} className="flex items-center gap-3 p-3 bg-white border border-red-100 rounded-lg">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <span className="text-gray-900 text-sm flex-1">{alert.title}</span>
+                <span className="text-gray-500 text-xs">{alert.assets?.name}</span>
               </div>
             ))}
           </div>

@@ -2,21 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 interface Props {
   onNavigate?: (module: string, subModule?: string, params?: any) => void;
 }
-
-// ─── FIELD MAPPING ────────────────────────────────────────────────────────────
-// DB: room_location ← UI: location
-// DB: asset_tag ← UI: asset_id
-// DB: condition_score (numeric 0-10) ← UI: condition (text)
-// DB: warranty_expiry_date ← UI: warranty_expiry
-// DB: category_id ← UI: asset_category_id
 
 function conditionScoreToLabel(score: number | null | undefined): string {
   if (score == null) return '—';
@@ -27,35 +17,17 @@ function conditionScoreToLabel(score: number | null | undefined): string {
   return 'critical';
 }
 
-function conditionLabelToMinScore(label: string): number {
-  switch (label) {
-    case 'excellent': return 9;
-    case 'good': return 7;
-    case 'fair': return 5;
-    case 'poor': return 3;
-    case 'critical': return 0;
-    default: return 0;
-  }
-}
-
 export default function AssetRegisterView({ onNavigate }: Props) {
   const [assets, setAssets] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({
-    status: 'all',
-    condition: 'all',
-    criticality: 'all',
-    category: 'all',
-  });
+  const [filters, setFilters] = useState({ status: 'all', condition: 'all', category: 'all' });
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
     try {
@@ -65,181 +37,149 @@ export default function AssetRegisterView({ onNavigate }: Props) {
       ]);
       if (assetsRes.data) setAssets(assetsRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch (err) {
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  function handleAssetClick(assetId: string) {
-    if (onNavigate) onNavigate('assets', 'detail', { id: assetId });
-  }
-
   const filteredAssets = useMemo(() => {
     return assets.filter(asset => {
-      const searchLower = search.toLowerCase();
-      const matchesSearch = search === '' || 
-        asset.name?.toLowerCase().includes(searchLower) ||
-        asset.asset_tag?.toLowerCase().includes(searchLower) ||
-        asset.room_location?.toLowerCase().includes(searchLower);
-      
+      const s = search.toLowerCase();
+      const matchesSearch = !s || asset.name?.toLowerCase().includes(s) || asset.asset_tag?.toLowerCase().includes(s) || asset.room_location?.toLowerCase().includes(s);
       const matchesStatus = filters.status === 'all' || asset.status === filters.status;
-      
-      // Condition filter: compare numeric score against label ranges
-      const conditionLabel = conditionScoreToLabel(asset.condition_score);
-      const matchesCondition = filters.condition === 'all' || conditionLabel === filters.condition;
-      
+      const matchesCondition = filters.condition === 'all' || conditionScoreToLabel(asset.condition_score) === filters.condition;
       const matchesCategory = filters.category === 'all' || asset.category_id === filters.category;
-      
       return matchesSearch && matchesStatus && matchesCondition && matchesCategory;
     }).sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      const direction = sortDirection === 'asc' ? 1 : -1;
-      return (aVal || '').localeCompare(bVal || '') * direction;
+      const dir = sortDirection === 'asc' ? 1 : -1;
+      return ((a[sortField] || '') as string).localeCompare((b[sortField] || '') as string) * dir;
     });
   }, [assets, search, filters, sortField, sortDirection]);
 
   const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
+    if (sortField === field) setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDirection('asc'); }
   };
 
   const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />;
+    return sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />;
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div></div>;
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>;
   }
 
+  const conditionBadge = (label: string, score: number | null) => {
+    const cls =
+      label === 'excellent' ? 'bg-emerald-100 text-emerald-700' :
+      label === 'good'      ? 'bg-blue-100 text-blue-700' :
+      label === 'fair'      ? 'bg-amber-100 text-amber-700' :
+      label === 'poor'      ? 'bg-orange-100 text-orange-700' :
+                              'bg-red-100 text-red-700';
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${cls}`}>{label} {score != null ? `(${score})` : ''}</span>;
+  };
+
   return (
-    <div className="h-full flex flex-col bg-slate-950">
-      <div className="flex-shrink-0 border-b border-slate-800 bg-slate-900/50 px-6 py-4">
-        <h1 className="text-xl font-semibold text-white">Asset Register</h1>
-        <p className="text-sm text-slate-400 mt-1">Live data from Supabase • {filteredAssets.length} records</p>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input type="text" placeholder="Search assets..." value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500" />
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Asset Register</h1>
+        <p className="text-gray-500 mt-1">{filteredAssets.length} assets</p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input type="text" placeholder="Search assets..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
           </div>
           <button onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${showFilters ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
             <Filter className="w-4 h-4" /> Filters
           </button>
         </div>
+
         {showFilters && (
-          <div className="mt-4 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Status</label>
-                <select value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white text-sm">
-                  <option value="all">All Status</option>
-                  <option value="operational">Operational</option>
-                  <option value="maintenance">Maintenance</option>
-                  <option value="decommissioned">Decommissioned</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Condition</label>
-                <select value={filters.condition} onChange={(e) => setFilters({...filters, condition: e.target.value})}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white text-sm">
-                  <option value="all">All Conditions</option>
-                  <option value="excellent">Excellent (9-10)</option>
-                  <option value="good">Good (7-8.9)</option>
-                  <option value="fair">Fair (5-6.9)</option>
-                  <option value="poor">Poor (3-4.9)</option>
-                  <option value="critical">Critical (0-2.9)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Category</label>
-                <select value={filters.category} onChange={(e) => setFilters({...filters, category: e.target.value})}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white text-sm">
-                  <option value="all">All Categories</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Status', key: 'status', options: [['all','All Status'],['operational','Operational'],['maintenance','Maintenance'],['decommissioned','Decommissioned']] },
+                { label: 'Condition', key: 'condition', options: [['all','All Conditions'],['excellent','Excellent'],['good','Good'],['fair','Fair'],['poor','Poor'],['critical','Critical']] },
+                { label: 'Category', key: 'category', options: [['all','All Categories'], ...categories.map(c => [c.id, c.name])] },
+              ].map(({ label, key, options }) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+                  <select value={(filters as any)[key]} onChange={e => setFilters(f => ({ ...f, [key]: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+              ))}
             </div>
           </div>
         )}
-      </div>
-      <div className="flex-1 overflow-auto">
-        <table className="w-full">
-          <thead className="sticky top-0 bg-slate-900 border-b border-slate-800 z-10">
-            <tr className="text-left text-xs text-slate-400 uppercase tracking-wider">
-              <th className="px-6 py-3 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('name')}>
-                <div className="flex items-center gap-1">Asset Name <SortIcon field="name" /></div>
-              </th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium cursor-pointer hover:text-white" onClick={() => handleSort('condition_score')}>
-                <div className="flex items-center gap-1">Condition <SortIcon field="condition_score" /></div>
-              </th>
-              <th className="px-6 py-3 font-medium">Location</th>
-              <th className="px-6 py-3 font-medium">Category</th>
-              <th className="px-6 py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800">
-            {filteredAssets.map((asset) => {
-              const conditionLabel = conditionScoreToLabel(asset.condition_score);
-              return (
-                <tr key={asset.id} className="hover:bg-slate-800/50 cursor-pointer transition-colors"
-                  onClick={() => handleAssetClick(asset.id)}>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-medium text-white">{asset.name}</p>
-                      <p className="text-xs text-slate-400">{asset.asset_tag || 'No Tag'}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      asset.status === 'operational' ? 'bg-emerald-500/20 text-emerald-400' :
-                      asset.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-slate-500/20 text-slate-400'
-                    }`}>{asset.status || '—'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      conditionLabel === 'excellent' ? 'bg-emerald-500/20 text-emerald-400' :
-                      conditionLabel === 'good' ? 'bg-blue-500/20 text-blue-400' :
-                      conditionLabel === 'fair' ? 'bg-amber-500/20 text-amber-400' :
-                      conditionLabel === 'poor' ? 'bg-orange-500/20 text-orange-400' :
-                      'bg-red-500/20 text-red-400'
-                    }`}>{conditionLabel} ({asset.condition_score ?? '—'})</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-300">{asset.room_location || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-300">
-                    {asset.asset_categories?.name || '—'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button onClick={(e) => { e.stopPropagation(); handleAssetClick(asset.id); }}
-                      className="p-2 hover:bg-slate-700 rounded transition-colors">
-                      <ExternalLink className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {filteredAssets.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <Search className="w-8 h-8 mb-3 opacity-50" />
-            <p>No assets found</p>
-          </div>
-        )}
-      </div>
-      <div className="flex-shrink-0 border-t border-slate-800 px-6 py-3 bg-slate-900/50">
-        <p className="text-xs text-slate-500">{filteredAssets.length} records • Live data from Supabase</p>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-6 py-3 cursor-pointer hover:text-gray-700" onClick={() => handleSort('name')}>
+                  <div className="flex items-center gap-1">Asset Name <SortIcon field="name" /></div>
+                </th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 cursor-pointer hover:text-gray-700" onClick={() => handleSort('condition_score')}>
+                  <div className="flex items-center gap-1">Condition <SortIcon field="condition_score" /></div>
+                </th>
+                <th className="px-6 py-3">Location</th>
+                <th className="px-6 py-3">Category</th>
+                <th className="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredAssets.map((asset) => {
+                const conditionLabel = conditionScoreToLabel(asset.condition_score);
+                return (
+                  <tr key={asset.id} className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => onNavigate?.('assets', 'register')}>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-gray-900">{asset.name}</p>
+                      <p className="text-xs text-gray-500">{asset.asset_tag || 'No Tag'}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                        asset.status === 'operational' ? 'bg-emerald-100 text-emerald-700' :
+                        asset.status === 'maintenance'  ? 'bg-amber-100 text-amber-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{asset.status || '—'}</span>
+                    </td>
+                    <td className="px-6 py-4">{conditionBadge(conditionLabel, asset.condition_score)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{asset.room_location || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{asset.asset_categories?.name || '—'}</td>
+                    <td className="px-6 py-4">
+                      <button onClick={e => { e.stopPropagation(); onNavigate?.('assets', 'register'); }}
+                        className="p-1.5 hover:bg-gray-200 rounded transition-colors">
+                        <ExternalLink className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filteredAssets.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+              <Search className="w-8 h-8 mb-3" />
+              <p className="text-sm">No assets found</p>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
+          <p className="text-xs text-gray-500">{filteredAssets.length} records</p>
+        </div>
       </div>
     </div>
   );
