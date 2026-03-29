@@ -27,6 +27,9 @@ interface StructuredNoteEditorProps {
   isEditable?: boolean;
   onSectionEdit?: (section: string, content: string) => void;
   initialData?: Record<string, SectionData>;
+  /** Alias for initialData — pass sections map directly from parent state */
+  sections?: Record<string, string>;
+  onSectionsChange?: (sections: Record<string, string>) => void;
 }
 
 const noteTypeLabels: Record<NoteType, string> = {
@@ -63,6 +66,8 @@ export function StructuredNoteEditor({
   isEditable = true,
   onSectionEdit,
   initialData = {},
+  sections,
+  onSectionsChange,
 }: StructuredNoteEditorProps) {
   const [selectedType, setSelectedType] = useState<NoteType>(noteType);
   const [activeTab, setActiveTab] = useState('subjective');
@@ -78,6 +83,20 @@ export function StructuredNoteEditor({
     return initial;
   });
 
+  // Sync with external sections prop
+  useEffect(() => {
+    if (!sections) return;
+    setSectionContent(prev => {
+      const next = { ...prev };
+      for (const [key, value] of Object.entries(sections)) {
+        if (next[key] && next[key].content !== value) {
+          next[key] = { ...next[key], content: value };
+        }
+      }
+      return next;
+    });
+  }, [sections]);
+
   const handleContentChange = (section: string, value: string) => {
     setSectionContent((prev) => ({
       ...prev,
@@ -87,6 +106,9 @@ export function StructuredNoteEditor({
       },
     }));
     onSectionEdit?.(section, value);
+    if (onSectionsChange) {
+      onSectionsChange({ ...sections, [section]: value });
+    }
   };
 
   const totalWords = Object.values(sectionContent).reduce(

@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  Loader2,
   Shield,
   AlertCircle,
   Activity,
@@ -36,6 +37,7 @@ interface RiskCompletenessPanelProps {
   sectionStatuses?: SectionStatus[];
   isSignable?: boolean;
   onValidate?: () => void;
+  isValidating?: boolean;
 }
 
 const riskColors = {
@@ -68,6 +70,7 @@ export function RiskCompletenessPanel({
   sectionStatuses = [],
   isSignable = false,
   onValidate,
+  isValidating = false,
 }: RiskCompletenessPanelProps) {
   const [activeTab, setActiveTab] = useState<'risk' | 'completeness'>('completeness');
 
@@ -296,8 +299,10 @@ export function RiskCompletenessPanel({
         {/* Validate Button */}
         <button
           onClick={onValidate}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium text-white transition-colors"
+          disabled={isValidating}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg text-sm font-medium text-white transition-colors"
         >
+          {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           <CheckCircle className="w-4 h-4" />
           Validate Now
         </button>
