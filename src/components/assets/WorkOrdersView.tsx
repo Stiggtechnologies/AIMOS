@@ -4,7 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-export default function WorkOrdersView() {
+interface Props {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function WorkOrdersView({ onNavigate }: Props) {
   const [workOrders, setWorkOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -104,7 +108,8 @@ export default function WorkOrdersView() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {workOrders.map((wo: any) => (
-                <tr key={wo.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={wo.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => wo.asset_id && onNavigate?.('assets', `asset-detail:${wo.asset_id}`)}>
                   <td className="px-4 py-3 font-mono text-sm text-blue-600">{wo.work_order_number || '—'}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{wo.assets?.name || '—'}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 capitalize">{wo.type || '—'}</td>

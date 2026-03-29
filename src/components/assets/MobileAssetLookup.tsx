@@ -108,7 +108,7 @@ export default function MobileAssetLookup({ onNavigate }: Props) {
               return (
                 <div
                   key={asset.id}
-                  onClick={() => onNavigate?.('assets', 'register')}
+                  onClick={() => onNavigate?.('assets', `asset-detail:${asset.id}`)}
                   className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors group"
                 >
                   <div className="flex items-start justify-between gap-4">

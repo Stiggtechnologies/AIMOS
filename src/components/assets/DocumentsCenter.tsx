@@ -6,7 +6,11 @@ const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env
 
 const DOC_TYPES = ['manual','warranty','certificate','inspection_report','maintenance_log','purchase_order','invoice','photo','schematic','safety','other'];
 
-export default function DocumentsCenter() {
+interface Props {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function DocumentsCenter({ onNavigate }: Props) {
   const [documents, setDocuments] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +59,9 @@ export default function DocumentsCenter() {
       {documents.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {documents.map((doc) => (
-            <div key={doc.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all">
+            <div key={doc.id}
+              className={`bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all ${doc.asset_id ? 'cursor-pointer' : ''}`}
+              onClick={() => doc.asset_id && onNavigate?.('assets', `asset-detail:${doc.asset_id}`)}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                   <FileText className="w-5 h-5 text-blue-600" />
@@ -69,6 +75,7 @@ export default function DocumentsCenter() {
                 <span className="text-xs text-gray-400">{doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : ''}</span>
                 {doc.file_url && (
                   <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
                     className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
                     <ExternalLink className="w-3 h-3" /> View
                   </a>

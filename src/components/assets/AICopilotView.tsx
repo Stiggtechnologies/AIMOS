@@ -73,7 +73,15 @@ const typeIcon: Record<string, React.ReactNode> = {
   acquisition: <Building2 className="w-4 h-4 text-sky-400" />,
 };
 
-const RecCard: React.FC<{ rec: AIRecommendation }> = ({ rec }) => (
+const recActionTarget: Record<AIRecommendation['type'], string> = {
+  replace:     'capital-planning',
+  inspect:     'work-orders',
+  standardize: 'register',
+  maintain:    'work-orders',
+  acquisition: 'acquisitions',
+};
+
+const RecCard: React.FC<{ rec: AIRecommendation; onNavigate?: (module: string, sub: string) => void }> = ({ rec, onNavigate }) => (
   <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors">
     <div className="flex items-start justify-between gap-3 mb-3">
       <div className="flex items-center gap-3">
@@ -99,14 +107,19 @@ const RecCard: React.FC<{ rec: AIRecommendation }> = ({ rec }) => (
         <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />${rec.financial_impact.toLocaleString()}</span>
         <span className="flex items-center gap-1"><Package className="w-3 h-3" />{rec.affected_assets.length} asset{rec.affected_assets.length !== 1 ? 's' : ''}</span>
       </div>
-      <button className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
+      <button onClick={() => onNavigate?.('assets', recActionTarget[rec.type])}
+        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
         {rec.next_action}<ArrowRight className="w-3 h-3" />
       </button>
     </div>
   </div>
 );
 
-export const AICopilotView: React.FC = () => {
+interface Props {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export const AICopilotView: React.FC<Props> = ({ onNavigate }) => {
   const [input, setInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -183,7 +196,7 @@ export const AICopilotView: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-4">{msg.content}</p>
                     {msg.recommendations && (
                       <div className="space-y-3">
-                        {msg.recommendations.map(r => <RecCard key={r.id} rec={r} />)}
+                        {msg.recommendations.map(r => <RecCard key={r.id} rec={r} onNavigate={onNavigate} />)}
                       </div>
                     )}
                   </div>
@@ -265,8 +278,13 @@ export const AICopilotView: React.FC = () => {
           <div>
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Quick Actions</p>
             <div className="space-y-2">
-              {['Create Capex Plan', 'Generate Report', 'Export Asset List'].map(label => (
+              {([
+                ['View Capital Plan', 'capital-planning'],
+                ['Asset Register', 'register'],
+                ['Work Orders', 'work-orders'],
+              ] as [string, string][]).map(([label, sub]) => (
                 <button key={label}
+                  onClick={() => onNavigate?.('assets', sub)}
                   className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700 hover:text-gray-900 transition-colors">
                   {label}<ArrowRight className="w-3.5 h-3.5 text-gray-400" />
                 </button>

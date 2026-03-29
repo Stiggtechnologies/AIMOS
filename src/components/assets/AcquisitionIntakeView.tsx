@@ -4,7 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-export default function AcquisitionIntakeView() {
+interface Props {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function AcquisitionIntakeView({ onNavigate }: Props) {
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +60,8 @@ export default function AcquisitionIntakeView() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {assets.map((asset) => (
-                <tr key={asset.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={asset.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => onNavigate?.('assets', `asset-detail:${asset.id}`)}>
                   <td className="px-6 py-4 font-mono text-sm text-gray-600">{asset.asset_tag || '—'}</td>
                   <td className="px-6 py-4 font-medium text-gray-900">{asset.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{asset.manufacturer || '—'}</td>

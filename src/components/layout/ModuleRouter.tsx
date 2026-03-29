@@ -287,13 +287,13 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
         switch (currentSubModule) {
           case 'dashboard': return <AssetDashboard onNavigate={handleNavigate} />;
           case 'register': return <AssetRegisterView onNavigate={handleNavigate} />;
-          case 'work-orders': return <WorkOrdersView />;
-          case 'acquisitions': return <AcquisitionIntakeView />;
-          case 'capital-planning': return <CapitalPlanningView />;
-          case 'documents': return <DocumentsCenter />;
+          case 'work-orders': return <WorkOrdersView onNavigate={handleNavigate} />;
+          case 'acquisitions': return <AcquisitionIntakeView onNavigate={handleNavigate} />;
+          case 'capital-planning': return <CapitalPlanningView onNavigate={handleNavigate} />;
+          case 'documents': return <DocumentsCenter onNavigate={handleNavigate} />;
           case 'analytics': return <AssetAnalyticsView />;
-          case 'ai-copilot': return <AICopilotView />;
-          case 'mobile-lookup': return <MobileAssetLookup />;
+          case 'ai-copilot': return <AICopilotView onNavigate={handleNavigate} />;
+          case 'mobile-lookup': return <MobileAssetLookup onNavigate={handleNavigate} />;
           default: return <AssetDashboard onNavigate={handleNavigate} />;
         }
       }

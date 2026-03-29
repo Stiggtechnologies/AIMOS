@@ -13,7 +13,11 @@ function conditionScoreToLabel(score: number | null | undefined): string {
   return 'Critical';
 }
 
-export default function CapitalPlanningView() {
+interface Props {
+  onNavigate?: (module: string, subModule: string) => void;
+}
+
+export default function CapitalPlanningView({ onNavigate }: Props) {
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,7 +96,8 @@ export default function CapitalPlanningView() {
                 const isOverdue = new Date(asset.expected_replacement_date) < new Date();
                 const conditionLabel = conditionScoreToLabel(asset.condition_score);
                 return (
-                  <tr key={asset.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={asset.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => onNavigate?.('assets', `asset-detail:${asset.id}`)}>
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-900">{asset.name}</p>
                       <p className="text-xs text-gray-500">{asset.asset_tag || '—'}</p>
