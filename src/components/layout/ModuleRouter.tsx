@@ -144,6 +144,8 @@ const QuickPurchaseRequest = lazy(() => import('../procurement/QuickPurchaseRequ
 // ─── CLINICAL DOCUMENTATION ────────────────────────────────────────────────
 const EncounterWorkspacePage = lazy(() => import('../../features/clinical-documentation/pages/EncounterWorkspacePage').then(m => ({ default: m.EncounterWorkspacePage })));
 const DraftReviewPage = lazy(() => import('../../features/clinical-documentation/pages/DraftReviewPage').then(m => ({ default: m.DraftReviewPage })));
+const SignedNotePage = lazy(() => import('../../features/clinical-documentation/pages/SignedNotePage').then(m => ({ default: m.SignedNotePage })));
+const PatientDocumentationPage = lazy(() => import('../../features/clinical-documentation/pages/PatientDocumentationPage').then(m => ({ default: m.PatientDocumentationPage })));
 
 // ─── PATIENT EXPERIENCE ──────────────────────────────────────────────────────
 const PatientExperienceDashboard = lazy(() => import('../patient-experience/PatientExperienceDashboard'));
@@ -486,25 +488,56 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
       // ─── CLINICAL DOCUMENTATION ───────────────────────────────────────────
       case 'clinical-documentation': {
         if (currentSubModule.startsWith('encounter:')) {
-          const encounterId = currentSubModule.split(':')[1];
-          return <EncounterWorkspacePage encounterId={encounterId} />;
+          const raw = currentSubModule.slice('encounter:'.length);
+          const [encounterId, queryStr] = raw.split('?');
+          const params = new URLSearchParams(queryStr || '');
+          const patientId = params.get('patientId') || undefined;
+          const clinicId = params.get('clinicId') || undefined;
+          const caseId = params.get('caseId') || undefined;
+          return (
+            <EncounterWorkspacePage
+              encounterId={encounterId === 'new' ? undefined : encounterId}
+              patientId={patientId}
+              clinicId={clinicId}
+              caseId={caseId}
+              onNavigate={handleNavigate}
+            />
+          );
         }
         if (currentSubModule.startsWith('draft:')) {
-          const draftId = currentSubModule.split(':')[1];
-          return <DraftReviewPage draftId={draftId} onNavigate={(action, id) => {
-            if (action === 'back') handleNavigate('clinical', 'patients');
-            if (action === 'signed' && id) handleNavigate('clinical-documentation', `signed:${id}`);
-          }} />;
+          const draftId = currentSubModule.slice('draft:'.length).split('?')[0];
+          return (
+            <DraftReviewPage
+              draftId={draftId}
+              onNavigate={(action, id) => {
+                if (action === 'back') handleNavigate('clinical-documentation', 'patient:');
+                if (action === 'signed' && id) handleNavigate('clinical-documentation', `signed:${id}`);
+                if (action === 'encounter' && id) handleNavigate('clinical-documentation', `encounter:${id}`);
+              }}
+            />
+          );
         }
         if (currentSubModule.startsWith('signed:')) {
-          const signedNoteId = currentSubModule.split(':')[1];
-          // Signed note viewer — simple read-only display
-          return <DraftReviewPage draftId={signedNoteId} onNavigate={(action) => {
-            if (action === 'back') handleNavigate('clinical', 'patients');
-          }} />;
+          const signedNoteId = currentSubModule.slice('signed:'.length).split('?')[0];
+          return <SignedNotePage signedNoteId={signedNoteId} onNavigate={handleNavigate} />;
         }
-        // Default: redirect to patient list
-        return <DraftReviewPage draftId="" onNavigate={() => handleNavigate('clinical', 'patients')} />;
+        if (currentSubModule.startsWith('patient:')) {
+          const patientId = currentSubModule.slice('patient:'.length).split('?')[0];
+          return <PatientDocumentationPage patientId={patientId} onNavigate={handleNavigate} />;
+        }
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-slate-500 mb-4">Select a patient to view documentation</p>
+              <button
+                onClick={() => handleNavigate('clinical', 'patients')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to Patients
+              </button>
+            </div>
+          </div>
+        );
       }
 
       default:
