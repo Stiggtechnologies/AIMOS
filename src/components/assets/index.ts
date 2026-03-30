@@ -7,3 +7,5 @@ export { default as DocumentsCenter } from './DocumentsCenter';
 export { default as AnalyticsView } from './AnalyticsView';
 export { AICopilotView } from './AICopilotView';
 export { default as MobileAssetLookup } from './MobileAssetLookup';
+export { default as AddAssetModal } from './AddAssetModal';
+export { default as AcquisitionBatchWizard } from './AcquisitionBatchWizard';

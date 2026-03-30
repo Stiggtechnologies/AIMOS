@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+import { Search, Filter, ChevronDown, ChevronUp, ExternalLink, Plus } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import AddAssetModal from './AddAssetModal';
 
 interface Props {
   onNavigate?: (module: string, subModule?: string, params?: any) => void;
@@ -26,6 +25,7 @@ export default function AssetRegisterView({ onNavigate }: Props) {
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -82,11 +82,23 @@ export default function AssetRegisterView({ onNavigate }: Props) {
     return <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${cls}`}>{label} {score != null ? `(${score})` : ''}</span>;
   };
 
+  const handleAssetSaved = (assetId: string) => {
+    setShowAddModal(false);
+    fetchData();
+    onNavigate?.('assets', `asset-detail:${assetId}`);
+  };
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Asset Register</h1>
-        <p className="text-gray-500 mt-1">{filteredAssets.length} assets</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Asset Register</h1>
+          <p className="text-gray-500 mt-1">{filteredAssets.length} assets</p>
+        </div>
+        <button onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm flex-shrink-0">
+          <Plus className="w-4 h-4" /> Add Asset
+        </button>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg">
@@ -181,6 +193,13 @@ export default function AssetRegisterView({ onNavigate }: Props) {
           <p className="text-xs text-gray-500">{filteredAssets.length} records</p>
         </div>
       </div>
+
+      {showAddModal && (
+        <AddAssetModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={handleAssetSaved}
+        />
+      )}
     </div>
   );
 }
