@@ -107,6 +107,7 @@ export const moduleConfig: NavModule[] = [
       { key: 'rtw-rts', label: 'RTW / RTS', icon: 'Target' },
       { key: 'outcomes', label: 'Outcomes', icon: 'TrendingUp' },
       { key: 'documents', label: 'Documents', icon: 'FileStack' },
+      { key: 'documentation', label: 'Clinical Documentation', icon: 'FileText', roles: ['clinician', 'admin', 'executive'] },
       { key: 'patient-education', label: 'Patient Education', icon: 'BookOpen' },
       { key: 'intelligence', label: 'Clinical Intelligence', icon: 'Brain', roles: ['executive', 'admin', 'clinician'] },
       { key: 'cii', label: 'CII Automation', icon: 'Cpu', roles: ['executive', 'admin', 'clinician'] },

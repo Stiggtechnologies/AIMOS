@@ -320,6 +320,15 @@ export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: Mo
           case 'exercises': return <ExerciseProgramsView />;
           case 'rtw-rts': return <RTWRTSView />;
           case 'documents': return <ClinicalDocumentsView />;
+          case 'documentation': return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-white mb-2">Clinical Documentation</h1>
+                <p className="text-slate-400">Select a patient to begin charting or view documentation history.</p>
+              </div>
+              <PatientsView />
+            </div>
+          );
           default: return <ClinicalIntelligenceDashboard />;
         }
 
