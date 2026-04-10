@@ -48,6 +48,7 @@ export function EnterpriseShell({ children }: EnterpriseShellProps) {
       clinic_manager:    ['command_center', 'operations', 'clinical', 'revenue', 'growth', 'workforce', 'supply_chain', 'aim_automation', 'assets'],
       clinician:         ['command_center', 'clinical', 'operations'],
       contractor:        ['command_center', 'clinical', 'operations'],
+      partner_read_only: ['command_center', 'operations', 'clinical'],
     };
 
     return modulesByRole[role ?? ''] || ['command_center'];

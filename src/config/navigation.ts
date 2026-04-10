@@ -352,6 +352,7 @@ const ROLE_HIERARCHY: Record<string, string[]> = {
   clinic_manager: ['clinic_manager'],
   clinician: ['clinician'],
   contractor: ['contractor'],
+  partner_read_only: ['partner_read_only'],
 };
 
 export const filterSubItemsByRole = (subItems: NavSubItem[], userRole: string): NavSubItem[] => {
