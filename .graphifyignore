@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-ssr/
+.vercel/
+public/
+*.log
+*.sql
+*.local
+*.lock
+package-lock.json
+import_parsed/
+graphify-out/
