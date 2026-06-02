@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { noteService } from '../services';
 import { documentationQueryKeys } from '../utils/queryKeys';
-import type { SaveDraftNoteVersionInput, CreateDraftNoteInput } from '../types';
+import type { SaveDraftNoteVersionInput, CreateDraftNoteInput, NoteDraft, NoteDraftVersion } from '../types';
 
 export function useSaveDraftNote() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<NoteDraft | NoteDraftVersion, Error, CreateDraftNoteInput | SaveDraftNoteVersionInput>({
     mutationFn: (input: CreateDraftNoteInput | SaveDraftNoteVersionInput) => {
       // Distinguish by presence of note_draft_id vs encounter_id
       if ('note_draft_id' in input) {

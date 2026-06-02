@@ -349,13 +349,12 @@ export function SignedNotePage({ signedNoteId, onNavigate }: SignedNotePageProps
                         }`}>
                           {ADDENDUM_TYPE_LABELS[addendum.addendum_type as AddendumType] || addendum.addendum_type}
                         </span>
-                        {addendum.status === 'approved' && (
+                        {addendum.approved_at ? (
                           <span className="flex items-center gap-1 text-xs text-emerald-400">
                             <CheckCircle className="w-3 h-3" />
                             Approved
                           </span>
-                        )}
-                        {addendum.status === 'pending' && (
+                        ) : (
                           <span className="flex items-center gap-1 text-xs text-amber-400">
                             <Clock className="w-3 h-3" />
                             Pending Approval
@@ -377,13 +376,6 @@ export function SignedNotePage({ signedNoteId, onNavigate }: SignedNotePageProps
                       <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{addendum.addendum_text}</p>
                     </div>
 
-                    {addendum.section_affected && (
-                      <div className="mt-2 pt-2 border-t border-slate-700">
-                        <p className="text-xs text-slate-500">
-                          Section affected: <span className="text-slate-400">{SECTION_LABELS[addendum.section_affected] || addendum.section_affected}</span>
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}

@@ -21,7 +21,7 @@ interface Competency {
 interface Milestone {
   id: string;
   role_code: string;
-  role_name: string;
+  role_name?: string;
   milestone_day: number;
   milestone_name: string;
   description: string;

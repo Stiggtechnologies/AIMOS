@@ -21,13 +21,15 @@ import type {
   NoteType,
   EncounterType,
   EncounterModality,
-  RiskScore,
   NoteDraft,
   SaveDraftNoteVersionInput,
   TranscriptSegment,
 } from '../types';
+import type { NoteType as UINoteType } from '../components/StructuredNoteEditor';
 
-const NOTE_TYPE_MAP: Record<string, string> = {
+type RiskScore = 'low' | 'medium' | 'high';
+
+const NOTE_TYPE_MAP: Record<string, NoteType> = {
   initial: 'initial',
   followup: 'progress',
   progress: 'progress',
@@ -117,7 +119,7 @@ export function EncounterWorkspacePage({
   const signNote = useSignDraftNote();
 
   const [captureStatus, setCaptureStatus] = useState<CaptureStatus>('not_started');
-  const [noteType, setNoteType] = useState<NoteType>('followup');
+  const [noteType, setNoteType] = useState<UINoteType>('followup');
   const [completenessScore, setCompletenessScore] = useState(0);
   const [riskScore, setRiskScore] = useState<RiskScore>('medium');
   const [isSignable, setIsSignable] = useState(false);
@@ -169,14 +171,14 @@ export function EncounterWorkspacePage({
     setEncounterCreateError(null);
 
     encounterService.createEncounter({
-      patientId: effectivePatientId,
-      clinicId: effectiveClinicId,
-      providerUserId: userId,
-      encounterType: initialEncounterType || 'followup',
+      patient_id: effectivePatientId,
+      clinic_id: effectiveClinicId,
+      provider_user_id: userId,
+      encounter_type: initialEncounterType || 'followup',
       modality: initialModality || 'in_person',
-      caseId: effectiveCaseId || undefined,
-      actualStart: new Date().toISOString(),
-      ambientCaptureEnabled: false,
+      case_id: effectiveCaseId || undefined,
+      scheduled_start: new Date().toISOString(),
+      ambient_capture_enabled: false,
     }).then(enc => {
       setResolvedEncounterId(enc.id);
       setIsCreatingEncounter(false);
@@ -210,7 +212,9 @@ export function EncounterWorkspacePage({
             plan: sp.plan_section || '',
             followUp: sp.follow_up_section || '',
           });
-          setNoteType((existing.note_type as NoteType) || 'followup');
+          const dbType = existing.note_type as string;
+          const uiType: UINoteType = (['initial', 'progress', 'discharge'].includes(dbType) ? dbType : 'followup') as UINoteType;
+          setNoteType(uiType);
         }
       } catch (err) {
         setDraftLoadError('Failed to load existing draft. Starting a new draft.');
@@ -387,9 +391,9 @@ export function EncounterWorkspacePage({
         await saveDraft.mutateAsync(versionInput);
       } else {
         const result = await saveDraft.mutateAsync({
-          encounter_id: resolvedEncounterId,
+          encounter_id: resolvedEncounterId ?? undefined,
           patient_id: effectivePatientId,
-          case_id: effectiveCaseId,
+          case_id: effectiveCaseId ?? undefined,
           clinic_id: effectiveClinicId,
           author_user_id: userId,
           note_type: dbNoteType,
