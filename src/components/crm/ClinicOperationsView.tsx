@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, TrendingUp, Settings, AlertTriangle } from 'lucide-react';
+import { Calendar, Users, Settings, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { crmCapacityService } from '../../services/crmCapacityService';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, FileText, History, Save, Trash2, TriangleAlert as AlertTriangle, Loader as Loader2, Mic, MicOff, Upload } from 'lucide-react';
+import { ArrowLeft, FileText, History, Save, Trash2, TriangleAlert as AlertTriangle, Loader as Loader2, MicOff, Upload } from 'lucide-react';
 
 import { EncounterHeader } from '../components/EncounterHeader';
 import { StructuredNoteEditor } from '../components/StructuredNoteEditor';

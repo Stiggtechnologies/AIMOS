@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Phone, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import { Phone, Clock, AlertCircle } from 'lucide-react';
 import { afterHoursService } from '../../services/afterHoursService';
 import type { AfterHoursCall, AfterHoursStats } from '../../types/afterHours';
 

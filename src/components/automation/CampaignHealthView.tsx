@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Users, ChartBar as BarChart3, Activity, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ScatterChart, Scatter, ZAxis
+  ResponsiveContainer
 } from 'recharts';
 import type { CampaignHealth, CampaignAlert } from '../../services/aimAutomationService';
 

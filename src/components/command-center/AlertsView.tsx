@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Circle as XCircle, Filter, RefreshCw, Bell, Activity, DollarSign, Users, Building2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { useState } from 'react';
+import { TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, Circle as XCircle, RefreshCw, Bell, Activity, DollarSign, Users, Building2 } from 'lucide-react';
 
 interface Alert {
   id: string;

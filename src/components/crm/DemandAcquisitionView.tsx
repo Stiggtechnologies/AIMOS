@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TrendingUp, TrendingDown, DollarSign, Target, Activity,
-  PauseCircle, PlayCircle, AlertCircle, CheckCircle, ArrowRight
+  TrendingUp, TrendingDown, Target, Activity,
+  PauseCircle, PlayCircle, ArrowRight
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { crmCampaignService } from '../../services/crmCampaignService';

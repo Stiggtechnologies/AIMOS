@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Shield, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { complianceService } from '../../services/intranetService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Policy, IncidentReport } from '../../types/intranet';

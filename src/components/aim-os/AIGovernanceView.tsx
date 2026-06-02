@@ -3,9 +3,6 @@ import { Shield, Lock, Clock as Unlock, Database, FileText, CircleCheck as Check
 import {
   getAIGovernanceDashboard,
   type AIGovernanceDashboard,
-  type DataClassification,
-  type ConsentScope,
-  type AIGovernanceLog,
 } from '../../services/aiGovernanceService';
 
 export default function AIGovernanceView() {

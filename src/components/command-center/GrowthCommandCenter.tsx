@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, UserPlus, Star, Phone, Mail, Dumbbell, Building2, ArrowUpRight, ArrowDownRight, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, UserPlus, Star, Phone, Mail, Dumbbell, Building2, ArrowUpRight, ArrowDownRight, Clock, CircleCheck as CheckCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface GrowthCommandCenterProps {

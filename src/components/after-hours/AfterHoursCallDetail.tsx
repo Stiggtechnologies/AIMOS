@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Phone, Calendar, CheckCircle, Play, FileText, AlertCircle } from 'lucide-react';
+import { X, Phone, CheckCircle, Play, FileText, AlertCircle } from 'lucide-react';
 import { afterHoursService } from '../../services/afterHoursService';
 import type { AfterHoursCall } from '../../types/afterHours';
 import { useToast } from '../../hooks/useToast';

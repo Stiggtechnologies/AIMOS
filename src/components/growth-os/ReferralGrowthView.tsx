@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, AlertCircle, Heart, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, AlertCircle, Heart } from 'lucide-react';
 import { getReferralPartners, getReferralGaps } from '../../services/growthOsService';
 import type { ReferralPartner, ReferralGap } from '../../types/aim-os';
 

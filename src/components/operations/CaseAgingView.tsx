@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, TriangleAlert as AlertTriangle, CircleAlert as AlertCircle, CircleCheck as CheckCircle, TrendingUp, User, Calendar, Filter, Bell, RefreshCw, ChevronRight, FileText, CircleArrowUp as ArrowUpCircle, Circle as XCircle } from 'lucide-react';
+import { Clock, TriangleAlert as AlertTriangle, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Bell, RefreshCw, ChevronRight, FileText, CircleArrowUp as ArrowUpCircle, Circle as XCircle } from 'lucide-react';
 import { caseAgingService, CaseAgingStatus, CaseAgingSummary } from '../../services/caseAgingService';
 
 export default function CaseAgingView() {

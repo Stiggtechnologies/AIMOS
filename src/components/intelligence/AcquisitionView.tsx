@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserPlus, TrendingUp, Phone, Globe, Users, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { UserPlus, TrendingUp, Phone, Globe, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const MONTHLY_DATA = [

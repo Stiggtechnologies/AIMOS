@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle, ThumbsUp, ThumbsDown, Zap, AlertTriangle } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ExternalLink, MapPin, Filter, TrendingUp, Search, RefreshCw, CheckCircle, AlertCircle, Zap, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { schedulerService, SchedulerAppointment, SchedulerProvider, ScheduleIntelligence } from '../../services/schedulerService';
 import { writeBackService, WriteBackRecommendation } from '../../services/writeBackService';

@@ -8,22 +8,14 @@ import {
   Minus,
   AlertCircle,
   FileText,
-  Users,
   Target,
   Shield,
-  XCircle,
-  Calendar,
   Search,
 } from 'lucide-react';
 import {
   getIncidentResolutionDashboard,
   type IncidentResolutionDashboard,
-  type IncidentPattern,
-  type EnhancedCorrectivePlan,
-  type EnhancedIncidentAction,
-  type ResolutionMetric,
 } from '../../services/incidentResolutionService';
-import type { IncidentReport } from '../../types/intranet';
 
 export default function IncidentResolutionView() {
   const [dashboard, setDashboard] = useState<IncidentResolutionDashboard | null>(null);

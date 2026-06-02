@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { 
   TrendingUp, 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle,
+  CheckCircle,
   ChevronRight,
   Target,
   Users,
-  FileText,
   Calendar,
   Award
 } from 'lucide-react';

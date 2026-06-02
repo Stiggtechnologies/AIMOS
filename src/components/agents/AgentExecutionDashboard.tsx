@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bot, Play, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, TrendingUp, Activity, Zap, Users, FileText, ChevronRight, Circle as XCircle } from 'lucide-react';
+import { Bot, Play, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, TrendingUp, Activity, Zap, Users, ChevronRight, Circle as XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { agentExecutionService, type AgentExecutionResult, type HITLEscalation } from '../../services/agentExecutionService';
 import { useToast } from '../../hooks/useToast';

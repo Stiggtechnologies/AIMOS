@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ArrowLeft, Shield, FileText, TriangleAlert as AlertTriangle, Loader as Loader2, CircleCheck as CheckCircle, Clock, Plus, Hash, User, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { useAuth } from '../../../contexts/AuthContext';
-import { useSignedNote } from '../hooks/useSignedNote';
 import { useCreateAddendum } from '../hooks/useCreateAddendum';
 import type { NoteAddendum, AddendumType, SignedNoteWithAddenda } from '../types';
 import { noteService } from '../services';

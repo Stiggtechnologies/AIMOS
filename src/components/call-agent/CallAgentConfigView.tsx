@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  Settings, Save, Phone, MessageSquare, Clock, MapPin, User,
-  ChevronDown, ChevronUp, Mic, Bell, Shield, RefreshCw
+  Settings, Save, MessageSquare, Clock, MapPin, User,
+  ChevronDown, ChevronUp, Mic
 } from 'lucide-react';
 import { aiCallAgentService, AIClinicLocation, AIPractitioner } from '../../services/aiCallAgentService';
 import { useToast } from '../../hooks/useToast';

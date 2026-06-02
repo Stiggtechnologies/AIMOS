@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Receipt, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, Search, Plus, DollarSign, Clock, RefreshCw } from 'lucide-react';
+import { Receipt, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, Search, Plus, Clock, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Invoice {

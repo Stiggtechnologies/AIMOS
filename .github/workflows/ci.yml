@@ -32,12 +32,12 @@ jobs:
         run: npm run build
 
   lint:
-    name: Lint (non-blocking)
+    name: Lint
     runs-on: ubuntu-latest
-    # Informational only for now: the repo carries a large pre-existing lint
-    # backlog (~1.1k issues, mostly no-explicit-any / no-unused-vars). Flip
-    # continue-on-error to false once that backlog is burned down.
-    continue-on-error: true
+    # Blocking on lint ERRORS (0 today). The remaining ~830 items are tracked
+    # as warnings (mostly no-explicit-any) and do not fail the build while the
+    # typed-migration backlog is burned down; dead imports and real smells are
+    # hard errors.
     steps:
       - name: Checkout
         uses: actions/checkout@v4

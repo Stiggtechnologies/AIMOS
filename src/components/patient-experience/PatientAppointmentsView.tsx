@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Clock, Plus, ChevronRight, CircleCheck as CheckCircle, X, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, Plus, CircleCheck as CheckCircle, X, RefreshCw } from 'lucide-react';
 import type { PatientAppointment } from '../../services/patientPortalService';
 import BookingFlow from '../public-booking/BookingFlow';
 

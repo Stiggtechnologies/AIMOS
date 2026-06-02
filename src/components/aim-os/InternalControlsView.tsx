@@ -7,11 +7,8 @@ import {
   XCircle,
   Flag,
   Bell,
-  FileWarning,
   UserX,
   DollarSign,
-  Clock,
-  TrendingUp,
 } from 'lucide-react';
 import {
   getSODRules,

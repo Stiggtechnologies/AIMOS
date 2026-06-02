@@ -10,7 +10,6 @@ import {
   DollarSign,
   Users,
   CheckCircle2,
-  XCircle,
   Activity,
   Briefcase,
   Lock,
@@ -18,9 +17,6 @@ import {
 import {
   getReferralIntelligenceDashboard,
   type ReferralIntelligenceDashboard,
-  type ReferralSourceWithMetrics,
-  type TrendAlert,
-  type EmployerIntelligence,
 } from '../../services/referralService';
 import { useAuth } from '../../contexts/AuthContext';
 

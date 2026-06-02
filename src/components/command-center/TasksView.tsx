@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SquareCheck as CheckSquare, Clock, CircleAlert as AlertCircle, Plus, Filter, CircleCheck as CheckCircle, Circle, ChevronDown } from 'lucide-react';
+import { SquareCheck as CheckSquare, Clock, Plus, CircleCheck as CheckCircle, Circle } from 'lucide-react';
 
 interface Task {
   id: string;

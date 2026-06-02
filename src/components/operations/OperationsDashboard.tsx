@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle, Clock, Shield, Users, Home, TrendingUp, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Shield, Home, TrendingUp, XCircle } from 'lucide-react';
 import { credentialsService, CredentialAlert } from '../../services/credentialsService';
 import { useAuth } from '../../contexts/AuthContext';
 

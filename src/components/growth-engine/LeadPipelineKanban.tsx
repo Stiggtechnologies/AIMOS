@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Filter, UserPlus, Search, RefreshCw, X, Plus,
+import { UserPlus, Search, RefreshCw, X, Plus,
   ChevronDown,
 } from 'lucide-react';
 import {

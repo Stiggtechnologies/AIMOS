@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus, RefreshCw, Database } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Minus, RefreshCw, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supabase } from '../../lib/supabase';
 

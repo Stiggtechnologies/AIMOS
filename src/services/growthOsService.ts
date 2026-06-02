@@ -231,7 +231,7 @@ export async function getMarketingStats(clinicId?: string) {
   const leads = await getLeads(clinicId);
 
   let totalSpend = 0;
-  let totalLeads = leads.length;
+  const totalLeads = leads.length;
 
   campaigns.forEach(c => {
     totalSpend += c.spent_to_date || 0;

@@ -141,7 +141,7 @@ function generatePDFHTML(data: any[], options: ExportOptions): string {
   const timestamp = options.includeTimestamp ? new Date().toLocaleString() : '';
   const isLandscape = options.orientation === 'landscape';
 
-  let html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">

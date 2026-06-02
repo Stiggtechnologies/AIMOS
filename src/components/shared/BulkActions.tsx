@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckSquare, Square, Trash2, Download, Mail, Archive, Tag, MoreHorizontal } from 'lucide-react';
+import { CheckSquare, Square, Trash2, Download, Mail, Archive, Tag } from 'lucide-react';
 
 export interface BulkAction {
   id: string;

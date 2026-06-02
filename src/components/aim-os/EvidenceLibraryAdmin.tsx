@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Edit2, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle, Clock } from 'lucide-react';
 import { researchIntelligenceService, EvidenceClaim, ClinicalRule } from '../../services/researchIntelligenceService';
 import { SemanticSearchPanel } from './SemanticSearchPanel';
 import { supabase } from '../../lib/supabase';

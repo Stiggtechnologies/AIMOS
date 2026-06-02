@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Phone, MessageSquare, Calendar, Star, Play, Pause, Settings, ChevronRight, Clock, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, RefreshCw, ToggleLeft, ToggleRight, ArrowRight, Send } from 'lucide-react';
+import { Zap, Phone, MessageSquare, Calendar, Star, Play, Pause, Settings, Clock, RefreshCw, Send } from 'lucide-react';
 
 interface AutomationFlow {
   id: string;

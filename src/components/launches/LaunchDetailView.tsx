@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ArrowLeft, Rocket, CircleCheck as CheckCircle2, Circle,
   TriangleAlert as AlertTriangle, Calendar, Target, TrendingUp,
-  Users, ListChecks, FileText, ChartBar as BarChart3, Clock,
+  Users, ListChecks, FileText, ChartBar as BarChart3,
   Play, Check, ChevronDown, ChevronRight, Flag, Award, Activity,
   RefreshCw
 } from 'lucide-react';

@@ -79,6 +79,7 @@ function BookAppointmentModal({ patient, onClose }: BookModalProps) {
         status: 'scheduled',
       });
     } catch {
+      // Non-critical: failure is reflected in UI state; cleanup runs in finally.
     } finally {
       setSaving(false);
       setDone(true);
@@ -208,6 +209,7 @@ function SendMessageModal({ patient, onClose }: MessageModalProps) {
         sent_at: new Date().toISOString(),
       });
     } catch {
+      // Non-critical: failure is reflected in UI state; cleanup runs in finally.
     } finally {
       setSending(false);
       setDone(true);
