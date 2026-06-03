@@ -82,9 +82,29 @@ Deno.serve(async (req: Request) => {
     const risk_reason = body.risk_reason ?? "Aggregate-only AR snapshot (no aging buckets provided).";
     const recommended_action = body.recommended_action ?? "Export AR aging buckets (CSV) to refine aging + risk.";
 
+    // Provenance batch (idempotent on content hash).
+    const rawBody = JSON.stringify(body);
+    const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawBody));
+    const source_sha256 = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const { data: batch } = await supabase
+      .from("pp_import_batches")
+      .upsert({
+        clinic_id: clinic.id,
+        report_type: "accounts_receivable",
+        source_format: "json",
+        source_sha256,
+        snapshot_date: body.snapshot_date,
+        raw_payload: body,
+        connector: "edge_function",
+        status: "validating",
+      }, { onConflict: "report_type,source_sha256", ignoreDuplicates: false })
+      .select("id")
+      .maybeSingle();
+    const import_batch_id = batch?.id ?? null;
+
     const { data: inserted, error: insertError } = await supabase
       .from("accounts_receivable_aging")
-      .insert({
+      .upsert({
         clinic_id: clinic.id,
         snapshot_date: body.snapshot_date,
         payer_name,
@@ -96,7 +116,9 @@ Deno.serve(async (req: Request) => {
         risk_level,
         risk_reason,
         recommended_action,
-      })
+        source: "practiceperfect_pdf",
+        import_batch_id,
+      }, { onConflict: "clinic_id,snapshot_date,payer_name" })
       .select("id, clinic_id, snapshot_date, payer_name, total_outstanding")
       .single();
 
