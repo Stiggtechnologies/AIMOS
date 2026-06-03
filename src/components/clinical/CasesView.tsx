@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FolderOpen, Plus, Search, Calendar, User, Clock, ChevronRight, CircleAlert as AlertCircle, X, CircleCheck as CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { randomDigits } from '../../lib/ids';
 
 interface Case {
   id: string;
@@ -45,8 +46,7 @@ const PRIORITIES = ['low', 'medium', 'high', 'urgent', 'critical'];
 
 function generateCaseNumber() {
   const year = new Date().getFullYear();
-  const rand = Math.floor(10000 + Math.random() * 90000);
-  return `CASE-${year}-${rand}`;
+  return `CASE-${year}-${randomDigits(5)}`;
 }
 
 interface NewCaseModalProps {

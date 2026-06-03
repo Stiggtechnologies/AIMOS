@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { isDemoDataEnabled, seededRandomFor } from '../lib/demoData';
 
 export interface ExecutiveKPI {
   label: string;
@@ -308,14 +309,24 @@ async function getReferralPerformance(): Promise<ReferralPerformance[]> {
     ];
   }
 
-  return referrals.map(ref => ({
-    source: ref.source_name,
-    volume: 50 + Math.floor(Math.random() * 100),
-    conversion_rate: 45 + Math.floor(Math.random() * 50),
-    avg_revenue: 2500 + Math.floor(Math.random() * 2000),
-    trend: Math.random() > 0.5 ? 'up' : Math.random() > 0.5 ? 'stable' : 'down',
-    status: Math.random() > 0.6 ? 'green' : Math.random() > 0.3 ? 'amber' : 'red',
-  }));
+  return referrals.map(ref => {
+    if (!isDemoDataEnabled()) {
+      // No real performance source wired yet: report the source with empty
+      // metrics rather than fabricated numbers.
+      return { source: ref.source_name, volume: 0, conversion_rate: 0, avg_revenue: 0, trend: 'stable', status: 'amber' };
+    }
+    const rng = seededRandomFor(`referral:${ref.source_name}`);
+    const trendRoll = rng();
+    const statusRoll = rng();
+    return {
+      source: ref.source_name,
+      volume: 50 + Math.floor(rng() * 100),
+      conversion_rate: 45 + Math.floor(rng() * 50),
+      avg_revenue: 2500 + Math.floor(rng() * 2000),
+      trend: trendRoll > 0.5 ? 'up' : trendRoll > 0.25 ? 'stable' : 'down',
+      status: statusRoll > 0.6 ? 'green' : statusRoll > 0.3 ? 'amber' : 'red',
+    };
+  });
 }
 
 async function getDriftAlerts(): Promise<DriftAlert[]> {

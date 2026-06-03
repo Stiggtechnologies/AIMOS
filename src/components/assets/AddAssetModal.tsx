@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Package, DollarSign, MapPin, Info, ChevronRight, CircleCheck as CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { randomDigits } from '../../lib/ids';
 
 type AcquisitionType = 'new_purchase' | 'used_purchase' | 'inherited';
 
@@ -18,9 +19,7 @@ const STATUS_OPTIONS = ['active', 'operational', 'maintenance', 'inactive', 'dec
 const OWNERSHIP_OPTIONS = ['owned', 'leased', 'borrowed'] as const;
 
 function generateAssetTag(): string {
-  const prefix = 'AIM';
-  const num = Math.floor(10000 + Math.random() * 90000);
-  return `${prefix}-${num}`;
+  return `AIM-${randomDigits(5)}`;
 }
 
 export default function AddAssetModal({ onClose, onSaved, acquisitionBatchId, clinicId }: Props) {

@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { ClinicalOutcome, OutcomeMetric, ClinicianPerformanceSnapshot } from '../types/aim-os';
+import { seededRandom } from '../lib/demoData';
 
 export interface QualityDashboard {
   overview: {
@@ -181,8 +182,9 @@ function generateClinicBenchmarks(): ClinicBenchmark[] {
 function generateAnonymizedClinicianPerformance(): AnonymizedClinicianPerformance[] {
   const specialties = ['PT', 'OT', 'Sports Med', 'Orthopedic', 'Neuro'];
   const clinicians = Array.from({ length: 12 }, (_, i) => {
+    const rng = seededRandom(i + 1);
     const basePerformance = 70 - i * 3;
-    const variance = Math.random() * 10 - 5;
+    const variance = rng() * 10 - 5;
     const improvement = basePerformance + variance;
 
     let tier: 'top' | 'above_avg' | 'avg' | 'below_avg' = 'avg';
@@ -194,11 +196,11 @@ function generateAnonymizedClinicianPerformance(): AnonymizedClinicianPerformanc
       clinician_id: `clinician-${i + 1}`,
       clinician_label: `Clinician ${String.fromCharCode(65 + i)}`,
       specialty: specialties[i % specialties.length],
-      total_episodes: Math.floor(180 - i * 12 + Math.random() * 30),
+      total_episodes: Math.floor(180 - i * 12 + rng() * 30),
       avg_improvement: improvement,
-      patient_satisfaction: 8.9 - i * 0.15 + Math.random() * 0.5,
-      completion_rate: 94 - i * 1.2 + Math.random() * 4,
-      excellent_outcomes_pct: 80 - i * 2 + Math.random() * 8,
+      patient_satisfaction: 8.9 - i * 0.15 + rng() * 0.5,
+      completion_rate: 94 - i * 1.2 + rng() * 4,
+      excellent_outcomes_pct: 80 - i * 2 + rng() * 8,
       vs_avg: ((improvement - 68) / 68) * 100,
       performance_tier: tier,
     };

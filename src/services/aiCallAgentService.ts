@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { randomCode } from '../lib/ids';
 
 export type IntentType = 'physio' | 'orthotics' | 'wcb' | 'mva' | 'employer' | 'existing_patient' | 'unknown' | 'other';
 export type ServiceType = 'physio' | 'orthotics' | 'both' | 'wcb' | 'mva' | 'unknown';
@@ -289,7 +290,7 @@ export const aiCallAgentService = {
       .from('ai_appointments')
       .insert({
         ...data,
-        confirmation_code: `AIM-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+        confirmation_code: `AIM-${randomCode(6)}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
