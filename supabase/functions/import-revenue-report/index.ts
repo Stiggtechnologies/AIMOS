@@ -112,6 +112,30 @@ Deno.serve(async (req: Request) => {
 
     const clinic_id = clinic.id;
 
+    // Record an import batch for provenance/idempotency. Same content re-posted
+    // is deduped by (report_type, source_sha256); we hash the raw body.
+    const rawBody = JSON.stringify(report);
+    const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawBody));
+    const source_sha256 = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    const { data: batch } = await supabase
+      .from("pp_import_batches")
+      .upsert({
+        clinic_id,
+        report_type: "revenue",
+        source_format: "json",
+        source_filename: report.report_metadata.clinic_name,
+        source_sha256,
+        period_start: report.report_metadata.period_start,
+        period_end: report.report_metadata.period_end,
+        raw_payload: report,
+        connector: "edge_function",
+        status: "validating",
+      }, { onConflict: "report_type,source_sha256", ignoreDuplicates: false })
+      .select("id")
+      .maybeSingle();
+    const import_batch_id = batch?.id ?? null;
+
     // Calculate auto-fill values
     const metrics = report.overall_metrics;
     const revenue_per_visit = metrics.revenue_per_visit ||
@@ -128,10 +152,10 @@ Deno.serve(async (req: Request) => {
     const other_percent = payer.other_percent ||
       Math.max(0, 100 - wsib_percent - private_percent - mva_percent - patient_percent);
 
-    // Insert clinic financial metrics
+    // Upsert clinic financial metrics (idempotent on period+source).
     const { error: metricsError } = await supabase
       .from("clinic_financial_metrics")
-      .insert({
+      .upsert({
         clinic_id,
         period_start: report.report_metadata.period_start,
         period_end: report.report_metadata.period_end,
@@ -148,8 +172,10 @@ Deno.serve(async (req: Request) => {
         payer_mix_other_percent: other_percent,
         trend_direction: "stable",
         alert_flag: false,
-        alert_message: `Imported from API on ${new Date().toISOString().split('T')[0]}. ${metrics.unique_clients || 0} unique clients.`,
-      });
+        alert_message: `Imported on ${new Date().toISOString().split('T')[0]}. ${metrics.unique_clients || 0} unique clients.`,
+        source: "practiceperfect_pdf",
+        import_batch_id,
+      }, { onConflict: "clinic_id,period_start,period_end,source" });
 
     if (metricsError) {
       console.error("Metrics insert error:", metricsError);
@@ -175,6 +201,8 @@ Deno.serve(async (req: Request) => {
         period_end: report.report_metadata.period_end,
         service_line: sl.service_line,
         service_category: sl.service_category,
+        fee_code: "",
+        import_batch_id,
         total_visits: sl.total_visits,
         total_billable_hours: sl.billable_hours || 0,
         average_visits_per_day: avg_visits_per_day,
@@ -196,7 +224,15 @@ Deno.serve(async (req: Request) => {
 
     const { error: serviceError } = await supabase
       .from("service_line_performance")
-      .insert(serviceLineInserts);
+      .upsert(serviceLineInserts, { onConflict: "clinic_id,period_start,period_end,service_line,fee_code" });
+
+    // Mark batch complete.
+    if (import_batch_id) {
+      await supabase
+        .from("pp_import_batches")
+        .update({ status: "upserted", row_count_loaded: serviceLineInserts.length, completed_at: new Date().toISOString() })
+        .eq("id", import_batch_id);
+    }
 
     if (serviceError) {
       console.error("Service line insert error:", serviceError);
