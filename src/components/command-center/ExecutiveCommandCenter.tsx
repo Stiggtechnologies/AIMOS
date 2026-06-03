@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink, RefreshCw, Info } from 'lucide-react';
+import { TrendingUp, TriangleAlert as AlertTriangle, DollarSign, Building2, Activity, Users, Target, ArrowUpRight, ArrowDownRight, MapPin, Zap, Brain, ChevronRight, ExternalLink, RefreshCw, Info } from 'lucide-react';
 import { enterpriseService } from '../../services/enterpriseService';
 import { getActiveInitiatives, type Initiative } from '../../services/strategyOKRService';
 import { launchService, type ClinicLaunch } from '../../services/launchService';
@@ -58,7 +58,9 @@ export function ExecutiveCommandCenter({ onNavigate }: ExecutiveCommandCenterPro
     try {
       const { data } = await supabase.from('regions').select('id, name, code').eq('is_active', true).order('name');
       if (data && data.length > 0) setRegions(data);
-    } catch {}
+    } catch {
+      // Non-critical: keep the default region list on load error.
+    }
   };
 
   const loadData = async () => {

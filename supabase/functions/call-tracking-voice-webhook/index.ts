@@ -330,8 +330,8 @@ Deno.serve(async (req) => {
 
   // Forward to clinic number with callback action to capture result.
   const dialAction = `${publicBaseUrl}/call-tracking-voice-webhook?stage=dial-result`;
-  const dialAttrs = callerId ? ` callerId=\"${escXml(callerId)}\"` : "";
-  const dial = `  <Dial${dialAttrs} timeout=\"20\" action=\"${escXml(dialAction)}\" method=\"POST\">${escXml(forwardTo)}</Dial>`;
+  const dialAttrs = callerId ? ` callerId="${escXml(callerId)}"` : "";
+  const dial = `  <Dial${dialAttrs} timeout="20" action="${escXml(dialAction)}" method="POST">${escXml(forwardTo)}</Dial>`;
 
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n${dial}\n</Response>`;
   return new Response(twiml, { status: 200, headers: xmlHeaders });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Calendar, Clock, User, CheckCircle, XCircle, FileText, Edit,
+  Calendar, Clock, CheckCircle, XCircle, FileText, Edit,
   Save, Plus, Settings, Menu, X
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';

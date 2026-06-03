@@ -7,13 +7,8 @@ import {
   Loader2,
 } from 'lucide-react';
 
-export type NoteType = 
-  | 'initial' 
-  | 'followup' 
-  | 'progress' 
-  | 'discharge' 
-  | 'wcb_report' 
-  | 'insurer_update';
+import type { NoteType } from './StructuredNoteEditor';
+export type { NoteType };
 
 interface SignNoteModalProps {
   isOpen: boolean;

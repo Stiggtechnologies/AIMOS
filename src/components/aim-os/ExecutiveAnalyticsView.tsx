@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TrendingUp, TrendingDown, Building2, Users, AlertCircle, CheckCircle,
-  Download, RefreshCw, BarChart3, Activity, Shield, Clock, ArrowUpRight,
-  Filter, Calendar, ChevronDown, FileText, Zap
+  TrendingUp, Building2, AlertCircle, CheckCircle,
+  Download, RefreshCw, BarChart3, Activity, Shield, Clock, Calendar, ChevronDown, FileText, Zap
 } from 'lucide-react';
 import {
   analyticsReportingService,

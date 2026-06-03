@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Building2, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, DollarSign, Activity, Users, Target, ArrowUpRight, ArrowDownRight, Brain, ChevronRight, Rocket, Star, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Zap, ChartBar as BarChart3, Map, RefreshCw, Phone, Clock, Calendar, Shield, Award, ChevronDown, ChevronUp, Minus, ArrowRight } from 'lucide-react';
+import { Building2, TrendingUp, TriangleAlert as AlertTriangle, DollarSign, Activity, Users, Target, ArrowUpRight, ArrowDownRight, Brain, ChevronRight, Rocket, Star, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Zap, ChartBar as BarChart3, Map, RefreshCw, Clock, Award, ChevronDown, ChevronUp, Minus, ArrowRight } from 'lucide-react';
 
 type Tab = 'overview' | 'performance' | 'growth' | 'expansion' | 'strategy';
 type DrillLevel = 'network' | 'region' | 'clinic';
@@ -107,6 +107,7 @@ export function NetworkCommandCenter({ onNavigate }: Props) {
           setClinics(mapped);
         }
       } catch {
+        // Non-critical: fall back to the default/empty clinic list on load error.
       }
     })();
   }, []);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Upload, CircleAlert as AlertCircle, CircleCheck as CheckCircle2, Clock } from 'lucide-react';
+import { DollarSign, CircleAlert as AlertCircle, CircleCheck as CheckCircle2, Clock } from 'lucide-react';
 import { procurementService } from '../../services/procurementService';
 import type { BudgetCategory, PreferredVendor } from '../../services/procurementService';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Search, Filter, Download, RefreshCw, Clock, User, Database, CreditCard as Edit3, Trash2, Plus, Eye, ChevronDown, ChevronUp, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Circle as XCircle, FileText, Activity } from 'lucide-react';
+import { Shield, Search, Filter, Download, RefreshCw, Clock, User, Database, CreditCard as Edit3, Trash2, Plus, Eye, ChevronDown, ChevronUp, CircleAlert as AlertCircle, FileText, Activity } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { exportService } from '../../services/exportService';
 

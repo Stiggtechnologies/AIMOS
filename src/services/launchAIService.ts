@@ -1,4 +1,4 @@
-import { launchService, type ClinicLaunch, type LaunchTask, type LaunchRisk } from './launchService';
+import { launchService, type ClinicLaunch, type LaunchTask } from './launchService';
 
 export interface LaunchInsight {
   id: string;

@@ -38,7 +38,7 @@ class DecisionEnforcementService {
     let recommendation = 'hold';
     let reasoning = '';
 
-    if (improvement >= attribution.locked_metrics?.success_threshold || 10) {
+    if (improvement >= (attribution.locked_metrics?.success_threshold || 10)) {
       if (isSignificant) {
         recommendation = 'rollout';
         reasoning =

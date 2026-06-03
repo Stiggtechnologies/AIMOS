@@ -7,7 +7,6 @@ import {
   Play,
   ChevronRight,
   Search,
-  Filter,
   GraduationCap,
   Shield,
   Stethoscope,

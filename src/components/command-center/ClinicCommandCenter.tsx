@@ -4,7 +4,7 @@ import {
   TriangleAlert as AlertTriangle, CircleCheck as CheckCircle,
   CircleAlert as AlertCircle, Brain, ArrowRight, ChevronRight,
   ChevronDown, ChevronUp, Star, Phone, MessageSquare, RefreshCw,
-  Activity, TrendingUp, TrendingDown, UserX, BadgeCheck, Heart,
+  Activity, TrendingUp, UserX, BadgeCheck,
   Minus, ArrowUpRight, ArrowDownRight, FileText, Plus, Zap,
   Target, Award, UserPlus, ClipboardList, ChartBar as BarChart3
 } from 'lucide-react';

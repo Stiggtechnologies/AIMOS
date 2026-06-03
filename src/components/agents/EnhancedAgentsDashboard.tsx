@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Brain, Bot, Play, Pause, RefreshCw, CircleCheck as CheckCircle, Circle as XCircle, Clock, Zap, Target, TrendingUp, Users, DollarSign, TriangleAlert as AlertTriangle, Calendar, FileText, Activity, Settings, History, ChevronRight, ChartBar as BarChart2, Shield, Lightbulb } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Brain, Bot, Play, Pause, RefreshCw, CircleCheck as CheckCircle, Circle as XCircle, Clock, Zap, Target, TrendingUp, Users, DollarSign, TriangleAlert as AlertTriangle, Calendar, Activity, History, Shield, Lightbulb } from 'lucide-react';
 import { operationalAIAgents, AgentAnalysis } from '../../services/operationalAIAgents';
 
 interface AgentConfig {

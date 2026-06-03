@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { clinicalIntelligenceService } from './clinicalIntelligenceService';
 
 export interface EvidenceDigest {
   id: string;

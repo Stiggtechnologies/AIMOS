@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, DollarSign, Package, Clock, CircleCheck as CheckCircle2, Circle as XCircle, TrendingUp } from 'lucide-react';
+import { ShoppingCart, DollarSign, Package, Clock, CircleCheck as CheckCircle2, Circle as XCircle } from 'lucide-react';
 import { QuickPurchaseRequest } from './QuickPurchaseRequest';
 import { procurementService } from '../../services/procurementService';
-import type { PurchaseRequest, ClinicBudgetAllocation } from '../../services/procurementService';
+import type { PurchaseRequest } from '../../services/procurementService';
 
 interface ProcurementDashboardProps {
   clinicId?: string;

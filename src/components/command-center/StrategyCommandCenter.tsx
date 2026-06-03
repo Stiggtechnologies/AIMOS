@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Compass, TrendingUp, TrendingDown, Minus, Target, Rocket, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, DollarSign, ChartBar as BarChart3, Map, GitBranch, Calendar, BookOpen, Zap, ArrowRight, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Compass, TrendingUp, TrendingDown, Minus, Target, Rocket, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Clock, DollarSign, ChartBar as BarChart3, GitBranch, Calendar, BookOpen, Zap, ArrowRight, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import type { ModuleKey } from '../../types/enterprise';
 import { supabase } from '../../lib/supabase';
 

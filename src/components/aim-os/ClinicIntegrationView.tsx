@@ -18,7 +18,6 @@ import {
   Heart,
   BookOpen,
   Flag,
-  AlertTriangle,
 } from 'lucide-react';
 import { getIntegrationDashboard, getClinicIntegrations } from '../../services/integrationService';
 

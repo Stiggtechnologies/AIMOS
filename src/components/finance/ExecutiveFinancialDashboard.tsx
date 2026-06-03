@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle2, Clock, CreditCard, FileText, Building2, Filter } from 'lucide-react';
+import { DollarSign, TrendingDown, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle2, Clock, CreditCard, FileText, Building2 } from 'lucide-react';
 import { procurementService } from '../../services/procurementService';
-import { expenseService } from '../../services/expenseService';
-import type { SpendAlert, ClinicBudgetAllocation } from '../../services/procurementService';
+import type { SpendAlert } from '../../services/procurementService';
 
 interface DashboardStats {
   totalBudget: number;

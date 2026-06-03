@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, FileText, Upload, CircleCheck as CheckCircle, Link } from 'lucide-react';
+import { X, FileText, CircleCheck as CheckCircle, Link } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Props {

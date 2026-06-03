@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Users, DollarSign, Star, Calendar, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Star, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 
 const CLINICS = ['AIM South Commons', 'AIM Crowfoot (Simulated)'];

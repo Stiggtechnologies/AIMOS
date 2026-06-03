@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { ReferralSource, Referral, ReferralMetrics, EmployerAccount } from '../types/aim-os';
+import type { ReferralSource, Referral, ReferralMetrics } from '../types/aim-os';
 
 export interface ReferralSourceWithMetrics extends ReferralSource {
   referral_count_30d: number;

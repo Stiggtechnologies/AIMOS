@@ -11,7 +11,7 @@ import {
   getServiceLinePerformance,
   getFinancialSnapshots
 } from '../../services/financialService';
-import { TrendLineChart, BarChartComponent, PieChartComponent } from '../shared/Charts';
+import { TrendLineChart } from '../shared/Charts';
 
 type TabView = 'overview' | 'ar_aging' | 'cash_flow' | 'service_lines' | 'alerts';
 

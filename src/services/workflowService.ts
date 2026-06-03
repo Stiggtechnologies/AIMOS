@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { agentService } from './agentService';
-import type { Workflow, AgentEvent } from '../types';
+import type { Workflow } from '../types';
 
 export interface WorkflowDefinition {
   id: string;

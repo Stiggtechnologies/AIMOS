@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileStack, Plus, Search, Download, Eye, Filter, FileText, Upload, Calendar, User } from 'lucide-react';
+import { Plus, Search, Download, Eye, FileText, Upload, Calendar, User } from 'lucide-react';
 
 const DOCUMENTS = [
   { id: '1', title: 'Initial Assessment Report', patient: 'Jane Smith', type: 'Assessment', format: 'PDF', size: '245 KB', date: '2026-03-14', clinician: 'Dr. Chen', status: 'final' },

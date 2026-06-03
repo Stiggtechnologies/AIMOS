@@ -1,6 +1,6 @@
 import { supabase } from '../../../lib/supabase';
 import type { INoteService } from './types';
-import type { CreateDraftNoteInput, SaveDraftNoteVersionInput, CreateAddendumInput, NoteDraft, NoteDraftVersion, SignedNote, NoteAddendum, PaginatedResult, PaginationParams, NoteDraftWithVersions, SignedNoteWithAddenda } from '../types';
+import type { CreateDraftNoteInput, SaveDraftNoteVersionInput, CreateAddendumInput, NoteDraft, NoteDraftVersion, SignedNote, NoteAddendum, NoteType, PaginatedResult, PaginationParams, NoteDraftWithVersions, SignedNoteWithAddenda } from '../types';
 
 // Completeness score: 0-1 range (numeric(5,4) in DB)
 function computeCompleteness(sp: Record<string, unknown>): number {
@@ -20,7 +20,7 @@ function computeRisk(sp: Record<string, unknown>): number {
 }
 
 // Map UI note types to DB values
-const NOTE_TYPE_MAP: Record<string, string> = {
+const NOTE_TYPE_MAP: Record<string, NoteType> = {
   initial: 'initial',
   initial_assessment: 'initial',
   followup: 'progress',
@@ -38,16 +38,7 @@ const NOTE_TYPE_MAP: Record<string, string> = {
 
 export const noteService: INoteService = {
   async createDraftNote(input: CreateDraftNoteInput): Promise<NoteDraft> {
-    const structured_payload = {
-      subjective_section: input.sections?.subjective ?? null,
-      objective_section: input.sections?.objective ?? null,
-      assessment_section: input.sections?.assessment ?? null,
-      treatment_section: input.sections?.treatment ?? null,
-      response_section: input.sections?.response ?? null,
-      plan_section: input.sections?.plan ?? null,
-      follow_up_section: input.sections?.followUp ?? null,
-      additional_sections: input.sections?.additional ?? null,
-    };
+    const structured_payload = input.structured_payload ?? {};
 
     const { data, error } = await supabase
       .from('documentation_note_drafts')
@@ -124,12 +115,13 @@ export const noteService: INoteService = {
     const newVersion = (draft.current_version || 1) + 1;
 
     // Update the draft with new structured payload + bump version
-    const updatedPayload = (input as { structured_payload?: Record<string, unknown> }).structured_payload || sp;
+    const updatedPayload = input.structured_payload || sp;
     const { error: updateError } = await supabase
       .from('documentation_note_drafts')
       .update({
         current_version: newVersion,
         structured_payload: updatedPayload,
+        plain_text: input.plain_text ?? draft.plain_text ?? null,
         completeness_score: computeCompleteness(updatedPayload as Record<string, unknown>),
         risk_score: computeRisk(updatedPayload as Record<string, unknown>),
         updated_at: new Date().toISOString(),
@@ -138,22 +130,16 @@ export const noteService: INoteService = {
 
     if (updateError) throw new Error(`Failed to update draft: ${updateError.message}`);
 
-    // Insert version snapshot
+    // Insert immutable version snapshot (matches documentation_note_draft_versions schema)
     const { data: version, error: versionError } = await supabase
       .from('documentation_note_draft_versions')
       .insert({
         note_draft_id: input.note_draft_id,
         version_number: newVersion,
-        subjective_section: sp.subjective_section as string ?? null,
-        objective_section: sp.objective_section as string ?? null,
-        assessment_section: sp.assessment_section as string ?? null,
-        treatment_section: sp.treatment_section as string ?? null,
-        response_section: sp.response_section as string ?? null,
-        plan_section: sp.plan_section as string ?? null,
-        follow_up_section: sp.follow_up_section as string ?? null,
-        additional_sections: sp.additional_sections ?? null,
-        change_summary: (input as { provenance_payload?: unknown }).provenance_payload ? 'AI-assisted save' : 'Manual save',
-        word_count: (sp._wordCount as number) ?? null,
+        structured_payload: updatedPayload,
+        plain_text: input.plain_text ?? null,
+        provenance_payload: input.provenance_payload ?? null,
+        ai_output_metadata: input.ai_output_metadata ?? null,
         created_by_user_id: input.created_by_user_id,
       })
       .select()
@@ -237,7 +223,8 @@ export const noteService: INoteService = {
 
   async listPatientSignedNotes(patientId: string, pagination?: PaginationParams): Promise<PaginatedResult<SignedNote>> {
     const limit = pagination?.limit ?? 20;
-    const offset = pagination?.offset ?? 0;
+    const page = pagination?.page ?? 1;
+    const offset = (page - 1) * limit;
 
     const { data, error, count } = await supabase
       .from('documentation_signed_notes')
@@ -247,12 +234,14 @@ export const noteService: INoteService = {
       .range(offset, offset + limit - 1);
 
     if (error) throw new Error(`Failed to list signed notes: ${error.message}`);
-    return { data: data as SignedNote[], total: count ?? data.length, page: Math.floor(offset / limit) + 1, pageSize: limit };
+    const total = count ?? data.length;
+    return { data: data as SignedNote[], total, page, limit, has_more: offset + limit < total };
   },
 
   async listPatientDraftNotes(patientId: string, pagination?: PaginationParams): Promise<PaginatedResult<NoteDraft>> {
     const limit = pagination?.limit ?? 20;
-    const offset = pagination?.offset ?? 0;
+    const page = pagination?.page ?? 1;
+    const offset = (page - 1) * limit;
 
     const { data, error, count } = await supabase
       .from('documentation_note_drafts')
@@ -262,7 +251,8 @@ export const noteService: INoteService = {
       .range(offset, offset + limit - 1);
 
     if (error) throw new Error(`Failed to list draft notes: ${error.message}`);
-    return { data: data as NoteDraft[], total: count ?? data.length, page: Math.floor(offset / limit) + 1, pageSize: limit };
+    const total = count ?? data.length;
+    return { data: data as NoteDraft[], total, page, limit, has_more: offset + limit < total };
   },
 
   async createAddendum(input: CreateAddendumInput): Promise<NoteAddendum> {
@@ -274,8 +264,6 @@ export const noteService: INoteService = {
         addendum_type: input.addendum_type,
         reason: input.reason,
         addendum_text: input.addendum_text,
-        section_affected: input.section_affected ?? null,
-        original_text: input.original_text ?? null,
         created_by_user_id: input.created_by_user_id,
       })
       .select()
@@ -288,7 +276,7 @@ export const noteService: INoteService = {
   async approveAddendum(addendumId: string, approvedByUserId: string): Promise<NoteAddendum> {
     const { data, error } = await supabase
       .from('documentation_note_addenda')
-      .update({ status: 'approved', approved_by_user_id: approvedByUserId, approved_at: new Date().toISOString() })
+      .update({ approved_by_user_id: approvedByUserId, approved_at: new Date().toISOString() })
       .eq('id', addendumId)
       .select()
       .single();

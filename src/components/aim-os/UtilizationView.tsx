@@ -21,7 +21,6 @@ import {
   ClinicCapacityHeatmap,
   UnderUtilizationAlert,
 } from '../../services/utilizationService';
-import { BarChartComponent, PieChartComponent, CapacityHeatmap } from '../shared/Charts';
 
 export function UtilizationView() {
   const [overview, setOverview] = useState<UtilizationOverview | null>(null);
