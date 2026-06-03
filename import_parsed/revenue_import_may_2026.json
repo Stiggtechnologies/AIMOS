@@ -1,0 +1,426 @@
+{
+  "report_metadata": {
+    "period_start": "2026-05-01",
+    "period_end": "2026-05-25",
+    "clinic_name": "Alberta Injury Management",
+    "clinic_city": "Edmonton"
+  },
+  "overall_metrics": {
+    "total_revenue": 20655.7,
+    "total_visits": 132,
+    "unique_clients": 69
+  },
+  "payer_mix": {
+    "mva_percent": 3.85,
+    "patient_direct_percent": 32.31,
+    "private_insurance_percent": 49.8,
+    "wsib_percent": 5.25
+  },
+  "service_lines": [
+    {
+      "service_line": "MOT MANUAL OSTEOPATHIC THERAPY",
+      "service_category": "Clinical",
+      "total_revenue": 150.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "BIRTH"
+      }
+    },
+    {
+      "service_line": "PT BIRTH PROG PHYSIOTREATMENT",
+      "service_category": "Clinical",
+      "total_revenue": 600.0,
+      "total_visits": 4,
+      "metadata": {
+        "fee_code": "BIRTH"
+      }
+    },
+    {
+      "service_line": "PT SW TREATMENT - MULTIPLE AREAS",
+      "service_category": "Clinical",
+      "total_revenue": 840.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "BIRTH"
+      }
+    },
+    {
+      "service_line": "Cancellation",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "CANCEL"
+      }
+    },
+    {
+      "service_line": "NOTES COPY OF CHART",
+      "service_category": "Clinical",
+      "total_revenue": 250.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "CHART"
+      }
+    },
+    {
+      "service_line": "Did not attend",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "DNA"
+      }
+    },
+    {
+      "service_line": "GAIT FOOTMAXX AND BIOMECHANICAL",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "FOOT -"
+      }
+    },
+    {
+      "service_line": "MEA FOOOT SCAN PROMO",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "FOOTSCAN"
+      }
+    },
+    {
+      "service_line": "CUP ADD ON FOR CUPPING WITH",
+      "service_category": "Clinical",
+      "total_revenue": 15.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "MASS"
+      }
+    },
+    {
+      "service_line": "MINUTES MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 92.5,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "MASSAGE 2 45"
+      }
+    },
+    {
+      "service_line": "MINUTES MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 1501.5,
+      "total_visits": 14,
+      "metadata": {
+        "fee_code": "MASSAGE 3 60"
+      }
+    },
+    {
+      "service_line": "MINUTES MASSAGE",
+      "service_category": "Clinical",
+      "total_revenue": 154.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "MASSAGE 5 90"
+      }
+    },
+    {
+      "service_line": "INIT Manual Osteopathy ASSESS AND",
+      "service_category": "Clinical",
+      "total_revenue": 150.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "TRT 3 Subsequent Manual Osteopathy",
+      "service_category": "Clinical",
+      "total_revenue": 1430.0,
+      "total_visits": 11,
+      "metadata": {
+        "fee_code": "MOT"
+      }
+    },
+    {
+      "service_line": "CUSTOM MADE PRESCRIPTION",
+      "service_category": "Clinical",
+      "total_revenue": 3675.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "ORTHOTIC"
+      }
+    },
+    {
+      "service_line": "EX FOLLOW FOLLOW-UP EXERCISE PROGRAM",
+      "service_category": "Clinical",
+      "total_revenue": 270.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT 1 PHYSIOTHERAPY ASSESSMENT 1",
+      "service_category": "Clinical",
+      "total_revenue": 600.0,
+      "total_visits": 5,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT 1 PHYSIOTHERAPY ASSESSMENT PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 580.0,
+      "total_visits": 4,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT 2 ASSESSMENT 2 BODY PARTS",
+      "service_category": "Clinical",
+      "total_revenue": 580.0,
+      "total_visits": 4,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT 2 MULTIPLE BODY PARTS",
+      "service_category": "Clinical",
+      "total_revenue": 330.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT PELVIC ASSESSMENT & TREATMENT",
+      "service_category": "Clinical",
+      "total_revenue": 515.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT SNR SENIOR INITIAL SINGLE",
+      "service_category": "Clinical",
+      "total_revenue": 100.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT SW SW ASSESS & TREAT (SINGLE AREA)",
+      "service_category": "Clinical",
+      "total_revenue": 225.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INIT SW SW ASSESSMENT AND TREAMENT",
+      "service_category": "Clinical",
+      "total_revenue": 265.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "INITIAL IMS INITIAL VISIT",
+      "service_category": "Clinical",
+      "total_revenue": 145.0,
+      "total_visits": 1,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MVA AB4 AB4 Discharge Report",
+      "service_category": "Clinical",
+      "total_revenue": 40.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MVA PRI + SECTION B PHYSIOTHERAPY PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 840.0,
+      "total_visits": 7,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "MVA PRI SECTION B MULTIPLE AREAS PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 870.0,
+      "total_visits": 6,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 1 PHYSIOTHERAPY VISIT",
+      "service_category": "Clinical",
+      "total_revenue": 720.0,
+      "total_visits": 8,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 1 PLUS PHYSIOTHERAPY PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 840.0,
+      "total_visits": 7,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 2 PHYSIOTHERAPY MULTIPLE BODY",
+      "service_category": "Clinical",
+      "total_revenue": 1080.0,
+      "total_visits": 9,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT 2 PLUS PHYSIOTHERAPY MULTPLE PLUS",
+      "service_category": "Clinical",
+      "total_revenue": 725.0,
+      "total_visits": 5,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT PELVIC PELVIC HEALTH THERAPY",
+      "service_category": "Clinical",
+      "total_revenue": 360.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT SNR 1 TREATMENT SENIOR RATE 1 BODY",
+      "service_category": "Clinical",
+      "total_revenue": 140.0,
+      "total_visits": 2,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "TRT SW PHYSIO SHOCKWAVE SINGLE AREA",
+      "service_category": "Clinical",
+      "total_revenue": 510.0,
+      "total_visits": 3,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB LESS THAN 24 HRS",
+      "service_category": "Clinical",
+      "total_revenue": 50.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB CC CASE CONFERENCE WITH SURGEON",
+      "service_category": "Clinical",
+      "total_revenue": 27.5,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB CC CASE CONFERENCE WITH CO & PT",
+      "service_category": "Clinical",
+      "total_revenue": 27.5,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB WCB ASSESSMENT",
+      "service_category": "Clinical",
+      "total_revenue": 80.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB Phase 0-4 WKS SPRAIN & STRAIN",
+      "service_category": "Clinical",
+      "total_revenue": 770.0,
+      "total_visits": 11,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB Phase SPRAIN & STRAIN",
+      "service_category": "Clinical",
+      "total_revenue": 550.0,
+      "total_visits": 11,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "WCB ASSESSMENT/STATUS ABV &",
+      "service_category": "Clinical",
+      "total_revenue": 240.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "PT"
+      }
+    },
+    {
+      "service_line": "REBOOKED APPOINTMENT",
+      "service_category": "Clinical",
+      "total_revenue": 0.0,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "RE-BOOKED"
+      }
+    },
+    {
+      "service_line": "SOOTHE DERMAL 30 ML",
+      "service_category": "Clinical",
+      "total_revenue": 308.18,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "TALLAWAH"
+      }
+    },
+    {
+      "service_line": "K-TAPE KINESEO 5X5",
+      "service_category": "Clinical",
+      "total_revenue": 9.52,
+      "total_visits": 0,
+      "metadata": {
+        "fee_code": "TAPE"
+      }
+    }
+  ]
+}
