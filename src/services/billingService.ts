@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { randomDigits, randomToken } from '../lib/ids';
 
 export interface Invoice {
   id: string;
@@ -75,7 +74,8 @@ class BillingService {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    return `INV-${year}${month}-${randomDigits(4)}`;
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `INV-${year}${month}-${random}`;
   }
 
   /**
@@ -228,7 +228,7 @@ class BillingService {
     submissionType: 'electronic' | 'manual' = 'electronic'
   ): Promise<{ success: boolean; claimId?: string; error?: string }> {
     try {
-      const claimNumber = `CLM-${Date.now()}-${randomToken(3)}`;
+      const claimNumber = `CLM-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
       const { data: claim, error } = await supabase
         .from('insurance_claims')
@@ -324,7 +324,7 @@ class BillingService {
       return null;
     }
 
-    const receiptNumber = `RCP-${Date.now()}-${randomToken(3)}`;
+    const receiptNumber = `RCP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     return {
       receipt_number: receiptNumber,

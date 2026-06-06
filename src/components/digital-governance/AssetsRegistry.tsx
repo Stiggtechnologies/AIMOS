@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Database, Plus, Search, Shield, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ExternalLink, CreditCard as Edit, Calendar } from 'lucide-react';
+import { Database, Plus, Filter, Search, Shield, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ExternalLink, CreditCard as Edit, Calendar } from 'lucide-react';
 import {
   getDigitalAssets,
+  createDigitalAsset,
+  updateDigitalAsset,
   type DigitalAsset,
 } from '../../services/digitalGovernanceService';
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Microscope, Search, FileText, TrendingUp, CheckCircle, Clock,
-  AlertTriangle, BookOpen, Send,
-  Beaker, Download, Shield, Sparkles
+  AlertTriangle, BookOpen, Target, BarChart3, ChevronRight, Send,
+  Beaker, Award, Download, Shield, Sparkles
 } from 'lucide-react';
 import { clinicalIntelligenceService } from '../../services/clinicalIntelligenceService';
 import { useToast } from '../../hooks/useToast';

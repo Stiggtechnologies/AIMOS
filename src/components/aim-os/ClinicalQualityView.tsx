@@ -7,6 +7,7 @@ import {
   Users,
   Target,
   Award,
+  AlertCircle,
   CheckCircle2,
   BarChart3,
   Trophy,
@@ -17,6 +18,11 @@ import {
 import {
   getQualityDashboard,
   type QualityDashboard,
+  type OutcomeTrend,
+  type ClinicBenchmark,
+  type AnonymizedClinicianPerformance,
+  type QualityIndicator,
+  type IndustryBenchmark,
 } from '../../services/clinicalQualityService';
 
 export default function ClinicalQualityView() {

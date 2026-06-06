@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Star, MessageSquare, CircleCheck as CheckCircle, ChevronDown, ChevronUp, Search, ArrowUpRight } from 'lucide-react';
+import { Star, TriangleAlert as AlertTriangle, MessageSquare, CircleCheck as CheckCircle, ChevronDown, ChevronUp, Filter, Search, ArrowUpRight } from 'lucide-react';
 import type { ReviewTriage, ReviewPriority, ReviewStatus, ResponseTemplate } from '../../services/aimAutomationService';
 
 const PRIORITY_CONFIG: Record<ReviewPriority, { label: string; color: string; border: string; dot: string }> = {

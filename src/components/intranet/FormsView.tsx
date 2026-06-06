@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FileText, Send, Eye, Clock, Search } from 'lucide-react';
+import { FileText, Plus, Send, Eye, CheckCircle, Clock, Search } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { formsService, FormTemplate, FormSubmission, FormField } from '../../services/formsService';
+import { formsService, FormTemplate, FormSubmission, FormField, FormFieldResponse } from '../../services/formsService';
 
 type ViewMode = 'list' | 'fill' | 'view-submission' | 'my-submissions';
 

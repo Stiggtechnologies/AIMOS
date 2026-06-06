@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { seededRandom } from '../lib/demoData';
 
 export interface WorkloadMetric {
   id: string;
@@ -403,7 +402,6 @@ function generateMockBalanceSummaries(): WorkloadBalanceSummary[] {
 function generateMockHealthTrends(): WorkforceHealthTrend[] {
   const today = new Date();
   return Array.from({ length: 30 }, (_, i) => {
-    const rng = seededRandom(i + 1);
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     return {
@@ -412,9 +410,9 @@ function generateMockHealthTrends(): WorkforceHealthTrend[] {
       department: 'Physical Therapy',
       trend_date: date.toISOString().split('T')[0],
       metric_type: 'burnout_risk',
-      metric_value: 40 + rng() * 20,
+      metric_value: 40 + Math.random() * 20,
       staff_count: 12,
-      comparison_previous_period: (rng() - 0.5) * 10,
+      comparison_previous_period: (Math.random() - 0.5) * 10,
       status: 'watch',
       created_at: date.toISOString(),
     };

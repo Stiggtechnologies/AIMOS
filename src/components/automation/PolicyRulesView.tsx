@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, ChevronDown, ChevronUp, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react';
+import { Shield, ToggleLeft as Toggle, ChevronDown, ChevronUp, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react';
 import type { PolicyRule } from '../../services/aimAutomationService';
 
 const RULE_TYPE_CONFIG: Record<string, { label: string; color: string; description: string }> = {

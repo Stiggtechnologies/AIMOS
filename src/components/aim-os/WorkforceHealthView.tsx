@@ -19,6 +19,9 @@ import {
 import {
   getWorkforceHealthDashboard,
   type WorkforceHealthDashboard,
+  type WorkloadBalanceSummary,
+  type StaffWellbeingFlag,
+  type BurnoutRiskIndicator,
 } from '../../services/workforceHealthService';
 
 export default function WorkforceHealthView() {

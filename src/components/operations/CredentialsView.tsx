@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Clock, Filter, Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { credentialsService, Credential, CredentialAlert } from '../../services/credentialsService';
-import { BulkActions } from '../shared/BulkActions';
+import { BulkActions, commonBulkActions } from '../shared/BulkActions';
 
 type SeverityFilter = 'all' | 'urgent' | 'critical' | 'warning' | 'info';
 type StatusFilter = 'all' | 'active' | 'expired' | 'pending_renewal' | 'suspended';

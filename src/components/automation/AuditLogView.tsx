@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ScrollText, Search } from 'lucide-react';
+import { ScrollText, Search, Filter, Download } from 'lucide-react';
 import type { AuditLogEntry } from '../../services/aimAutomationService';
 
 interface AuditLogViewProps {

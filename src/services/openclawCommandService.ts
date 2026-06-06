@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { randomToken } from '../lib/ids';
 import type {
   OpenClawCommandEnvelope,
   OpenClawCommandResponse,
@@ -24,7 +23,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 function makeCorrelationId(): string {
-  return `oc-${Date.now()}-${randomToken(4)}`;
+  return `oc-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 async function callOpenClaw(

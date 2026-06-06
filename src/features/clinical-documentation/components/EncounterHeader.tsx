@@ -5,13 +5,13 @@ import {
   Square,
   User,
   Calendar,
+  Clock,
   Building2,
 } from 'lucide-react';
 
-import type { EncounterType, EncounterModality } from '../types';
-
 export type CaptureStatus = 'not_started' | 'recording' | 'paused' | 'stopped';
-export type { EncounterType, EncounterModality };
+export type EncounterType = 'initial' | 'followup' | 'reassessment' | 'discharge';
+export type EncounterModality = 'in_person' | 'virtual' | 'phone';
 
 interface EncounterHeaderProps {
   encounterId: string;
@@ -30,17 +30,14 @@ interface EncounterHeaderProps {
 const encounterTypeLabels: Record<EncounterType, string> = {
   initial: 'Initial Assessment',
   followup: 'Follow-up',
-  assessment: 'Assessment',
   reassessment: 'Reassessment',
   discharge: 'Discharge Summary',
-  telehealth: 'Telehealth',
-  emergency: 'Emergency',
 };
 
 const modalityLabels: Record<EncounterModality, string> = {
   in_person: 'In-Person',
-  telehealth: 'Telehealth',
-  hybrid: 'Hybrid',
+  virtual: 'Virtual',
+  phone: 'Phone',
 };
 
 const statusColors: Record<CaptureStatus, string> = {

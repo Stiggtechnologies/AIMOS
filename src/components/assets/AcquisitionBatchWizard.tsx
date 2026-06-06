@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Building2, Package, ClipboardList, CircleCheck as CheckCircle, ChevronRight, Plus, Trash2, TriangleAlert as AlertTriangle, TriangleAlert } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { randomDigits } from '../../lib/ids';
 
 interface Props {
   onClose: () => void;
@@ -29,7 +28,7 @@ const STEPS = ['Batch Details', 'Asset Roster', 'Validate & Review', 'Complete']
 function emptyRow(): AssetRow {
   return {
     id: crypto.randomUUID(),
-    asset_tag: `AIM-${randomDigits(5)}`,
+    asset_tag: `AIM-${Math.floor(10000 + Math.random() * 90000)}`,
     name: '',
     manufacturer: '',
     model: '',

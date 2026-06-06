@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Clock, Phone, Mail, User, CheckCircle, AlertCircle,
-  TrendingUp, Calendar
+  TrendingUp, MessageSquare, Calendar
 } from 'lucide-react';
 import { crmLeadService } from '../../services/crmLeadService';
 import { useAuth } from '../../contexts/AuthContext';

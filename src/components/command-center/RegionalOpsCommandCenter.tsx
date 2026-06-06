@@ -5,7 +5,7 @@ import {
   Brain, ChevronRight, Rocket, Star, CircleCheck as CheckCircle,
   CircleAlert as AlertCircle, Zap, Clock, ArrowUpRight, ArrowDownRight,
   Target, TrendingUp, RefreshCw, ChevronDown, ChevronUp, Minus,
-  ArrowRight, Award, UserX, BadgeCheck, Heart, ChartBar as BarChart3
+  ArrowRight, Award, Phone, UserX, BadgeCheck, Heart, ChartBar as BarChart3
 } from 'lucide-react';
 
 type Tab = 'overview' | 'operations' | 'staffing' | 'growth' | 'launches';
@@ -210,7 +210,6 @@ export function RegionalOpsCommandCenter({ onNavigate }: Props) {
           if (regions.length > 0 && !regions.includes('ab_east')) setRegionKey(regions[0]);
         }
       } catch {
-        // Non-critical: fall back to the default region/clinic data on load error.
       }
     })();
   }, []);

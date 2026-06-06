@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Calendar, FileText, MessageSquare, Clipboard, User, LogOut,
-  Clock, AlertCircle, Download, Send
+  Clock, AlertCircle, Download, Send, CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { patientPortalService, PatientProfile, PatientAppointment, PatientDocument, PatientMessage, TreatmentPlan } from '../../services/patientPortalService';

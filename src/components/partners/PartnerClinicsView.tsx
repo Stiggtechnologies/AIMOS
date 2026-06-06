@@ -5,6 +5,7 @@ import {
   DollarSign,
   Users,
   ChevronRight,
+  Plus,
   TrendingUp,
   Target,
   Copy

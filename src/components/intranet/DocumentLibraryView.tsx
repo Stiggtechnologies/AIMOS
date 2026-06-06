@@ -9,12 +9,19 @@ import {
   Lock,
   FileCheck,
   Calendar,
+  TrendingUp,
+  Download,
   History,
+  Users,
   AlertCircle,
 } from 'lucide-react';
 import {
   getGovernanceDashboard,
   type GovernanceDashboard,
+  type Document,
+  type DocumentVersion,
+  type DocumentReviewSchedule,
+  type AccessStatistic,
 } from '../../services/documentGovernanceService';
 
 export default function DocumentLibraryView() {

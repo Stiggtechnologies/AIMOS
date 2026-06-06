@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Brain, Bot, Play, Pause, RefreshCw, CircleCheck as CheckCircle, Circle as XCircle, Clock, Zap, Target, TrendingUp, Users, DollarSign, TriangleAlert as AlertTriangle, Calendar, Activity, History, Shield, Lightbulb } from 'lucide-react';
+import { Brain, Bot, Play, Pause, RefreshCw, CircleCheck as CheckCircle, Circle as XCircle, Clock, Zap, Target, TrendingUp, Users, DollarSign, TriangleAlert as AlertTriangle, Calendar, FileText, Activity, Settings, History, ChevronRight, ChartBar as BarChart2, Shield, Lightbulb } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { operationalAIAgents, AgentAnalysis } from '../../services/operationalAIAgents';
-import { isDemoDataEnabled, seededRandomFor } from '../../lib/demoData';
 
 interface AgentConfig {
   id: string;
@@ -168,34 +168,32 @@ export default function EnhancedAgentsDashboard() {
   }, []);
 
   const initializeAgents = () => {
-    const demo = isDemoDataEnabled();
-    const initializedAgents: AgentConfig[] = AGENT_CONFIGS.map(config => {
-      // Stable per-agent demo metrics until a real execution-metrics source is
-      // wired; zeroed (honest empty state) when demo data is disabled.
-      const rng = seededRandomFor(`agent:${config.id}`);
-      return {
-        ...config,
-        status: 'active' as const,
-        lastRun: getPastTime(rng() * 60 + 5),
-        nextRun: getFutureTime(rng() * 30 + 5),
-        metrics: demo
-          ? {
-              runs_today: Math.floor(rng() * 20) + 5,
-              avg_execution_time: Math.floor(rng() * 2000) + 500,
-              success_rate: 95 + rng() * 5,
-              insights_generated: Math.floor(rng() * 50) + 10,
-            }
-          : { runs_today: 0, avg_execution_time: 0, success_rate: 0, insights_generated: 0 },
-      };
-    });
+    const initializedAgents: AgentConfig[] = AGENT_CONFIGS.map(config => ({
+      ...config,
+      status: 'active' as const,
+      lastRun: getRandomPastTime(),
+      nextRun: getRandomFutureTime(),
+      metrics: {
+        runs_today: Math.floor(Math.random() * 20) + 5,
+        avg_execution_time: Math.floor(Math.random() * 2000) + 500,
+        success_rate: 95 + Math.random() * 5,
+        insights_generated: Math.floor(Math.random() * 50) + 10
+      }
+    }));
     setAgents(initializedAgents);
   };
 
-  const getPastTime = (minutes: number): string =>
-    new Date(Date.now() - minutes * 60 * 1000).toISOString();
+  const getRandomPastTime = (): string => {
+    const minutes = Math.floor(Math.random() * 60) + 5;
+    const date = new Date(Date.now() - minutes * 60 * 1000);
+    return date.toISOString();
+  };
 
-  const getFutureTime = (minutes: number): string =>
-    new Date(Date.now() + minutes * 60 * 1000).toISOString();
+  const getRandomFutureTime = (): string => {
+    const minutes = Math.floor(Math.random() * 30) + 5;
+    const date = new Date(Date.now() + minutes * 60 * 1000);
+    return date.toISOString();
+  };
 
   const loadRecentExecutions = async () => {
     const mockExecutions: AgentExecution[] = [

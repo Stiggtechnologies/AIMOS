@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Clock, CheckCircle, AlertCircle, RefreshCw, Zap } from 'lucide-react';
+import { Play, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Zap } from 'lucide-react';
 import { workflowService, WorkflowDefinition, ScheduledTask, NotificationTemplate } from '../../services/workflowService';
 
 export default function WorkflowAutomationView() {

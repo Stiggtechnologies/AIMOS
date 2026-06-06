@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Calendar, ChartPie as PieChart, FileText, CircleCheck as CheckCircle2, Circle as XCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, Calendar, ChartPie as PieChart, FileText, CircleCheck as CheckCircle2, Circle as XCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import {
   getPayerContracts,
   getContractRenewalAlerts,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  Target, ChevronDown, ChevronUp, RefreshCw, Calendar, Award, Layers
+  Target, ChevronDown, ChevronUp, ChevronRight, RefreshCw,
+  ArrowRight, TrendingUp, Calendar, Award, Layers
 } from 'lucide-react';
 import { enterpriseOSService, GoalNode } from '../../services/enterpriseOSService';
 

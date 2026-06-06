@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, ChartBar as BarChart2, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Calculator, TrendingUp, TrendingDown, TriangleAlert as AlertTriangle, ChartBar as BarChart2, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface BudgetRow {

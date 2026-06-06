@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
+  TrendingUp,
+  TrendingDown,
   AlertTriangle,
   Users,
   DollarSign,
@@ -8,6 +10,8 @@ import {
   Activity,
   Zap,
   ArrowRight,
+  CheckCircle2,
+  XCircle,
   AlertCircle,
   BarChart3,
 } from 'lucide-react';
@@ -15,6 +19,10 @@ import {
   getRevOpsDashboard,
   acknowledgeGrowthAlert,
   type RevOpsDashboard,
+  type PipelineMetrics,
+  type Bottleneck,
+  type ClinicianProductivity,
+  type GrowthAlert,
 } from '../../services/revopsService';
 import { useAuth } from '../../contexts/AuthContext';
 

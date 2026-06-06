@@ -3,7 +3,6 @@ import type { ModuleKey } from '../types/enterprise';
 export interface NavModule {
   key: ModuleKey;
   label: string;
-  internalTitle?: string;
   description: string;
   icon: string;
   color: string;

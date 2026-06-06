@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase';
 import { analyzeScheduleOptimization, generateSchedulingRecommendations } from './openaiService';
-import { isDemoDataEnabled, seededRandomFor } from '../lib/demoData';
 
 export interface SchedulerAppointment {
   id: string;
@@ -166,7 +165,7 @@ class SchedulerService {
       color_code: this.getStatusColor(appt.status),
       reason_for_visit: appt.reason_for_visit,
       chief_complaint: appt.chief_complaint,
-      no_show_risk: appt.no_show ? 95 : (isDemoDataEnabled() ? seededRandomFor(appt.id)() * 40 : 0),
+      no_show_risk: appt.no_show ? 95 : Math.random() * 40,
       checked_in_at: appt.checked_in_at,
       checked_out_at: appt.checked_out_at,
     }));
@@ -196,7 +195,7 @@ class SchedulerService {
       name: provider.display_name || `${provider.first_name || ''} ${provider.last_name || ''}`.trim(),
       role: provider.role,
       clinic_id: clinicId,
-      utilization: isDemoDataEnabled() ? seededRandomFor(provider.id)() * 40 + 60 : 0,
+      utilization: Math.random() * 40 + 60,
       active: provider.is_active,
     }));
 

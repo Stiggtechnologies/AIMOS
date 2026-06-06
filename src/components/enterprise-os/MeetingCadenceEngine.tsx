@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Calendar, Clock, Users, ChevronDown, ChevronUp, RefreshCw,
   CircleCheck as CheckCircle, Play, SquarePlus as PlusSquare,
-  ListChecks, Zap, ArrowRight
+  ListChecks, FileText, Zap, ArrowRight, ChevronRight
 } from 'lucide-react';
 import { enterpriseOSService, MeetingTemplate, MeetingSession, AgendaItem } from '../../services/enterpriseOSService';
 

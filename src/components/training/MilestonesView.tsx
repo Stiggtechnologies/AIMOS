@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { 
   TrendingUp, 
-  CheckCircle,
+  CheckCircle, 
+  Clock, 
+  AlertTriangle,
   ChevronRight,
   Target,
   Users,
+  FileText,
   Calendar,
   Award
 } from 'lucide-react';
@@ -18,7 +21,7 @@ interface Competency {
 interface Milestone {
   id: string;
   role_code: string;
-  role_name?: string;
+  role_name: string;
   milestone_day: number;
   milestone_name: string;
   description: string;

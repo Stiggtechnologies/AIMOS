@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, TrendingUp, TriangleAlert as AlertTriangle, Target, ChartBar as BarChart3, DollarSign, Users, Server, Zap } from 'lucide-react';
+import { Shield, TrendingUp, TriangleAlert as AlertTriangle, Target, ChartBar as BarChart3, DollarSign, Users, Server, CircleCheck as CheckCircle2, Zap } from 'lucide-react';
 import { getPayerContracts, getContractRenewalAlerts, type PayerContract, type ContractRenewalAlert } from '../../services/pricingPayerService';
 import { getServiceLines, type ServiceLine } from '../../services/servicePortfolioService';
 import { getAnomalyDetections, getAuditFlags, type AnomalyDetection, type AuditFlag } from '../../services/internalControlsService';

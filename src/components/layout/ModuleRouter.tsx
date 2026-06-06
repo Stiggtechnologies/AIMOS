@@ -103,7 +103,6 @@ const ReferralIntelligenceView = lazy(() => import('../aim-os/ReferralIntelligen
 const UtilizationView = lazy(() => import('../aim-os/UtilizationView').then(m => ({ default: m.UtilizationView })));
 const AgentExecutionDashboard = lazy(() => import('../agents/AgentExecutionDashboard').then(m => ({ default: m.AgentExecutionDashboard })));
 const AgentsView = lazy(() => import('../AgentsView'));
-const AnalyticsView = lazy(() => import('../AnalyticsView'));
 const AcquisitionView = lazy(() => import('../intelligence/AcquisitionView'));
 const ForecastingView = lazy(() => import('../intelligence/ForecastingView'));
 const ReportsView = lazy(() => import('../intelligence/ReportsView'));
@@ -206,8 +205,8 @@ interface ModuleRouterProps {
 export function ModuleRouter({ currentModule, currentSubModule, onNavigate }: ModuleRouterProps) {
   const { profile } = useAuth();
 
-  const handleNavigate = (module: string, subModule?: string, _params?: unknown) => {
-    onNavigate(module as ModuleKey, subModule ?? '');
+  const handleNavigate = (module: string, subModule: string) => {
+    onNavigate(module as ModuleKey, subModule);
   };
 
   const getRoleBasedCommandCenter = () => {

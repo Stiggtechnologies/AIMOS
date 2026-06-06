@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, TriangleAlert as AlertTriangle, TrendingDown, RefreshCw, ShoppingCart } from 'lucide-react';
+import { Package, Plus, Search, TriangleAlert as AlertTriangle, TrendingDown, RefreshCw, ShoppingCart } from 'lucide-react';
 
 const ITEMS = [
   { id: '1', name: 'Tensor Bandages (4")', sku: 'TB-004', category: 'Supplies', qty: 145, reorder: 50, unitCost: 2.50, status: 'ok' },

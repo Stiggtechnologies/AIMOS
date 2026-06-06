@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, ClipboardList, Save, DollarSign } from 'lucide-react';
+import { X, ClipboardList, Save, CircleCheck as CheckCircle, Clock, Wrench, TriangleAlert as AlertTriangle, DollarSign, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface Props {

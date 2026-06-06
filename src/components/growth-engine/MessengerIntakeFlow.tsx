@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, User, Bot, CircleCheck as CheckCircle, ChevronRight, X, Plus } from 'lucide-react';
+import { MessageCircle, Send, User, Bot, Phone, Mail, CircleCheck as CheckCircle, ChevronRight, X, Plus, RefreshCw } from 'lucide-react';
 import { growthEngineService } from '../../services/growthEngineService';
 
 interface Message {

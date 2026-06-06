@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import {
   Target,
   TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
   Users,
   BarChart3,
+  Calendar,
   Flag,
   Zap,
 } from 'lucide-react';

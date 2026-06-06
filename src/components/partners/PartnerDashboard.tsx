@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
+  TrendingUp,
   Users,
   Activity,
   Star,
   Target,
+  DollarSign,
   Calendar,
+  ArrowUp,
+  ArrowDown,
   Info,
   Shield,
   Download

@@ -1,4 +1,4 @@
-import { Zap, Clock, Bell, Shield, BookOpen } from 'lucide-react';
+import { Settings, Zap, Globe, Clock, Bell, Shield, BookOpen } from 'lucide-react';
 import type { AimLocation } from '../../services/aimAutomationService';
 
 interface SettingsViewProps {

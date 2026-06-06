@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BookOpen, Play, FileText, Clock } from 'lucide-react';
+import { BookOpen, Play, FileText, CheckCircle, Clock } from 'lucide-react';
 import { academyService } from '../../services/intranetService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { AcademyContent, AcademyCategory } from '../../types/intranet';

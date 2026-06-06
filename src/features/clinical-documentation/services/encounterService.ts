@@ -7,18 +7,18 @@ export const encounterService: IEncounterService = {
     const { data, error } = await supabase
       .from('documentation_encounters')
       .insert({
-        patient_id: input.patient_id,
-        case_id: input.case_id ?? null,
-        clinic_id: input.clinic_id,
-        provider_user_id: input.provider_user_id,
-        encounter_type: input.encounter_type,
+        patient_id: input.patientId,
+        case_id: input.caseId ?? null,
+        clinic_id: input.clinicId,
+        provider_user_id: input.providerUserId,
+        encounter_type: input.encounterType,
         modality: input.modality ?? 'in_person',
         status: 'in_progress',
-        ambient_capture_enabled: input.ambient_capture_enabled ?? false,
+        ambient_capture_enabled: input.ambientCaptureEnabled ?? false,
         capture_status: 'idle',
-        scheduled_start: input.scheduled_start ?? null,
-        actual_start: null,
-        created_by_user_id: input.provider_user_id,
+        scheduled_start: input.scheduledStart ?? null,
+        actual_start: input.actualStart ?? null,
+        created_by_user_id: input.providerUserId,
       })
       .select()
       .single();
@@ -41,14 +41,14 @@ export const encounterService: IEncounterService = {
   async updateEncounterState(input: UpdateEncounterStateInput): Promise<Encounter> {
     const updates: Record<string, unknown> = {};
     if (input.status) updates.status = input.status;
-    if (input.capture_status) updates.capture_status = input.capture_status;
-    if (input.actual_start) updates.actual_start = input.actual_start;
-    if (input.actual_end) updates.actual_end = input.actual_end;
+    if (input.captureStatus) updates.capture_status = input.captureStatus;
+    if (input.actualStart) updates.actual_start = input.actualStart;
+    if (input.actualEnd) updates.actual_end = input.actualEnd;
 
     const { data, error } = await supabase
       .from('documentation_encounters')
       .update(updates)
-      .eq('id', input.encounter_id)
+      .eq('id', input.encounterId)
       .select()
       .single();
 
@@ -58,8 +58,7 @@ export const encounterService: IEncounterService = {
 
   async listEncountersByPatient(patientId: string, pagination?: PaginationParams): Promise<PaginatedResult<Encounter>> {
     const limit = pagination?.limit ?? 20;
-    const page = pagination?.page ?? 1;
-    const offset = (page - 1) * limit;
+    const offset = pagination?.offset ?? 0;
 
     const { data, error, count } = await supabase
       .from('documentation_encounters')
@@ -69,8 +68,7 @@ export const encounterService: IEncounterService = {
       .range(offset, offset + limit - 1);
 
     if (error) throw new Error(`Failed to list encounters: ${error.message}`);
-    const total = count ?? data.length;
-    return { data: data as Encounter[], total, page, limit, has_more: offset + limit < total };
+    return { data: data as Encounter[], total: count ?? data.length, page: Math.floor(offset / limit) + 1, pageSize: limit };
   },
 
   async listEncountersByCase(caseId: string): Promise<Encounter[]> {
@@ -86,8 +84,7 @@ export const encounterService: IEncounterService = {
 
   async listEncountersByClinic(clinicId: string, pagination?: PaginationParams): Promise<PaginatedResult<Encounter>> {
     const limit = pagination?.limit ?? 20;
-    const page = pagination?.page ?? 1;
-    const offset = (page - 1) * limit;
+    const offset = pagination?.offset ?? 0;
 
     const { data, error, count } = await supabase
       .from('documentation_encounters')
@@ -97,8 +94,7 @@ export const encounterService: IEncounterService = {
       .range(offset, offset + limit - 1);
 
     if (error) throw new Error(`Failed to list encounters by clinic: ${error.message}`);
-    const total = count ?? data.length;
-    return { data: data as Encounter[], total, page, limit, has_more: offset + limit < total };
+    return { data: data as Encounter[], total: count ?? data.length, page: Math.floor(offset / limit) + 1, pageSize: limit };
   },
 
   async getEncounterTranscript(encounterId: string): Promise<Transcript | null> {

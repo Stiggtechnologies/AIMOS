@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react';
 import type { AimLocation, SocialAccount, Platform } from '../../services/aimAutomationService';
 
 const PLATFORM_LABELS: Record<Platform, string> = {

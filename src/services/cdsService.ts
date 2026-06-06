@@ -1,4 +1,4 @@
-import { researchIntelligenceService, EvidenceClaim } from './researchIntelligenceService';
+import { researchIntelligenceService, EvidenceClaim, ClinicalRule } from './researchIntelligenceService';
 import { ClinicalDomain } from './evidenceAuthorityService';
 
 export interface PatientProfile {

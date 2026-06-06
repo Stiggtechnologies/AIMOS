@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Package,
   TrendingUp,
+  TrendingDown,
   Calendar,
   DollarSign,
   Users,

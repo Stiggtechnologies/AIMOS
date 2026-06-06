@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Phone, Mail, Building2, TrendingUp } from 'lucide-react';
+import { MapPin, Phone, Mail, Users, Building2, TrendingUp } from 'lucide-react';
 import { clinicService } from '../../services/intranetService';
 import type { Clinic, ClinicMetrics } from '../../types/intranet';
 

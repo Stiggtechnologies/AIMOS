@@ -308,7 +308,9 @@ export function DraftReviewPage({ draftId, patientId, onNavigate }: DraftReviewP
                         </span>
                         <span className="text-xs text-slate-500">{new Date(v.created_at).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">{v.provenance_payload ? 'AI-assisted save' : 'Manual save'}</p>
+                      {v.change_summary && (
+                        <p className="text-xs text-slate-400 mt-1">{v.change_summary}</p>
+                      )}
                       <p className="text-xs text-slate-500">{new Date(v.created_at).toLocaleTimeString()}</p>
                     </div>
                   ))}

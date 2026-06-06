@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Facebook, Instagram, Linkedin, Calendar, Clock, FileText, Eye, Trash2, Send, MoveHorizontal as MoreHorizontal } from 'lucide-react';
+import { Plus, Filter, Search, Facebook, Instagram, Linkedin, Calendar, Clock, CircleCheck as CheckCircle, Circle as XCircle, CircleAlert as AlertCircle, FileText, Eye, CreditCard as Edit3, Trash2, Send, MoveHorizontal as MoreHorizontal } from 'lucide-react';
 import type { ContentPost, PostStatus, Platform } from '../../services/aimAutomationService';
 
 const PLATFORM_ICONS: Record<Platform, React.ComponentType<{ className?: string }>> = {

@@ -3,6 +3,8 @@ import {
   DollarSign,
   TrendingUp,
   CheckCircle2,
+  Clock,
+  AlertTriangle,
   BarChart3,
   FileText,
   Target,

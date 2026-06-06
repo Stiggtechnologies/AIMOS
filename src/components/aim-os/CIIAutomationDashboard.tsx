@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
+  ArrowRight,
   Beaker,
   CheckCircle,
   AlertCircle,
   TrendingUp,
+  Calendar,
   Users,
   BarChart3,
   Zap,
   Archive,
   RefreshCw,
-  BookOpen
+  BookOpen,
+  FileText
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { researchIngestionService } from '../../services/researchIngestionService';

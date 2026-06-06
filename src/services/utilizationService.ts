@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase';
 import type { UtilizationLog, AppointmentSlot, CancellationReason } from '../types/aim-os';
-import { isDemoDataEnabled, seededRandomFor } from '../lib/demoData';
 
 export interface UtilizationOverview {
   overall_utilization: number;
@@ -222,21 +221,18 @@ function generateMockClinicianUtilization(): ClinicianUtilization[] {
     { name: 'Dr. Jennifer Wong', specialty: 'Physical Therapy', rate: 58.2 },
   ];
 
-  return clinicians.map((c, i) => {
-    const rng = seededRandomFor(`clinician-util:${c.name}`);
-    return {
-      clinician_id: `clinician-${i + 1}`,
-      clinician_name: c.name,
-      specialty: c.specialty,
-      scheduled_hours: 160,
-      delivered_hours: (160 * c.rate) / 100,
-      utilization_rate: c.rate,
-      cancellation_rate: rng() * 12 + 3,
-      no_show_rate: rng() * 8 + 2,
-      avg_revenue_per_hour: 245,
-      status: c.rate < 70 ? 'underutilized' : c.rate > 95 ? 'overutilized' : 'optimal',
-    };
-  });
+  return clinicians.map((c, i) => ({
+    clinician_id: `clinician-${i + 1}`,
+    clinician_name: c.name,
+    specialty: c.specialty,
+    scheduled_hours: 160,
+    delivered_hours: (160 * c.rate) / 100,
+    utilization_rate: c.rate,
+    cancellation_rate: Math.random() * 12 + 3,
+    no_show_rate: Math.random() * 8 + 2,
+    avg_revenue_per_hour: 245,
+    status: c.rate < 70 ? 'underutilized' : c.rate > 95 ? 'overutilized' : 'optimal',
+  }));
 }
 
 async function getCapacityHeatmap(): Promise<ClinicCapacityHeatmap[]> {
@@ -253,13 +249,10 @@ async function getCapacityHeatmap(): Promise<ClinicCapacityHeatmap[]> {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
-  const demo = isDemoDataEnabled();
   for (const clinic of clinics) {
     for (const day of daysOfWeek) {
       for (const hour of hours) {
-        // No real per-slot utilization source yet: stable demo value per slot,
-        // or 0 (empty) when demo data is disabled.
-        const utilizationRate = demo ? seededRandomFor(`${clinic.id}-${day}-${hour}`)() * 100 : 0;
+        const utilizationRate = Math.random() * 100;
         const capacity = 8;
         const appointmentCount = Math.floor((utilizationRate / 100) * capacity);
 
@@ -299,17 +292,16 @@ function generateMockHeatmap(): ClinicCapacityHeatmap[] {
   for (const clinic of clinics) {
     for (const day of daysOfWeek) {
       for (const hour of hours) {
-        const rng = seededRandomFor(`mock-${clinic.id}-${day}-${hour}`);
         let utilizationRate: number;
 
         if (hour === 12) {
-          utilizationRate = rng() * 30 + 20;
+          utilizationRate = Math.random() * 30 + 20;
         } else if (hour >= 9 && hour <= 11) {
-          utilizationRate = rng() * 20 + 75;
+          utilizationRate = Math.random() * 20 + 75;
         } else if (hour >= 14 && hour <= 16) {
-          utilizationRate = rng() * 20 + 70;
+          utilizationRate = Math.random() * 20 + 70;
         } else {
-          utilizationRate = rng() * 30 + 40;
+          utilizationRate = Math.random() * 30 + 40;
         }
 
         const capacity = 8;

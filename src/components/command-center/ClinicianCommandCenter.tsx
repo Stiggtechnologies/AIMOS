@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Clock, FileText, Activity, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Brain, TrendingUp, Dumbbell, ClipboardList, ChevronRight, ChevronDown, ChevronUp, RefreshCw, Star, Calendar, Minus, ArrowUpRight, ArrowDownRight, BookOpen, Target, Send, Plus, CirclePlay as PlayCircle, Search } from 'lucide-react';
+import { User, Clock, FileText, Activity, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Brain, TrendingUp, TrendingDown, Dumbbell, ClipboardList, ArrowRight, ChevronRight, ChevronDown, ChevronUp, RefreshCw, Star, Calendar, Minus, ArrowUpRight, ArrowDownRight, BookOpen, Zap, Heart, Target, MessageSquare, X, Send, Plus, CirclePlay as PlayCircle, Search } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { EvidenceOverlay } from '../aim-os/EvidenceOverlay';
@@ -255,7 +255,6 @@ export function ClinicianCommandCenter({ onNavigate }: Props) {
           setTodayPatients(mapped);
         }
       } catch {
-        // Non-critical: fall back to the default/empty patient list on load error.
       }
     })();
   }, [profile?.id]);

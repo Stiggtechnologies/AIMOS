@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCheck, Trash2, Settings, Filter, CircleAlert as AlertCircle, Info, TriangleAlert as AlertTriangle, Circle as XCircle } from 'lucide-react';
+import { Bell, CheckCheck, Trash2, Settings, Filter, X, CircleAlert as AlertCircle, Info, TriangleAlert as AlertTriangle, Circle as XCircle } from 'lucide-react';
 import { notificationService, Notification, NotificationPreferences } from '../services/notificationService';
 import { useAuth } from '../contexts/AuthContext';
 

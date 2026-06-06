@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Phone, CheckCircle, Clock } from 'lucide-react';
+import { Users, Phone, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { getIntakePipeline, getPipelineStats } from '../../services/growthOsService';
 import type { IntakePipeline } from '../../types/aim-os';
 

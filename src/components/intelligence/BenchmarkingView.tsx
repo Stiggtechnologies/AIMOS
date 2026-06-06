@@ -1,5 +1,5 @@
-import { Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartBar as BarChart2, TrendingUp, Award, TriangleAlert as AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 
 const CLINIC_BENCHMARKS = [
   { clinic: 'South Commons', utilization: 78, ar_days: 38, visits_per_day: 28, nps: 72, revenue_per_visit: 182 },
